@@ -25,8 +25,11 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 	private final int periode;
 	private final long timer;
 	private final boolean listener;
-	private List<Long> neighbors = new ArrayList<Long>();
-	private List<Integer> values = new ArrayList<Integer>(); //for leader protocol
+	//private List<Long> neighbors = new ArrayList<Long>();
+	//private List<Integer> values = new ArrayList<Integer>(); //for leader protocol
+	private List<Long> neighbors;
+	private List<Integer> values; //for leader protocol
+
 
 	public NeighborProtocolImpl(String prefix) {
 
@@ -35,6 +38,9 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 		this.periode = Configuration.getInt(prefix + "." + PAR_PERIODE);
 		this.timer = Configuration.getInt(prefix + "." + PAR_TIMER);
 		this.listener = Configuration.getBoolean(prefix + "." + PAR_LISTENER);
+		neighbors = new ArrayList<Long>();
+		values = new ArrayList<Integer>(); //for leader protocol
+
 	}
 	
 	public int getNeighborValue(long id_new_neighbor) {
@@ -52,6 +58,8 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 		NeighborProtocolImpl np = null;
 		try {
 			np = (NeighborProtocolImpl) super.clone();
+			np.neighbors = new ArrayList<Long>();
+			np.values = new ArrayList<Integer>(); //for leader protocol
 		} catch (CloneNotSupportedException e) {
 		}
 		return np;
