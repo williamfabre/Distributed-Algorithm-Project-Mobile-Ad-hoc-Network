@@ -84,7 +84,8 @@
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
 \lstdefinestyle{mystyle}{
-	basicstyle=\fontsize{7}{11}\ttfamily %proper font size
+	%basicstyle=\fontsize\tiny\ttfamily %proper font size
+	%basicstyle=\small, %or \small or \footnotesize etc.
 	backgroundcolor=\color{backcolour},   
 	commentstyle=\color{codegreen},
 	keywordstyle=\color{magenta},
@@ -104,3 +105,10 @@
 }
 
 \lstset{style=mystyle}
+
+
+% my own command to add caption to figure code
+\newcommand{\mylisting}[2][]{%
+    \lstinputlisting[caption={\texttt{\detokenize{#2}}},#1]{#2}%
+}
+
