@@ -1,0 +1,78 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%HEADER FROM ADRIAN SATIN, modified by william fabre %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[utf8]{inputenc} 
+\usepackage{graphicx} % support the \includegraphics command and options
+\usepackage[frenchb]{babel}
+\usepackage{tikz}
+\usepackage{circuitikz}
+\usetikzlibrary{circuits}
+\graphicspath{{images/}}% chemin vers les images
+\usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+%%% PACKAGES
+\usepackage{hyperref} % Gestion Hyperliens/url
+% https://en.wikibooks.org/wiki/LaTeX/Hyperlinks
+\usepackage{eurosym}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{svg}
+% YOLO NICE CODE EXEMPLE merci axel
+\usepackage{minted}
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{listings}
+\usepackage{amsmath,amsfonts,amsthm,amssymb}
+\usepackage{pdfpages}
+\usepackage{comment}
+\usepackage{caption}
+\definecolor{violet-logo}{RGB}{23,63,28}
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{plain} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{1pt} % customise the layout...
+\lfoot{}\cfoot{\thepage}\rfoot{}
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+\usepackage{geometry} % to change the page dimensions
+\geometry{left=2cm, right=2cm, bottom= 1cm}
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+\pagestyle{fancyplain}
+\fancyhead{}
+%%% END Article customizations
+
+%nice chapter
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+{\normalfont\bfseries}{}{0pt}{\Large}
+\titlespacing*{\chapter}{0pt}{-50pt}{40pt}
+
+% nice section
+\makeatletter
+\def\@seccntformat#1{%
+	\expandafter\ifx\csname c@#1\endcsname\c@section\else
+\csname the#1\endcsname\quad
+  \fi}
+\makeatother
+
+\usepackage{array,multirow,makecell}
+\setcellgapes{1pt}
+\makegapedcells
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+\fancyhf{} % sets both header and footer to nothing
+\renewcommand{\headrulewidth}{0pt}
+\addtolength{\topmargin}{-60pt}
+
+%bibtex
+\bibliographystyle{plain}
+

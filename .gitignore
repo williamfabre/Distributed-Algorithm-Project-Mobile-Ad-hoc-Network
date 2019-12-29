@@ -1,0 +1,97 @@
+##############################################################################
+# GIT IGNORE FOR ECLIPSE PROJECT 
+# https://github.com/github/gitignore/blob/master/Global/Eclipse.gitignore
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+## External tool builders
+.externalToolBuilders/
+
+## Locally stored "Eclipse launch configurations"
+*.launch
+
+
+## CDT- autotools
+.autotools
+
+
+## sbteclipse plugin
+.target
+
+## Code Recommenders
+.recommenders/
+
+## Annotation Processing
+.apt_generated/
+.apt_generated_test/
+
+### Eclipse Patch ###
+# Eclipse Core
+.project
+
+# JDT-specific (Eclipse Java Development Tools)
+.classpath
+
+# Annotation Processing
+.apt_generated
+
+.sts4-cache/
+# End of https://www.gitignore.io/api/eclipse
+
+##############################################################################
+# GIT IGNORE FOR LATEX PROJECT 
+# https://github.com/github/gitignore/blob/master/TeX.gitignore
+## Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+## Intermediate documents:
+*.dvi
+*.xdv
+*-converted-to.*
+# these rules might exclude image files for figures etc.
+# *.ps
+# *.eps
+# *.pdf
+
+## Generated if empty string is given at "Please type another file name for output:"
+.pdf
+
+## Bibliography auxiliary files (bibtex/biblatex/biber):
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+## Build tool auxiliary files:
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+
+## Build tool directories for auxiliary files
+# latexrun
+latex.out/

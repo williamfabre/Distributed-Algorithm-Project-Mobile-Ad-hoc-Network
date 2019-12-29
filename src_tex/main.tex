@@ -1,0 +1,171 @@
+\documentclass[11pt,a4paper,sans]{report}
+\input{header.sty}
+
+\begin{document}
+\begin{titlepage}
+
+
+
+\center % Center everything on the page
+
+%----------------------------------------------------------------------------------------
+%	HEADING SECTIONS
+%----------------------------------------------------------------------------------------
+
+\textsc{\LARGE Université Pierre et Marie Curie}\\[1.5cm] % Name of your university/college
+\textsc{\Large projet MANET}\\[0.5cm] % Major heading such as course name
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+\vfill
+\HRule \\[0.4cm]
+{ \huge \bfseries Compte-rendu : Projet ARA 2019–2020, Mobile Ad hoc NETworks }\\[0.4cm] % Title of your document
+\HRule \\[1.5cm]
+\vfill
+%----------------------------------------------------------------------------------------
+%	AUTHOR SECTION
+%----------------------------------------------------------------------------------------
+
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Auteurs:}\\
+		% Ordre alphabetique sur les noms
+		\textsc{Maria Popova, William Fabre} 
+		\end{flushleft}
+		\end{minipage}
+		~
+		\begin{minipage}{0.4\textwidth}
+		\begin{flushright} \large
+		\emph{Professeur:} \\
+			Monsieur \textsc{Lejeune},\textsc{Favier}
+			\end{flushright}
+			\end{minipage}\\[2cm]
+
+		% If you don't want a supervisor, uncomment the two lines below and remove the section above
+		%\Large \emph{Author:}\\
+		%John \textsc{Smith}\\[3cm] % Your name
+
+%----------------------------------------------------------------------------------------
+%	DATE SECTION
+%----------------------------------------------------------------------------------------
+
+{\large Année 2019-2020}\\[2cm] % Date, change the \today to a set date if you want to be precise
+
+%----------------------------------------------------------------------------------------
+%	LOGO SECTION
+%----------------------------------------------------------------------------------------
+
+% Axel: Logo Sorbetone Universitas meh pas trop gros LoL
+%\includegraphics[scale=2]{logo.pdf}
+% \includegraphics{logo.png}\\[1cm] % Include a department/university logo - this will require the graphicx package
+
+%----------------------------------------------------------------------------------------
+
+%\vfill % Fill the rest of the page with whitespace
+
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\vspace*{3cm}
+\begingroup\let\clearpage\relax
+
+\newpage
+\chapter{Introduction}
+
+%multilinecomments
+\begin{comment}
+TODO intro du projet, nos remarques. + Explication du fichier de config accompagnées d’un fichier texte "Readme"
+indiquant comment compiler le projet et lancer les différentes simulations (votre projet doit pouvoir se compiler/lancer en dehors d’Eclipse) Votre rapport, au format pdf, concis, dans lequel vous devez répondre aux questions posées dans le sujet.
+\end{comment}
+
+% TODO quotation work use the biblio.bib to add references.
+TODOCHANGEHEREtest1234\cite{greenwade93}
+
+\newpage
+\chapter{Préparation du projet et installation}
+% TODO tutoriel d'installation
+\newpage
+\chapter{Exercice 1 – Implémentation d’un MANET dans Peer-Sim}
+
+\section{Question 1}
+\textit{En analysant le code de la classe PositionProtocolImpl, donnez l’algorithme général de déplacement d’un nœud. Il ne vous est pas demandé de copier/coller le code dans cette question.}
+
+
+
+
+\section{Question 2}
+\textit{Testez le simulateur en prenant la stratégie FullRandom comme SPI et SD. Le contrôleur graphique sera déclenché toutes les unités de temps, son timeslow pourra être environ de 0.0002. Le seul protocole à renseigner pour ce contrôleur est le PositionProtocol de la simulation, les autres sont pour l’instant optionnels et sans objet.  Normalement vous devez voir graphiquement des points verts se déplacer sur l’écran.  N’oubliez pas d’amorcer les instances de PositionProtocol via un module d’initialisation. Vous répondrez à cette question en donnant le contenu de votre fichier de configuration.}
+% TODO inserer le fichier de configuration necessiare pour faire cette question
+
+\section{Question 3}
+\textit{Codez une classe implémentant l’interface Emitter. Testez de nouveau avec le moniteur graphique et assurez-vous que les portées sont représentées (cercle en bleu).  Vous répondrez à cette question en donnant le code de votre classe.}
+% TODO inserer le code de la classe qui implemente Emitter
+
+\section{Question 4}
+
+\section{Question 5}
+\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.} %TODO inserer image
+
+\section{Question 6}
+\textit{En analysant les codes des classes gérant le positionnement des nœuds qui font appel à un tirage aléatoire, on peut remarquer qu’ils utilisent un objet Random qui leur est dédié (attribut my\_random initialisé au random de la classe PositioningConfiguration).  Quelle en est la raison ?}
+
+\section{Question 7}
+\textit{Prenez connaissance des différentes stratégies et pour chacune expliquez ce qu’elle fait.}
+\begin{itemize}
+\item strategie 1:
+\item strategie 2:
+\end{itemize}
+
+
+\newpage
+\chapter{Exercice 2 – Implémentation d’algorithmes d’élection de Leader sur un MANET}
+\section*{Premier algorithme}
+
+\section{Question 1}
+\textit{Dans la section III, expliquez pour chaque hypothèse, pourquoi elle est vérifiée (ou
+		peut être vérifiée) dans notre simulateur.}
+
+\section{Question 2}
+
+\section{Question 3}
+
+\section{Question 4}
+
+\section*{Deuxieme algorithme}
+
+\section{Question 5}
+\textit{L’algorithme utilise des horloges logiques. A quoi servent-elles ?  Pourquoi chaque nœud ne peut incrémenter uniquement sa propre horloge ?}
+\section{Question 6}
+\textit{Pourquoi le knowledge est émis dans sa totalité à la détection de l’arrivée d’un nœud dans le voisinage ?}
+\section{Question 7}
+\textit{Quel est l’intérêt de créer des edits lors de la déconnexion d’un voisin ou de la réception d’un knowledge, au lieu d’envoyer le knowledge dans son ensemble ?}
+\section{Question 8}
+\textit{Quel est le contenu d’un edit ?}
+\section{Question 9}
+\textit{Qu’implique l’adjectif reachable ligne 46 ?}
+\section{Question 10}
+\textit{Implémentez l’algorithme dans PeerSim et vérifiez qu’il fonctionne avec le moniteur graphique.}
+\section{Question 11}
+\textit{Considérons maintenant qu’il puisse y avoir des pertes de messages suite aux collisions des ondes radio (on ne vous demande pas de les implémenter).}
+\begin{itemize}
+\item \textit{Quel impact ceci aurait sur les valeurs des horloges (old\_clock et knowledge[source].clock) lors des réceptions de edit ?}
+\item \textit{Comment pourrions-nous résoudre efficacement ce problème (encore une fois , il n’est pas demandé de l’implémenter)}
+\end{itemize}
+
+\newpage
+\chapter{Exercice 3 – Étude expérimentale}
+
+\newpage
+\bibliographystyle{IEEEtran}
+\bibliography{biblio}
+
+\newpage
+\chapter{Annexe}
+
+
+
+
+\end{document}
+
