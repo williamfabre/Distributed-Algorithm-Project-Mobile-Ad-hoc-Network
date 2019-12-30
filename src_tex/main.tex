@@ -4,65 +4,63 @@
 \begin{document}
 \begin{titlepage}
 
+	\center % Center everything on the page
 
+	%----------------------------------------------------------------------------------------
+	%	HEADING SECTIONS
+	%----------------------------------------------------------------------------------------
 
-\center % Center everything on the page
+	\textsc{\LARGE Université Pierre et Marie Curie}\\[1.5cm] % Name of your university/college
+	\textsc{\Large projet MANET}\\[0.5cm] % Major heading such as course name
 
-%----------------------------------------------------------------------------------------
-%	HEADING SECTIONS
-%----------------------------------------------------------------------------------------
+	%----------------------------------------------------------------------------------------
+	%	TITLE SECTION
+	%----------------------------------------------------------------------------------------
+	\vfill
+	\HRule \\[0.4cm]
+	{ \huge \bfseries Compte-rendu : Projet ARA 2019–2020, Mobile Ad hoc NETworks }\\[0.4cm] % Title of your document
+	\HRule \\[1.5cm]
+	\vfill
+	%----------------------------------------------------------------------------------------
+	%	AUTHOR SECTION
+	%----------------------------------------------------------------------------------------
 
-\textsc{\LARGE Université Pierre et Marie Curie}\\[1.5cm] % Name of your university/college
-\textsc{\Large projet MANET}\\[0.5cm] % Major heading such as course name
-
-%----------------------------------------------------------------------------------------
-%	TITLE SECTION
-%----------------------------------------------------------------------------------------
-\vfill
-\HRule \\[0.4cm]
-{ \huge \bfseries Compte-rendu : Projet ARA 2019–2020, Mobile Ad hoc NETworks }\\[0.4cm] % Title of your document
-\HRule \\[1.5cm]
-\vfill
-%----------------------------------------------------------------------------------------
-%	AUTHOR SECTION
-%----------------------------------------------------------------------------------------
-
-\begin{minipage}{0.4\textwidth}
-\begin{flushleft} \large
-\emph{Auteurs:}\\
-		% Ordre alphabetique sur les noms
-		\textsc{Maria Popova, William Fabre} 
+	\begin{minipage}{0.4\textwidth}
+		\begin{flushleft} \large
+			\emph{Auteurs:}\\
+			% Ordre alphabetique sur les noms
+			\textsc{Maria Popova, William Fabre} 
 		\end{flushleft}
-		\end{minipage}
-		~
-		\begin{minipage}{0.4\textwidth}
+	\end{minipage}
+	~
+	\begin{minipage}{0.4\textwidth}
 		\begin{flushright} \large
-		\emph{Professeur:} \\
+			\emph{Professeur:} \\
 			Monsieur \textsc{Lejeune},\textsc{Favier}
-			\end{flushright}
-			\end{minipage}\\[2cm]
+		\end{flushright}
+	\end{minipage}\\[2cm]
 
-		% If you don't want a supervisor, uncomment the two lines below and remove the section above
-		%\Large \emph{Author:}\\
-		%John \textsc{Smith}\\[3cm] % Your name
+	% If you don't want a supervisor, uncomment the two lines below and remove the section above
+	%\Large \emph{Author:}\\
+	%John \textsc{Smith}\\[3cm] % Your name
 
-%----------------------------------------------------------------------------------------
-%	DATE SECTION
-%----------------------------------------------------------------------------------------
+	%----------------------------------------------------------------------------------------
+	%	DATE SECTION
+	%----------------------------------------------------------------------------------------
 
-{\large Année 2019-2020}\\[2cm] % Date, change the \today to a set date if you want to be precise
+	{\large Année 2019-2020}\\[2cm] % Date, change the \today to a set date if you want to be precise
 
-%----------------------------------------------------------------------------------------
-%	LOGO SECTION
-%----------------------------------------------------------------------------------------
+	%----------------------------------------------------------------------------------------
+	%	LOGO SECTION
+	%----------------------------------------------------------------------------------------
 
-% Axel: Logo Sorbetone Universitas meh pas trop gros LoL
-%\includegraphics[scale=2]{logo.pdf}
-% \includegraphics{logo.png}\\[1cm] % Include a department/university logo - this will require the graphicx package
+	% Axel: Logo Sorbetone Universitas meh pas trop gros LoL
+	%\includegraphics[scale=2]{logo.pdf}
+	% \includegraphics{logo.png}\\[1cm] % Include a department/university logo - this will require the graphicx package
 
-%----------------------------------------------------------------------------------------
+	%----------------------------------------------------------------------------------------
 
-%\vfill % Fill the rest of the page with whitespace
+	%\vfill % Fill the rest of the page with whitespace
 
 \end{titlepage}
 
@@ -71,131 +69,154 @@
 \vspace*{3cm}
 \begingroup\let\clearpage\relax
 
-\newpage
-\chapter{Introduction}
+	\newpage
+	\chapter{Introduction}
 
-%multilinecomments
-\begin{comment}
-TODO intro du projet, nos remarques. + Explication du fichier de config accompagnées d’un fichier texte "Readme"
-indiquant comment compiler le projet et lancer les différentes simulations (votre projet doit pouvoir se compiler/lancer en dehors d’Eclipse) Votre rapport, au format pdf, concis, dans lequel vous devez répondre aux questions posées dans le sujet.
-\end{comment}
+	%multilinecomments
+	\begin{comment}
+		TODO intro du projet, nos remarques. + Explication du fichier de config accompagnées d’un fichier texte "Readme"
+		indiquant comment compiler le projet et lancer les différentes simulations (votre projet doit pouvoir se compiler/lancer en dehors d’Eclipse) Votre rapport, au format pdf, concis, dans lequel vous devez répondre aux questions posées dans le sujet.
+	\end{comment}
 
-% TODO quotation work use the biblio.bib to add references.
-TODOCHANGEHEREtest1234\cite{greenwade93}
+	% TODO quotation work use the biblio.bib to add references.
+	TODOCHANGEHEREtest1234\cite{greenwade93}
 
-\newpage
-\chapter{Préparation du projet et installation}
-% TODO tutoriel d'installation
-\newpage
-\chapter{Exercice 1 – Implémentation d’un MANET dans Peer-Sim}
+	\newpage
+	\chapter{Préparation du projet et installation}
+	% TODO tutoriel d'installation
+	\newpage
+	\chapter{Exercice 1 – Implémentation d’un MANET dans Peer-Sim}
 
-\section{Question 1}
-\textit{En analysant le code de la classe PositionProtocolImpl, donnez l’algorithme général de déplacement d’un nœud. Il ne vous est pas demandé de copier/coller le code dans cette question.}
+	\section{Question 1}
+	\textit{En analysant le code de la classe PositionProtocolImpl, donnez l’algorithme général de déplacement d’un nœud. Il ne vous est pas demandé de copier/coller le code dans cette question.}
+	\par Le but de cet algorithme est de deplacer un noeud dans l'espace de deux dimenssions en direction d'une position choisi en fonction de la strategie de deplacement.  L'algorithme de deplacement du noeud fonctionne comme suit :
+	\par Si le noeud ne bouge pas alors il est mis en mouvement. C'est a dire q'on lui affecte une vitesse \texttt{vi} aleatoire bornee par un \texttt{MinSpeed} et un \texttt{MaxSpeed}. Puis on lui choisi une desination qui est de type Position (element qui possede deux coordonnes). Il faut maintenant calculer la distance en metres entre le point de depart, qui est la position du Node et la position d'arrivee, que nous appellerons destination ; Grace a la formule suivante :
+\begin{gather}
+Soit \quad  (dest, cur) \in Position^2, \\
+distance = (dest.x - cur.x)^2 + (dest.y - cur.y)^2 
+\end{gather}
+\par C'est la distance total pour arriver a destination. Maintenant il nous faut calculer la distance totale parcourable en une unite de temps. Elle est egale a la vitesse dans la metrique du systeme, c'est a dire, la vitesse \texttt{vi} en metres par secondes qu'il faut diviser par mille pour avoir des metre par millisecondes.
+\begin{gather}
+Soit  \quad  (vi) \in Vitesse \quad (m*s^{-1}), \\
+distance\_to\_next= vi / 1000
+\end{gather}
+\par Si la distance totale est inferieur a la distance parcourable en une unite de temps il faut alors calculer une nouvelle Position intermediaire et donc un x et un y:
 
-
-
-
-\section{Question 2}
-\textit{Testez le simulateur en prenant la stratégie FullRandom comme SPI et SD. Le contrôleur graphique sera déclenché toutes les unités de temps, son timeslow pourra être environ de 0.0002. Le seul protocole à renseigner pour ce contrôleur est le PositionProtocol de la simulation, les autres sont pour l’instant optionnels et sans objet.  Normalement vous devez voir graphiquement des points verts se déplacer sur l’écran.  N’oubliez pas d’amorcer les instances de PositionProtocol via un module d’initialisation. Vous répondrez à cette question en donnant le contenu de votre fichier de configuration.}
-% TODO inserer le fichier de configuration necessiare pour faire cette question
-\mylisting[basicstyle=\tiny,frame=rlbt,language=Java]{../src/ara/config} %with frame
-
-\section{Question 3}
-\textit{Codez une classe implémentant l’interface Emitter. Testez de nouveau avec le moniteur graphique et assurez-vous que les portées sont représentées (cercle en bleu).  Vous répondrez à cette question en donnant le code de votre classe.}
-% TODO inserer le code de la classe qui implemente Emitter
-\mylisting[basicstyle=\tiny,frame=rlbt,language=Java]{../src/ara/manet/communication/EmitterProtocolImpl.java}
-%\lstinputlisting[language=Java]{\communication}
-
-
-\section{Question 4}
-
-\section{Question 5}
-\par\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=\textwidth, frame]{question5_links}
-    \caption{Representation de l'apparition de lien lors de la simulation}
-    \label{fig:mesh1}
-\end{figure}
-
-
-% TODO ecrire un commentaire intelligible ici on peut voir comment referencer une figure
-% on peut aussi comment referencer directement la page d'une figure
-\par As you can see in the figure \ref{fig:mesh1}, the 
-function grows near 0. Also, in the page \pageref{fig:mesh1} 
-is the same example.
-
-\section{Question 6}
-\textit{En analysant les codes des classes gérant le positionnement des nœuds qui font appel à un tirage aléatoire, on peut remarquer qu’ils utilisent un objet Random qui leur est dédié (attribut my\_random initialisé au random de la classe PositioningConfiguration).  Quelle en est la raison ?}
-
-\begin{comment}
-il faut finir l'analyse du code commence dans mon carnet mais je pense actuellement que c'est pour etre sur d'avoir bien deux random differents, en effet on applique le meme calcule a deux entitees et on obtient donc un random pour x et un pour y qui sont egaux. Avec deux randoms, on a x != y.
-\begin{comment}
-
-\section{Question 7}
-\textit{Prenez connaissance des différentes stratégies et pour chacune expliquez ce qu’elle fait.}
-
-% Donner les vrais noms des strategies, et finir l'analyse des strategies commence a la question precedente.
-\begin{itemize}
-\item strategie 1:
-\item strategie 2:
-\item strategie 3:
-\item strategie 4:
-\item strategie 5:
-\end{itemize}
+\begin{gather}
+Soit  \quad  (next_x,next_y) \in long^2 \\
+Soit  \quad  (\theta_{1}, \theta_{2}) \in degree^2 \\
+next\_x =  (distance\_to\_next * \dfrac{(dest.x - cur.x)}{((dest.x - cur.x)^2 + (dest.y - cur.y)^2)}) + cur.x \\
+\Longleftrightarrow \\
+next\_x =  (distance\_to\_next * \sin{\theta_{1}}) + cur.x \\
+\\
+\\
+next\_y =  (distance\_to\_next * \dfrac{(dest.y - cur.y)}{((dest.x - cur.x)^2 + (dest.y - cur.y)^2)}) + cur.y \\
+\Longleftrightarrow \\
+next\_y =  (distance\_to\_next * \cos(\theta_{2})) + cur.x \\
+\end{gather}
 
 
-\newpage
-\chapter{Exercice 2 – Implémentation d’algorithmes d’élection de Leader sur un MANET}
-\section*{Premier algorithme}
+	\section{Question 2}
+	\textit{Testez le simulateur en prenant la stratégie FullRandom comme SPI et SD. Le contrôleur graphique sera déclenché toutes les unités de temps, son timeslow pourra être environ de 0.0002. Le seul protocole à renseigner pour ce contrôleur est le PositionProtocol de la simulation, les autres sont pour l’instant optionnels et sans objet.  Normalement vous devez voir graphiquement des points verts se déplacer sur l’écran.  N’oubliez pas d’amorcer les instances de PositionProtocol via un module d’initialisation. Vous répondrez à cette question en donnant le contenu de votre fichier de configuration.}
+	% TODO inserer le fichier de configuration necessiare pour faire cette question
+	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java]{../src/ara/config} %with frame
 
-\section{Question 1}
-\textit{Dans la section III, expliquez pour chaque hypothèse, pourquoi elle est vérifiée (ou
+	\section{Question 3}
+	\textit{Codez une classe implémentant l’interface Emitter. Testez de nouveau avec le moniteur graphique et assurez-vous que les portées sont représentées (cercle en bleu).  Vous répondrez à cette question en donnant le code de votre classe.}
+	% TODO inserer le code de la classe qui implemente Emitter
+	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java]{../src/ara/manet/communication/EmitterProtocolImpl.java}
+	%\lstinputlisting[language=Java]{\communication}
+
+
+	\section{Question 4}
+
+	\section{Question 5}
+	\par\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.}
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=\textwidth, frame]{question5_links}
+		\caption{Representation de l'apparition de lien lors de la simulation}
+		\label{fig:mesh1}
+	\end{figure}
+
+
+	% TODO ecrire un commentaire intelligible ici on peut voir comment referencer une figure
+	% on peut aussi comment referencer directement la page d'une figure
+	\par As you can see in the figure \ref{fig:mesh1}, the 
+	function grows near 0. Also, in the page \pageref{fig:mesh1} 
+	is the same example.
+
+	\section{Question 6}
+	\textit{En analysant les codes des classes gérant le positionnement des nœuds qui font appel à un tirage aléatoire, on peut remarquer qu’ils utilisent un objet Random qui leur est dédié (attribut my\_random initialisé au random de la classe PositioningConfiguration).  Quelle en est la raison ?}
+
+	\begin{comment}
+		il faut finir l'analyse du code commence dans mon carnet mais je pense actuellement que c'est pour etre sur d'avoir bien deux random differents, en effet on applique le meme calcule a deux entitees et on obtient donc un random pour x et un pour y qui sont egaux. Avec deux randoms, on a x != y.
+	\end{comment}
+
+	\section{Question 7}
+	\textit{Prenez connaissance des différentes stratégies et pour chacune expliquez ce qu’elle fait.}
+
+	% Donner les vrais noms des strategies, et finir l'analyse des strategies commence a la question precedente.
+	\begin{itemize}
+		\item strategie 1:
+		\item strategie 2:
+		\item strategie 3:
+		\item strategie 4:
+		\item strategie 5:
+	\end{itemize}
+
+
+	\newpage
+	\chapter{Exercice 2 – Implémentation d’algorithmes d’élection de Leader sur un MANET}
+	\section*{Premier algorithme}
+
+	\section{Question 1}
+	\textit{Dans la section III, expliquez pour chaque hypothèse, pourquoi elle est vérifiée (ou
 		peut être vérifiée) dans notre simulateur.}
 
-\section{Question 2}
+	\section{Question 2}
 
-\section{Question 3}
+	\section{Question 3}
 
-\section{Question 4}
+	\section{Question 4}
 
-\section*{Deuxieme algorithme}
+	\section*{Deuxieme algorithme}
 
-\section{Question 5}
-\textit{L’algorithme utilise des horloges logiques. A quoi servent-elles ?  Pourquoi chaque nœud ne peut incrémenter uniquement sa propre horloge ?}
-\section{Question 6}
-\textit{Pourquoi le knowledge est émis dans sa totalité à la détection de l’arrivée d’un nœud dans le voisinage ?}
-\section{Question 7}
-\textit{Quel est l’intérêt de créer des edits lors de la déconnexion d’un voisin ou de la réception d’un knowledge, au lieu d’envoyer le knowledge dans son ensemble ?}
-\section{Question 8}
-\textit{Quel est le contenu d’un edit ?}
-\section{Question 9}
-\textit{Qu’implique l’adjectif reachable ligne 46 ?}
-\section{Question 10}
-\textit{Implémentez l’algorithme dans PeerSim et vérifiez qu’il fonctionne avec le moniteur graphique.}
-\section{Question 11}
-\textit{Considérons maintenant qu’il puisse y avoir des pertes de messages suite aux collisions des ondes radio (on ne vous demande pas de les implémenter).}
-\begin{itemize}
-\item \textit{Quel impact ceci aurait sur les valeurs des horloges (old\_clock et knowledge[source].clock) lors des réceptions de edit ?}
-\item \textit{Comment pourrions-nous résoudre efficacement ce problème (encore une fois , il n’est pas demandé de l’implémenter)}
-\end{itemize}
+	\section{Question 5}
+	\textit{L’algorithme utilise des horloges logiques. A quoi servent-elles ?  Pourquoi chaque nœud ne peut incrémenter uniquement sa propre horloge ?}
+	\section{Question 6}
+	\textit{Pourquoi le knowledge est émis dans sa totalité à la détection de l’arrivée d’un nœud dans le voisinage ?}
+	\section{Question 7}
+	\textit{Quel est l’intérêt de créer des edits lors de la déconnexion d’un voisin ou de la réception d’un knowledge, au lieu d’envoyer le knowledge dans son ensemble ?}
+	\section{Question 8}
+	\textit{Quel est le contenu d’un edit ?}
+	\section{Question 9}
+	\textit{Qu’implique l’adjectif reachable ligne 46 ?}
+	\section{Question 10}
+	\textit{Implémentez l’algorithme dans PeerSim et vérifiez qu’il fonctionne avec le moniteur graphique.}
+	\section{Question 11}
+	\textit{Considérons maintenant qu’il puisse y avoir des pertes de messages suite aux collisions des ondes radio (on ne vous demande pas de les implémenter).}
+	\begin{itemize}
+		\item \textit{Quel impact ceci aurait sur les valeurs des horloges (old\_clock et knowledge[source].clock) lors des réceptions de edit ?}
+		\item \textit{Comment pourrions-nous résoudre efficacement ce problème (encore une fois , il n’est pas demandé de l’implémenter)}
+	\end{itemize}
 
-\newpage
-\chapter{Exercice 3 – Étude expérimentale}
+	\newpage
+	\chapter{Exercice 3 – Étude expérimentale}
 
-\newpage
-\bibliographystyle{IEEEtran}
-\bibliography{biblio}
+	\newpage
+	\bibliographystyle{IEEEtran}
+	\bibliography{biblio}
 
-\newpage
-% \phantomsection
-\addcontentsline{toc}{chapter}{\listfigurename}
-\listoffigures
+	\newpage
+	% \phantomsection
+	\addcontentsline{toc}{chapter}{\listfigurename}
+	\listoffigures
 
 
 
-\newpage
-\chapter{Annexe}
+	\newpage
+	\chapter{Annexe}
 
 
 
