@@ -110,16 +110,38 @@ TODOCHANGEHEREtest1234\cite{greenwade93}
 \section{Question 4}
 
 \section{Question 5}
-\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.} %TODO inserer image
+\par\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth, frame]{question5_links}
+    \caption{Representation de l'apparition de lien lors de la simulation}
+    \label{fig:mesh1}
+\end{figure}
+
+
+% TODO ecrire un commentaire intelligible ici on peut voir comment referencer une figure
+% on peut aussi comment referencer directement la page d'une figure
+\par As you can see in the figure \ref{fig:mesh1}, the 
+function grows near 0. Also, in the page \pageref{fig:mesh1} 
+is the same example.
 
 \section{Question 6}
 \textit{En analysant les codes des classes gérant le positionnement des nœuds qui font appel à un tirage aléatoire, on peut remarquer qu’ils utilisent un objet Random qui leur est dédié (attribut my\_random initialisé au random de la classe PositioningConfiguration).  Quelle en est la raison ?}
 
+\begin{comment}
+il faut finir l'analyse du code commence dans mon carnet mais je pense actuellement que c'est pour etre sur d'avoir bien deux random differents, en effet on applique le meme calcule a deux entitees et on obtient donc un random pour x et un pour y qui sont egaux. Avec deux randoms, on a x != y.
+\begin{comment}
+
 \section{Question 7}
 \textit{Prenez connaissance des différentes stratégies et pour chacune expliquez ce qu’elle fait.}
+
+% Donner les vrais noms des strategies, et finir l'analyse des strategies commence a la question precedente.
 \begin{itemize}
 \item strategie 1:
 \item strategie 2:
+\item strategie 3:
+\item strategie 4:
+\item strategie 5:
 \end{itemize}
 
 
@@ -164,6 +186,13 @@ TODOCHANGEHEREtest1234\cite{greenwade93}
 \newpage
 \bibliographystyle{IEEEtran}
 \bibliography{biblio}
+
+\newpage
+% \phantomsection
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+
+
 
 \newpage
 \chapter{Annexe}
