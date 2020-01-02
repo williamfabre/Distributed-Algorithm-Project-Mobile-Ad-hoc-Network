@@ -18,7 +18,7 @@
 	%----------------------------------------------------------------------------------------
 	\vfill
 	\HRule \\[0.4cm]
-	{ \huge \bfseries Compte-rendu : Projet ARA 2019–2020, Mobile Ad hoc NETworks }\\[0.4cm] % Title of your document
+	{ \huge \bfseries Compte-rendu : Projet ARA 2019–2020, Mobile Ad hoc NETworks }\\[0.4cm] 
 	\HRule \\[1.5cm]
 	\vfill
 	%----------------------------------------------------------------------------------------
@@ -40,27 +40,11 @@
 		\end{flushright}
 	\end{minipage}\\[2cm]
 
-	% If you don't want a supervisor, uncomment the two lines below and remove the section above
-	%\Large \emph{Author:}\\
-	%John \textsc{Smith}\\[3cm] % Your name
-
 	%----------------------------------------------------------------------------------------
 	%	DATE SECTION
 	%----------------------------------------------------------------------------------------
 
 	{\large Année 2019-2020}\\[2cm] % Date, change the \today to a set date if you want to be precise
-
-	%----------------------------------------------------------------------------------------
-	%	LOGO SECTION
-	%----------------------------------------------------------------------------------------
-
-	% Axel: Logo Sorbetone Universitas meh pas trop gros LoL
-	%\includegraphics[scale=2]{logo.pdf}
-	% \includegraphics{logo.png}\\[1cm] % Include a department/university logo - this will require the graphicx package
-
-	%----------------------------------------------------------------------------------------
-
-	%\vfill % Fill the rest of the page with whitespace
 
 \end{titlepage}
 
@@ -91,30 +75,34 @@
 	\textit{En analysant le code de la classe PositionProtocolImpl, donnez l’algorithme général de déplacement d’un nœud. Il ne vous est pas demandé de copier/coller le code dans cette question.}
 	\par Le but de cet algorithme est de deplacer un noeud dans l'espace de deux dimenssions en direction d'une position choisi en fonction de la strategie de deplacement.  L'algorithme de deplacement du noeud fonctionne comme suit :
 	\par Si le noeud ne bouge pas alors il est mis en mouvement. C'est a dire q'on lui affecte une vitesse \texttt{vi} aleatoire bornee par un \texttt{MinSpeed} et un \texttt{MaxSpeed}. Puis on lui choisi une desination qui est de type Position (element qui possede deux coordonnes). Il faut maintenant calculer la distance en metres entre le point de depart, qui est la position du Node et la position d'arrivee, que nous appellerons destination ; Grace a la formule suivante :
-\begin{gather}
-Soit \quad  (dest, cur) \in Position^2, \\
-distance = (dest.x - cur.x)^2 + (dest.y - cur.y)^2 
-\end{gather}
-\par C'est la distance total pour arriver a destination. Maintenant il nous faut calculer la distance totale parcourable en une unite de temps. Elle est egale a la vitesse dans la metrique du systeme, c'est a dire, la vitesse \texttt{vi} en metres par secondes qu'il faut diviser par mille pour avoir des metre par millisecondes.
-\begin{gather}
-Soit  \quad  (vi) \in Vitesse \quad (m*s^{-1}), \\
-distance\_to\_next= vi / 1000
-\end{gather}
-\par Si la distance totale est inferieur a la distance parcourable en une unite de temps il faut alors calculer une nouvelle Position intermediaire et donc un x et un y:
+	\begin{gather}
+		Soit \quad  (dest, cur) \in Position^2, \\
+		distance = (dest.x - cur.x)^2 + (dest.y - cur.y)^2 
+	\end{gather}
+	\par C'est la distance total pour arriver a destination. Maintenant il nous faut calculer la distance totale parcourable en une unite de temps. Elle est egale a la vitesse dans la metrique du systeme, c'est a dire, la vitesse \texttt{vi} en metres par secondes qu'il faut diviser par mille pour avoir des metre par millisecondes.
+	\begin{gather}
+		Soit  \quad  (vi) \in Vitesse \quad (m*s^{-1}), \\
+		distance\_to\_next= vi / 1000
+	\end{gather}
+	\par Si la distance totale est inferieur a la distance parcourable en une unite de temps il faut alors calculer une nouvelle Position intermediaire et donc un x et un y:
 
-\begin{gather}
-Soit  \quad  (next_x,next_y) \in long^2 \\
-Soit  \quad  (\theta_{1}, \theta_{2}) \in degree^2 \\
-next\_x =  (distance\_to\_next * \dfrac{(dest.x - cur.x)}{((dest.x - cur.x)^2 + (dest.y - cur.y)^2)}) + cur.x \\
-\Longleftrightarrow \\
-next\_x =  (distance\_to\_next * \sin{\theta_{1}}) + cur.x \\
-\\
-\\
-next\_y =  (distance\_to\_next * \dfrac{(dest.y - cur.y)}{((dest.x - cur.x)^2 + (dest.y - cur.y)^2)}) + cur.y \\
-\Longleftrightarrow \\
-next\_y =  (distance\_to\_next * \cos(\theta_{2})) + cur.x \\
-\end{gather}
+	\begin{gather}
+		Soit  \quad  (next_x,next_y) \in long^2 \\
+		Soit  \quad  (\theta_{1}, \theta_{2}) \in degree^2 \\
+		next\_x =  (distance\_to\_next * \dfrac{(dest.x - cur.x)}{((dest.x - cur.x)^2 + (dest.y - cur.y)^2)}) + cur.x \\
+		\Longleftrightarrow \\
+		next\_x =  (distance\_to\_next * \sin{\theta_{1}}) + cur.x \\
+		\\
+		\\
+		next\_y =  (distance\_to\_next * \dfrac{(dest.y - cur.y)}{((dest.x - cur.x)^2 + (dest.y - cur.y)^2)}) + cur.y \\
+		\Longleftrightarrow \\
+		next\_y =  (distance\_to\_next * \cos(\theta_{2})) + cur.x \\
+	\end{gather}
 
+	Sinon, si la distance total est egale ou inferieur a la distance parcourable en une unite de temps, alors on affete les coordonnes de la position destination a notre Node.
+
+	% TODO expliquer mieux.
+	On vient verifier si la position a change, pour affecter une pause, sinon on incremente le temps du simulateur d'une unite de temps.
 
 	\section{Question 2}
 	\textit{Testez le simulateur en prenant la stratégie FullRandom comme SPI et SD. Le contrôleur graphique sera déclenché toutes les unités de temps, son timeslow pourra être environ de 0.0002. Le seul protocole à renseigner pour ce contrôleur est le PositionProtocol de la simulation, les autres sont pour l’instant optionnels et sans objet.  Normalement vous devez voir graphiquement des points verts se déplacer sur l’écran.  N’oubliez pas d’amorcer les instances de PositionProtocol via un module d’initialisation. Vous répondrez à cette question en donnant le contenu de votre fichier de configuration.}
@@ -129,6 +117,7 @@ next\_y =  (distance\_to\_next * \cos(\theta_{2})) + cur.x \\
 
 
 	\section{Question 4}
+	% Peut etre expliquer les difficultes?
 
 	\section{Question 5}
 	\par\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.}
@@ -155,15 +144,101 @@ next\_y =  (distance\_to\_next * \cos(\theta_{2})) + cur.x \\
 
 	\section{Question 7}
 	\textit{Prenez connaissance des différentes stratégies et pour chacune expliquez ce qu’elle fait.}
+	Pour chacune les strategies de placement de noeuds dans l'espace il existe deux types de placement : Un placement dit initial et un deplacement qui sont represente par deux fonctions :
+	\texttt{getInitialPosition} et \texttt{getNextDestination}. Les strategies implementent ces fonctions si elles implementent leur interfaces : \texttt{InitialPositionStrategy} et \texttt{NextDestinationStrategy} ceci sera precise dans le titre des sections suivantes.
 
-	% Donner les vrais noms des strategies, et finir l'analyse des strategies commence a la question precedente.
+	\subsection*{Strategie 1 : ConnectedRandom (InitialPositionStrategy, NextDestinationStrategy)}
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=\textwidth, frame]{StrategieConnectedRandom}
+		\caption{Representation du calcule pour le placement connected Random}
+		\label{fig:mesh1}
+	\end{figure}
+
+
+	\par Les elements de la figure \ref{fig:mesh1} sont :
 	\begin{itemize}
-		\item strategie 1:
-		\item strategie 2:
-		\item strategie 3:
-		\item strategie 4:
-		\item strategie 5:
+		\item A gauche, la grille de placement des noeuds avec \texttt{max\_X} et \texttt{max\_Y} qui sont des parametres du systeme. On peut aussi voir \texttt{max\_X / 2} et \texttt{max\_Y / 2}. Pour finir, \texttt{maxX, maxY, minX, minY} correspondent aux nouveaux min et max calcules par la fonction en additionnant ou soustrayant delta visible graphiquement. La zone hachuree correspond a l'ensemble des coordonnees possible pour une position randomizee.
+		\item A droite, On peut observer le scope d'un noeud et un parametre de marge de l'algorithme Connected Random.
+		\item En bas on peut observer graphiquement la taille de \textt{scope-marge}
 	\end{itemize}
+
+	La figure ci dessus\pageref{fig:mesh1} represente l'implementation pour les fonctions \texttt{getInitialPosition} et \texttt{getNextDestination}, il existe un argument de fonction speed qui n'est pas utilise malgre le fait que l'interface \texttt{NextDestinationStrategy} explique :
+	\par "Retourne une nouvelle de destination du neoud host en fonction de la vitesse speed"
+
+
+	\subsection*{Strategie 2 : FullRandom (InitialPositionStrategy, NextDestinationStrategy)}
+
+		\subsubsection{\texttt{getInitialPosition}}
+		\par La strategie pour la position initiale est de creer en une table associative a partir de tous les noeuds du reseau et grace a la fonction \texttt{Network.get(i)} ("Returns node with the given index. Note that the same node will normally have a different index in different times. le ieme dans la liste des noeuds", ce qui signifie un ajout de randomization) affecter a chaque node le resultat de la fonction Destination decrite ci-apres.
+
+		\subsubsection{\texttt{getNextDestination}}
+		\par La strategie de choix de la destination suivante consiste a affecter une nouvelle position \textt{nextX} et \textt{nexty} tel que :
+	\begin{gather}
+		position = (my\_random.nextDouble() * maxX, \quad my\_random.nextDouble() * maxY)
+	\end{gather}
+
+
+	\subsection*{Strategie 3 : InitialPositionConnectedRing (InitialPositionStrategy)}
+	Le but de cette fonction est de calculer la position des points en fonction d'un centre pour les placer autour de celui-ci. Elle utilise : \texttt{centre.getNewPositionWith} qui "Calcul une nouvelle position à partir d'un module et d'un angle depuis la position courante".
+	Explicitons les calcules, nous reutiliserons les variables \texttt{maxX, maxY, scope maxX/2 et maxY/2}, nous ajoutons une variable centre qui est definie par les coordonnes \texttt{maxX/2,MaxY/2}, la taille du reseau, appelee \texttt{size} et une variable rayon qui nous aidera a placer les points autour du centre.
+	\begin{gather}
+		Soit \quad rayon \in Entier, \\
+		rayon = min(size*(scope/8), maxY / 2.5) \\
+		\\
+		exemple \quad : \\ 
+		size = 10 \quad scope = 32 \quad maxY = 500 \\
+		rayon = min(10*4, 500/2.5) \\
+		rayon = min(40, 200) = 40
+	\end{gather}
+	Le calcule du rayon differe si les noeuds sont paires ou impaires. voici la fin du calcule s'ils sont paire :
+	\begin{gather}
+		Soit \quad rayon \in Entier, \\
+		Soit \quad numero\_de\_node \in Entier paire, \\
+		rayon = rayon - (scope/2) \\
+		\\
+		exemple \quad : \\ 
+		rayon = 40 - (32/2) = -210
+	\end{gather}
+	Il faut maintenant un \texttt{delta\_angle} qui servira au calcule de la position cournte de la fonction \texttt{center.getNewPositionWith},
+	\begin{gather}
+		Soit \quad delta\_angle \in Entier, \\
+		delta\_angle = \dfrac{2 * \pi}{size} \\ 
+		\\
+		exemple \quad : \\ 
+		size = 10 \\
+		delta\_angle = \dfrac{2 * \pi}{10} = 0.6283 \quad(approx)\\ 
+	\end{gather}
+
+	\par l'appelle a la fonction  :
+	\begin{lstlisting}
+		centre.getNewPositionWith(rayon, delta_angle * host.getID())
+	\end{lstlisting}
+	\par placera donc les noeuds de 0 a 9 ainsi :	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.5\textwidth, frame]{InitialPositionConnectedRing}
+		\caption{Representation du placement InitialPotisionConnectedRing, le cercle represente le rayon (scope) et on voit bien que tous les nodes sont places autour d'un centre en (0,0). Pour se faire nous avons choisi une position initial (0,0). Cette position initiale est necessaire lors de l'appelle a la fonction \texttt{getNewPositionWith} qui fait partie de la classe Position}
+		\label{fig:mesh1}
+	\end{figure}
+
+
+
+	\subsection*{Strategie 4 : InitialPositionConnectedRing (InitialPositionStrategy)}
+
+
+
+	\subsection*{Stragerie 5 : NextDestinationConnectedOneMove (NextDestinationStrategy)}
+
+
+
+	\subsection*{Strategie 6 : NextDestinationImmobility (NextDestinationStrategy)}
+
+
+
+	\subsection*{Strategie 7 : NextDestinationRandomPeriodicInitial (NextDestinationStrategy)}
+
 
 
 	\newpage
