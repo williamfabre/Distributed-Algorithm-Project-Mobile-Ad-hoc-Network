@@ -50,34 +50,37 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 	@Override
 	public List<Long> getNeighbors() {
 		return this.neighbors;
-		//return new ArrayList<Long>();
 	}
 
-	public Object clone() {
-
+	public Object clone()
+	{
 		NeighborProtocolImpl np = null;
-		try {
+		
+		try
+		{
 			np = (NeighborProtocolImpl) super.clone();
 			np.neighbors = new ArrayList<Long>();
 			np.values = new ArrayList<Integer>(); //for leader protocol
-		} catch (CloneNotSupportedException e) {
+		} 
+		catch (CloneNotSupportedException e) 
+		{
+			System.err.println(e.toString());
 		}
+		
 		return np;
 	}
 
-	public void recvProbMsg(Node host, ProbeMessage msg) {
-
-		if (!neighbors.contains(msg.getIdSrc())) {
-			
+	public void recvProbMsg(Node host, ProbeMessage msg)
+	{
+		if (!neighbors.contains(msg.getIdSrc()))
+		{
 			long idNeighbor = msg.getIdSrc();
 			neighbors.add(idNeighbor);
 			
-			//System.out.println("Node " + host.getID() + " new " + msg.getIdSrc());
-			//System.out.println("Node " + host.getID() + " total " + neighbors.size());
-
 			EDSimulator.add(timer, timer_event, host, my_pid);
 
-			if (listener) {
+			if (listener) 
+			{
 				//notify for Leader protocol
 				values.add(msg.getValue()); //value for LP
 				int election_pid = Configuration.lookupPid("election");
@@ -98,7 +101,6 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 			gvlEl.newNeighborDetected(host, idNeighbor);
 			values.remove(0);//value for LP
 		}
-		//System.out.println(host.getID() + " " + getNeighbors());
 		neighbors.remove(0);
 	}
 
@@ -119,28 +121,33 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 		EDSimulator.add(periode, heart_event, host, my_pid);
 	}
 
-	public void processEvent(Node host, int pid, Object event) {
-		if (pid != my_pid) {
+	public void processEvent(Node host, int pid, Object event)
+	{
+		if (pid != my_pid)
+		{
 			throw new RuntimeException("Receive Event for wrong protocol");
 		}
 
-		if (event instanceof ProbeMessage) {
-			recvProbMsg(host, (ProbeMessage) event);
+		if (event instanceof ProbeMessage)
+		{
+			recvProbMsg(host, (ProbeMessage)event);
 			return;
 		}
 
-		if (event instanceof String) {
+		if (event instanceof String)
+		{
 			String ev = (String) event;
-			if (ev.equals(heart_event)) {
+			if (ev.equals(heart_event))
+			{
 				heartbeat(host);
 				return;
 			}
-			if (ev.equals(timer_event)) {
+			if (ev.equals(timer_event))
+			{
 				delNeighbor(host);
 				return;
 			}
 		}
-
 		throw new RuntimeException("Receive unknown Event");
 	}
 
