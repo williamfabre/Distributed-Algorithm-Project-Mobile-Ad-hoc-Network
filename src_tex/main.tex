@@ -109,10 +109,11 @@
 	% TODO inserer le fichier de configuration necessiare pour faire cette question
 	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java]{../src/ara/config} %with frame
 
+	\newpage
 	\section{Question 3}
-	\textit{Codez une classe implémentant l’interface Emitter. Testez de nouveau avec le moniteur graphique et assurez-vous que les portées sont représentées (cercle en bleu).  Vous répondrez à cette question en donnant le code de votre classe.}
+	\textit{Codez une classe implémentant l’interface Emitter. Testez de nouveau avec le moniteur graphique et assurez-vous que les portées sont représentées (cercle en bleu).}
 	% TODO inserer le code de la classe qui implemente Emitter
-	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java]{../src/ara/manet/communication/EmitterProtocolImpl.java}
+	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=14, lastline=124]{../src/ara/manet/communication/EmitterProtocolImpl.java}
 	%\lstinputlisting[language=Java]{\communication}
 
 
@@ -138,9 +139,7 @@
 	\section{Question 6}
 	\textit{En analysant les codes des classes gérant le positionnement des nœuds qui font appel à un tirage aléatoire, on peut remarquer qu’ils utilisent un objet Random qui leur est dédié (attribut my\_random initialisé au random de la classe PositioningConfiguration).  Quelle en est la raison ?}
 
-	\begin{comment}
-		il faut finir l'analyse du code commence dans mon carnet mais je pense actuellement que c'est pour etre sur d'avoir bien deux random differents, en effet on applique le meme calcule a deux entitees et on obtient donc un random pour x et un pour y qui sont egaux. Avec deux randoms, on a x != y.
-	\end{comment}
+	Le but de nos simulations est d'evaluer un ensemble d'algorithme avec differents types de placement, deplacements de nodes. la reproductibilite de ces simulations est importante pour des soucis de debug ou de l'analyse. Maitriser tres exactement la seed de randomization est un point cle pour avoir des algorithmes avec des placements aleatoires mais maitrises. On peut voir que la classe \texttt{PositioningConfiguration} recuperer \texttt{PAR\_SEED\_POSITIONING} depuis le fichier de configuration.
 
 	\section{Question 7}
 	\textit{Prenez connaissance des différentes stratégies et pour chacune expliquez ce qu’elle fait.}
@@ -148,10 +147,12 @@
 	\texttt{getInitialPosition} et \texttt{getNextDestination}. Les strategies implementent ces fonctions si elles implementent leur interfaces : \texttt{InitialPositionStrategy} et \texttt{NextDestinationStrategy} ceci sera precise dans le titre des sections suivantes.
 
 	\subsection*{Strategie 1 : ConnectedRandom (InitialPositionStrategy, NextDestinationStrategy)}
+	\subsubsection{\texttt{getInitialPosition} et \texttt{getNextDestination}}
+	\par Le schema suivant s'applique pour definir une position initial ou trouver une nouvelle position a un noeud.
 
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=\textwidth, frame]{StrategieConnectedRandom}
+		\includegraphics[width=0.9\textwidth, frame]{StrategieConnectedRandom}
 		\caption{Representation du calcule pour le placement connected Random}
 		\label{fig:mesh1}
 	\end{figure}
@@ -164,10 +165,9 @@
 		\item En bas on peut observer graphiquement la taille de \textt{scope-marge}
 	\end{itemize}
 
-	La figure ci dessus\pageref{fig:mesh1} represente l'implementation pour les fonctions \texttt{getInitialPosition} et \texttt{getNextDestination}, il existe un argument de fonction speed qui n'est pas utilise malgre le fait que l'interface \texttt{NextDestinationStrategy} explique :
-	\par "Retourne une nouvelle de destination du neoud host en fonction de la vitesse speed"
+	La figure ci dessus\pageref{fig:mesh1} represente l'implementation pour les fonctions \texttt{getInitialPosition} et \texttt{getNextDestination}, il existe un argument de fonction speed qui n'est pas utilise malgre le fait que l'interface \texttt{NextDestinationStrategy} explique : "Retourne une nouvelle de destination du neoud host en fonction de la vitesse speed".
 
-
+	\newpage
 	\subsection*{Strategie 2 : FullRandom (InitialPositionStrategy, NextDestinationStrategy)}
 
 		\subsubsection{\texttt{getInitialPosition}}
@@ -181,6 +181,7 @@
 
 
 	\subsection*{Strategie 3 : InitialPositionConnectedRing (InitialPositionStrategy)}
+	\subsubsection{\texttt{getInitialPosition}}
 	Le but de cette fonction est de calculer la position des points en fonction d'un centre pour les placer autour de celui-ci. Elle utilise : \texttt{centre.getNewPositionWith} qui "Calcul une nouvelle position à partir d'un module et d'un angle depuis la position courante".
 	Explicitons les calcules, nous reutiliserons les variables \texttt{maxX, maxY, scope maxX/2 et maxY/2}, nous ajoutons une variable centre qui est definie par les coordonnes \texttt{maxX/2,MaxY/2}, la taille du reseau, appelee \texttt{size} et une variable rayon qui nous aidera a placer les points autour du centre.
 	\begin{gather}
@@ -215,30 +216,67 @@
 	\begin{lstlisting}
 		centre.getNewPositionWith(rayon, delta_angle * host.getID())
 	\end{lstlisting}
-	\par placera donc les noeuds de 0 a 9 ainsi :	
+	\par placera donc les noeuds de 0 a 9 ainsi :
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.5\textwidth, frame]{InitialPositionConnectedRing}
-		\caption{Representation du placement InitialPotisionConnectedRing, le cercle represente le rayon (scope) et on voit bien que tous les nodes sont places autour d'un centre en (0,0). Pour se faire nous avons choisi une position initial (0,0). Cette position initiale est necessaire lors de l'appelle a la fonction \texttt{getNewPositionWith} qui fait partie de la classe Position}
+	 	\caption{Representation du placement InitialPotisionConnectedRing}
+	\floatfoot{Le cercle represente le rayon (scope) et on voit bien que tous les nodes sont places autour d'un centre en (0,0). Pour se faire nous avons choisi une position initial (0,0). Cette position initiale est necessaire lors de l'appelle a la fonction \texttt{getNewPositionWith} qui fait partie de la classe Position}
 		\label{fig:mesh1}
 	\end{figure}
 
 
 
 	\subsection*{Strategie 4 : InitialPositionConnectedRing (InitialPositionStrategy)}
-
+	\subsubsection{\texttt{getInitialPosition}}
+	Le but de cette strategie est de definir une position initiale pour tous les noeuds en une passe. C'est un chainage entre les noeuds vont se placer en fonction d'un voisin. Il existe un traitement specifique pour le tout premier noeud. L'algorithme redefini des bornes pour positionner le premier noeud. appelons les valeurs definies par defaut \texttt{old\_maxX} et \texttt{old\_maxY}. Cette nouvelle position est ajoutee a une \texttt{hashmap<id, Position>} qui s'appelle \texttt{initial\_position} qui est partagee par toutes les instances de cette classe.
+	\begin{gather}
+		Soit \quad (old\_maxX,old\_maxY) \in Entier^2 \\
+		Soit \quad (minX,maxX,minY,maxY) \in Entier^4 \\
+		Soit \quad p \in Position
+		minX = old\_maxX / 3; \quad maxX = old\_maxX; \\
+		minY = old\_maxY / 3; \quadmaxY = old\_maxY;\\
+		p = ([minX, maxX], [minY, maxY]) \\
+	\end{gather}
+	Pour tous les autres noeuds,  ils choisissent un voisin qui possede un id egale a la taille de la hashmap \texttt{initial\_position}. ils choisissent au hasard, un angle, une distance bornee avec une verification que ces bornes sont bien definies grace a une fonction \texttt{bound}.
+	Pour finir ils s'ajoutent a  la hashmap partagee.
 
 
 	\subsection*{Stragerie 5 : NextDestinationConnectedOneMove (NextDestinationStrategy)}
+	\subsubsection{\texttt{getNewPositionWith}}
+	Le but de cette strategie est de definir une nouvelle position pour un node nomme \texttt{host} tout en gardant une seule composante connexe sur le reseau. Toute division en plusieurs composantes apres deplacement d'un noeud n'est pas retenu et le noeud reste immobile jusqu'a son prochain deplacement.
+	\par Elle defini une variable qui represente le protocol du noeud \texttt{host} concerne par le deplacement appelee \texttt{pos\_proto\_host}
+	\par Elle defini mais n'utilise pas un set qui associe a un \texttt{ID} de node une liste de noeuds qui est la composante connexe de ce noeud nommee \texttt{initial\_connected\_component}. Ce set est initialise par la ligne commande :
+	\begin{lstlisting}[language=java]
+		PositionProtocol.getConnectedComponents(PositionProtocol.getPositions(position_pid), scope);
+	\end{lstlisting}
+	\texttt{getConnectedComponents} : "méthode statique renvoyant l'ensemble des composantes connexes du système, renvoie une map associant un id de la composante connexe à son ensemble de noeud"
+	\texttt{PositionProtocol.getPositions} : "méthodes statiques utiles pour toutes informations relative à la position des noeuds et à la topographie du système"
+	\par Cette algorithme a aussi besoin du \texttt{scope} et defini un node \texttt{current\_moving} qui est le noeud precedemment mis en mouvement par l'appelle precedent de la fonction \texttt{getNewPositionWith}.
+	\par \texttt{1ER PARTIE DE L'ALGO :}
+	Le but est de stoper le noeud host s'il est en mouvement. Si le noeud \texttt{current\_moving} existe, alors il est stoppe et la fonction renvoie la valeur la position actuelle du noeud host.  Si le noeud ne bouge pas alors \textt{current\_moving} est remis a \texttt{null}.
+	\par \texttt{2ND PARTIE DE L'ALGO :}
+	Le noeud host n'est pas en mouvement et est autorise a bouger alors il choisi un voisin au hasard. un angle et une distance bornee par les bornes suivantes :
+	\begin{gather}
+	Soit \quad (distance\_min, distance\_max) \in ParametresDeBase \\
+	min\_distance = min(scope, max(distance\_min, 0)) \\
+	max\_distance = min(distance\_max, scope)
+	\end{gather}
+
+	La nouvelle position est cree et on verifie ses bornes. On recupere localement la liste desPositions des noeuds du reseau et on verifie s'il y a une division dans le reseau apres mise a jour de la position du node (un split qui serait du au deplacement du noeud sur sa nouvelle position). Si ce n'est pas le cas il devient le noeud \texttt{current\_moving} et renvoie la nouvelle position. Sinon il reste sur place. 
+
 
 
 
 	\subsection*{Strategie 6 : NextDestinationImmobility (NextDestinationStrategy)}
+	\subsubsection{\texttt{getNewPositionWith}}
+	Cette strategie renvoie comme nouvelle position pour le node \texttt{host} la position actuelle du node host, il ne bouge pas.
 
 
 
 	\subsection*{Strategie 7 : NextDestinationRandomPeriodicInitial (NextDestinationStrategy)}
-
+	\subsubsection{\texttt{getNewPositionWith}}
+	Cette strategie est parametre par une periode a specifier dans le fichier de configuration appelee \texttt{random\_dest\_period}. C'est une strategie possedant deux etats. Soit les noeuds sont a la position initiale, soit les noeuds appliquent la strategie FullRandom avec un placement completement aleatoire. Les noeuds sont places de maniere aleatoire pendant \texttt{random\_dest\_period} cycles de simulation. Ensuite ils passent tous en position initiale et retourne en positionnement aleatoire lorsque tous les noeuds sont passes dans l'etat initial.
 
 
 	\newpage
