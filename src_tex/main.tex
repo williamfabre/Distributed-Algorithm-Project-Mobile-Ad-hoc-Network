@@ -102,17 +102,17 @@
 	Sinon, si la distance total est egale ou inferieur a la distance parcourable en une unite de temps, alors on affete les coordonnes de la position destination a notre Node.
 
 	% TODO expliquer mieux.
-	On vient verifier si la position a change, pour affecter une pause, sinon on incremente le temps du simulateur d'une unite de temps.
+	On vient verifier si la position a change, pour affecter une pause; Sinon on incremente le temps du simulateur d'une unite de temps.
 
 	\section{Question 2}
 	\textit{Testez le simulateur en prenant la stratégie FullRandom comme SPI et SD. Le contrôleur graphique sera déclenché toutes les unités de temps, son timeslow pourra être environ de 0.0002. Le seul protocole à renseigner pour ce contrôleur est le PositionProtocol de la simulation, les autres sont pour l’instant optionnels et sans objet.  Normalement vous devez voir graphiquement des points verts se déplacer sur l’écran.  N’oubliez pas d’amorcer les instances de PositionProtocol via un module d’initialisation. Vous répondrez à cette question en donnant le contenu de votre fichier de configuration.}
-	% TODO inserer le fichier de configuration necessiare pour faire cette question
+	% TODO Ajouter des commentaires explicatifs (beaucoup)
 	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java]{../src/ara/config} %with frame
 
 	\newpage
 	\section{Question 3}
 	\textit{Codez une classe implémentant l’interface Emitter. Testez de nouveau avec le moniteur graphique et assurez-vous que les portées sont représentées (cercle en bleu).}
-	% TODO inserer le code de la classe qui implemente Emitter
+	% TODO Ajouter des commentaires explicatifs a la classe mais essayer de ne pas depasser une page
 	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=14, lastline=124]{../src/ara/manet/communication/EmitterProtocolImpl.java}
 	%\lstinputlisting[language=Java]{\communication}
 
@@ -170,11 +170,11 @@
 	\newpage
 	\subsection*{Strategie 2 : FullRandom (InitialPositionStrategy, NextDestinationStrategy)}
 
-		\subsubsection{\texttt{getInitialPosition}}
-		\par La strategie pour la position initiale est de creer en une table associative a partir de tous les noeuds du reseau et grace a la fonction \texttt{Network.get(i)} ("Returns node with the given index. Note that the same node will normally have a different index in different times. le ieme dans la liste des noeuds", ce qui signifie un ajout de randomization) affecter a chaque node le resultat de la fonction Destination decrite ci-apres.
+	\subsubsection{\texttt{getInitialPosition}}
+	\par La strategie pour la position initiale est de creer en une table associative a partir de tous les noeuds du reseau et grace a la fonction \texttt{Network.get(i)} ("Returns node with the given index. Note that the same node will normally have a different index in different times. le ieme dans la liste des noeuds", ce qui signifie un ajout de randomization) affecter a chaque node le resultat de la fonction Destination decrite ci-apres.
 
-		\subsubsection{\texttt{getNextDestination}}
-		\par La strategie de choix de la destination suivante consiste a affecter une nouvelle position \textt{nextX} et \textt{nexty} tel que :
+	\subsubsection{\texttt{getNextDestination}}
+	\par La strategie de choix de la destination suivante consiste a affecter une nouvelle position \textt{nextX} et \textt{nexty} tel que :
 	\begin{gather}
 		position = (my\_random.nextDouble() * maxX, \quad my\_random.nextDouble() * maxY)
 	\end{gather}
@@ -220,8 +220,8 @@
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.5\textwidth, frame]{InitialPositionConnectedRing}
-	 	\caption{Representation du placement InitialPotisionConnectedRing}
-	\floatfoot{Le cercle represente le rayon (scope) et on voit bien que tous les nodes sont places autour d'un centre en (0,0). Pour se faire nous avons choisi une position initial (0,0). Cette position initiale est necessaire lors de l'appelle a la fonction \texttt{getNewPositionWith} qui fait partie de la classe Position}
+		\caption{Representation du placement InitialPotisionConnectedRing}
+		\floatfoot{Le cercle represente le rayon (scope) et on voit bien que tous les nodes sont places autour d'un centre en (0,0). Pour se faire nous avons choisi une position initial (0,0). Cette position initiale est necessaire lors de l'appelle a la fonction \texttt{getNewPositionWith} qui fait partie de la classe Position}
 		\label{fig:mesh1}
 	\end{figure}
 
@@ -258,9 +258,9 @@
 	\par \texttt{2ND PARTIE DE L'ALGO :}
 	Le noeud host n'est pas en mouvement et est autorise a bouger alors il choisi un voisin au hasard. un angle et une distance bornee par les bornes suivantes :
 	\begin{gather}
-	Soit \quad (distance\_min, distance\_max) \in ParametresDeBase \\
-	min\_distance = min(scope, max(distance\_min, 0)) \\
-	max\_distance = min(distance\_max, scope)
+		Soit \quad (distance\_min, distance\_max) \in ParametresDeBase \\
+		min\_distance = min(scope, max(distance\_min, 0)) \\
+		max\_distance = min(distance\_max, scope)
 	\end{gather}
 
 	La nouvelle position est cree et on verifie ses bornes. On recupere localement la liste desPositions des noeuds du reseau et on verifie s'il y a une division dans le reseau apres mise a jour de la position du node (un split qui serait du au deplacement du noeud sur sa nouvelle position). Si ce n'est pas le cas il devient le noeud \texttt{current\_moving} et renvoie la nouvelle position. Sinon il reste sur place. 
@@ -283,9 +283,50 @@
 	\chapter{Exercice 2 – Implémentation d’algorithmes d’élection de Leader sur un MANET}
 	\section*{Premier algorithme}
 
+	\begin{comment}
+	an undirected graph that changes over time as nodes move. The vertices in the graph correspond to mobile nodes and an edge between a pair of nodes represents the fact that the two nodes are within each other’s transmission radii and, hence, can directly communicate with one another. The graph can become disconnected if the network is partitioned due to node movement
+	\end{comment}
+
+
+
 	\section{Question 1}
-	\textit{Dans la section III, expliquez pour chaque hypothèse, pourquoi elle est vérifiée (ou
-		peut être vérifiée) dans notre simulateur.}
+	\textit{Dans la section III, expliquez pour chaque hypothèse, pourquoi elle est vérifiée (ou peut être vérifiée) dans notre simulateur.}
+
+	\subsection{Node Value:}
+	\textit{"Each node has a value associated with it. The value of a node indicates its “desirability” as a leader of the network and can be any performance-related attribute such as the node’s battery power, computational capabilities etc."}
+
+	l'interface ElectionProtocol est obligatoire pour implementer un protocol d'election. On peut voir y trouver une fonction avec le description suivante :
+	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=17, lastline=21]{../src/ara/manet/algorithm/election/ElectionProtocol.java}
+
+
+	\subsection{Unique and Ordered Node IDs:}
+	\textit{"All nodes have unique identifiers. They are used to identify participants during the election process. Node IDs are used to break ties among nodes which have the same value."}
+
+	Soit un node host, host.getID() a pour definition :
+	\begin{lstlisting}[language=java]
+	Returns the unique ID of the node. It is guaranteed that the ID is unique during the entire simulation, that is, there will be no different Node objects with the same ID in the system during one invocation of the JVM. Preferably nodes should implement hashCode() based on this ID.
+	\end{lstlisting}
+
+	\subsection{Links:}
+	\textit{"Links are bidirectional and FIFO, i.e. messages are delivered in order over a link between two neighbors."}
+	%TODO pas trouve
+
+	\subsection{Node Behavior:}
+	\textit{"Node mobility may result in arbitrary topology changes including network partitioning and merging. Furthermore, nodes can crash arbitrarily at any time and can come back up again at any time."}
+	Cette propriete correspond aux differentes strategies de noeuds que nous avons decrite. Par exemple la strategie FullRandom peut autoriser des partitionnement ou des fusions.
+	%TODO crash? did not implemented that 
+
+	\subsection{Buffer Size:}
+	\textit{"A message delivery is guaranteed only when the sender and the receiver remain connected (not partitioned) for the entire duration of message transfer."}
+
+	Dans la classe EmitterProtocolImpl on peut voir la fonction recvMsg :
+	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=44, lastline=66]{../src/ara/manet/communication/EmitterProtocolImpl.java}
+
+	On peut voir dans cette fonction qu'on verifie bien ligne 19 que le la distance entre les noeuds est bien inferieur ou egale a la taille du scope qui permet la communication entre deux noeuds.
+
+	\subsection{Node-to-Node Communications:}
+	\textit{"Each node has a sufficiently large receive buffer to avoid buffer overflow at any point in its lifetime."}
+	% TODO aucune idee mais je ne vois pas de limite dans notre programme
 
 	\section{Question 2}
 
