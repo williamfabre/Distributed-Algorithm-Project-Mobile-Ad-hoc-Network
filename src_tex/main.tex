@@ -316,7 +316,7 @@
 	Cette propriete correspond aux differentes strategies de noeuds que nous avons decrite. Par exemple la strategie FullRandom peut autoriser des partitionnement ou des fusions.
 	%TODO crash? did not implemented that 
 
-	\subsection{Buffer Size:}
+	\subsection{Node-to-Node Communications:}
 	\textit{"A message delivery is guaranteed only when the sender and the receiver remain connected (not partitioned) for the entire duration of message transfer."}
 
 	Dans la classe EmitterProtocolImpl on peut voir la fonction recvMsg :
@@ -324,7 +324,7 @@
 
 	On peut voir dans cette fonction qu'on verifie bien ligne 19 que le la distance entre les noeuds est bien inferieur ou egale a la taille du scope qui permet la communication entre deux noeuds.
 
-	\subsection{Node-to-Node Communications:}
+	\subsection{Buffer Size:}
 	\textit{"Each node has a sufficiently large receive buffer to avoid buffer overflow at any point in its lifetime."}
 	% TODO aucune idee mais je ne vois pas de limite dans notre programme
 
