@@ -6,13 +6,17 @@ import peersim.core.Node;
 
 public class Knowledge {
 
-	private Vector<View> knowledge = new Vector<View>();
-	private Vector<Long> position = new Vector<Long>();
+	private Vector<View> knowledge;
+	private Vector<Long> position;
 
 	public Knowledge(Node host, View v) {
 		int my_pos = 0;
+		knowledge = new Vector<View>();
+		position = new Vector<Long>();
+		
 		this.knowledge.add(my_pos, v);
 		position.add(host.getID());
+		
 	}
 
 	public Vector<View> getKnowledge() {

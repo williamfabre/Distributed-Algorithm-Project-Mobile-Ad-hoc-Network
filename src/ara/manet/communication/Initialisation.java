@@ -33,6 +33,7 @@ public class Initialisation implements Control{
 			gvl.initialisation(node);
 			position.processEvent(node, position_pid, "LOOPEVENT");
 			np.processEvent(node, neighbor_pid, "HEARTEVENT");
+			gvl.processEvent(node, elect_pid, "LEADEREVENT");
 		} 
 		
 		return false;

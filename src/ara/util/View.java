@@ -5,13 +5,15 @@ import java.util.Vector;
 public class View {
 
 	private int clock;
-	private Vector<Peer> neighbors = new Vector<Peer>();
+	private Vector<Peer> neighbors;
 
 	public View(Peer neighbor, int clock) {
+		neighbors = new Vector<Peer>();
 		updateViewAdd(neighbor, clock);
 	};
 
 	public View(Vector<Peer> neighbors) {
+		neighbors = new Vector<Peer>();
 		updateViewAddMult(neighbors);
 	};
 

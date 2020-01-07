@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -15,6 +17,7 @@ import javax.swing.JPanel;
 import ara.manet.communication.Emitter;
 import ara.manet.detection.NeighborProtocol;
 import ara.manet.positioning.PositionProtocol;
+import ara.util.Peer;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Control;
@@ -202,10 +205,17 @@ public class GraphicalMonitor extends JPanel implements Control {
 
 			if (neighbor_pid != -1) {
 				NeighborProtocol neighb = (NeighborProtocol) n.getProtocol(neighbor_pid);
+		
 				Long[] neighbors = new Long[neighb.getNeighbors().size()];
 				neighbors = neighb.getNeighbors().toArray(neighbors);
+				
 				for (Long id : neighbors) {
+					
+					if (id == null)
+						break;
+					
 					Node neighbor = getNodefromId(id);
+					
 					PositionProtocol pos_neigh = (PositionProtocol) neighbor.getProtocol(position_pid);
 					int center_x_neighbor = toGraphicX(pos_neigh.getCurrentPosition().getX());
 					int center_y_neighbor = toGraphicY(pos_neigh.getCurrentPosition().getY());

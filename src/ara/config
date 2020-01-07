@@ -1,4 +1,4 @@
-network.size 50
+network.size 20
 random.seed 10
 simulation.endtime 50000
 
@@ -20,6 +20,7 @@ protocol.neighbor.timer 10
 protocol.neighbor.listener TRUE
 
 protocol.election GVLElection
+protocol.election.periode 5000
 
 initial_position_strategy FullRandom
 initial_position_strategy.positionprotocol position
