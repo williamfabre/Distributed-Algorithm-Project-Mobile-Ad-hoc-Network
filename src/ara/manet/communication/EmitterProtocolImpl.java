@@ -9,7 +9,6 @@ import peersim.core.Node;
 import peersim.core.Protocol;
 import peersim.edsim.EDProtocol;
 import peersim.edsim.EDSimulator;
-//import sun.security.jca.GetInstance.Instance;
 
 public class EmitterProtocolImpl implements Emitter {
 	

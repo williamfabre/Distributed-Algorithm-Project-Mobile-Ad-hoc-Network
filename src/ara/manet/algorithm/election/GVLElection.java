@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import ara.manet.Monitorable;
 import ara.manet.communication.EmitterProtocolImpl;
 import ara.manet.detection.NeighborProtocol;
 import ara.manet.detection.NeighborProtocolImpl;
@@ -20,7 +21,7 @@ import peersim.core.Node;
 import peersim.edsim.EDSimulator;
 import peersim.util.ExtendedRandom;
 
-public class GVLElection implements ElectionProtocol, NeighborhoodListener {
+public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodListener {
 
 	private static final long ALL = -2;
 
@@ -37,13 +38,14 @@ public class GVLElection implements ElectionProtocol, NeighborhoodListener {
 		String tmp[] = prefix.split("\\.");
 		my_pid = Configuration.lookupPid(tmp[tmp.length - 1]);
 		this.periode = Configuration.getInt(prefix + "." + PAR_PERIODE);
-
+		knowledge = new Knowledge();
 	}
 
 	public Object clone() {
 		GVLElection p = null;
 		try {
 			p = (GVLElection) super.clone();
+			p.knowledge = new Knowledge();
 		} catch (CloneNotSupportedException e) {
 		}
 		return p;
@@ -54,25 +56,27 @@ public class GVLElection implements ElectionProtocol, NeighborhoodListener {
 		ExtendedRandom my_random = new ExtendedRandom(10);
 		this.value = (int) (my_random.nextInt(1000) / (node.getID() + 1));
 
-		System.out.println("Node " + node.getID() + " Value " + this.value);
-
 		long id = node.getID();
 		Peer p = new Peer(id, value);
 		int clock = 0;
 		View v = new View(p, clock);
 
-		this.knowledge = new Knowledge(node, v);
+		this.knowledge.setView(0, v);
+		this.knowledge.setPosition(node.getID());
+		System.out.println("Node " + node.getID() + " : "+ knowledge.getKnowledge().size());
+
 	}
 
 	@Override
 	public void newNeighborDetected(Node host, long id_new_neighbor) {
-
+		
 		// get neighbors value
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		NeighborProtocolImpl np = (NeighborProtocolImpl) host.getProtocol(neighbor_pid);
 		int neighbors_value = np.getNeighborValue(id_new_neighbor);
 
 		Peer j = new Peer(id_new_neighbor, neighbors_value);
+
 		int clock = this.knowledge.getLastClock(0) + 1;
 		this.knowledge.updateMyViewAdd(j, clock);
 
@@ -81,6 +85,8 @@ public class GVLElection implements ElectionProtocol, NeighborhoodListener {
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		emp.emit(host, knowlmsg);
+		
+		System.out.println("Node " + host.getID() + " : "+ knowledge.getKnowledge().size());
 	}
 
 	@Override
@@ -104,6 +110,8 @@ public class GVLElection implements ElectionProtocol, NeighborhoodListener {
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		emp.emit(host, edmsg);
+		
+		System.out.println("Node " + host.getID() + " : "+ knowledge.getKnowledge().size());
 	}
 
 	@Override
@@ -264,11 +272,33 @@ public class GVLElection implements ElectionProtocol, NeighborhoodListener {
 			String ev = (String) event;
 
 			if (ev.equals(leader_event)) {
-				System.out.println(host.getIndex() + " : Leader " + getIDLeader());
+				//System.out.println(host.getIndex() + " : Leader " + getIDLeader());
 				EDSimulator.add(periode, leader_event, host, my_pid);
 				return;
 			}
 		}
 
 	}
+	@Override
+	public int nbState() {
+		return 2;
+	}
+	
+	@Override
+	public int getState(Node host) {
+		if (getIDLeader() == host.getID())
+			return 1;
+		else
+			return 2;
+	}
+
+	@Override
+	public List<String> infos(Node host) {
+		System.out.println("info");
+		List<String> res = new ArrayList<String>();
+		res.add("Node" + host.getID() + "["+ getIDLeader() + "]" + "(" + getValue() + ")");
+		return res;
+	}
+	
+	
 }

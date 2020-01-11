@@ -2,6 +2,7 @@ package ara.util;
 
 import java.util.Vector;
 
+import ara.manet.algorithm.election.GVLElection;
 import peersim.core.Node;
 
 public class Knowledge {
@@ -9,13 +10,13 @@ public class Knowledge {
 	private Vector<View> knowledge;
 	private Vector<Long> position;
 
-	public Knowledge(Node host, View v) {
-		int my_pos = 0;
+	public Knowledge() {
+		
 		knowledge = new Vector<View>();
 		position = new Vector<Long>();
 		
-		this.knowledge.add(my_pos, v);
-		position.add(host.getID());
+		//this.knowledge.add(my_pos, v);
+		//position.add(host.getID());
 		
 	}
 
@@ -41,6 +42,7 @@ public class Knowledge {
 	}
 
 	public int getLastClock(int pos) {
+
 		return knowledge.get(pos).getClock();
 	}
 
@@ -64,7 +66,6 @@ public class Knowledge {
 	}
 	
 	public void updateOneViewRem(Long peerID, Vector<Peer> neighbors) {
-
 		if (position.contains(peerID)) {
 			int pos = position.indexOf(peerID);
 			knowledge.remove(pos);

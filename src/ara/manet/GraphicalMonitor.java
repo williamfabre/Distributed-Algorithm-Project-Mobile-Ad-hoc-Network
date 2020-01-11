@@ -211,9 +211,7 @@ public class GraphicalMonitor extends JPanel implements Control {
 				
 				for (Long id : neighbors) {
 					
-					if (id == null)
-						break;
-					
+						
 					Node neighbor = getNodefromId(id);
 					
 					PositionProtocol pos_neigh = (PositionProtocol) neighbor.getProtocol(position_pid);
