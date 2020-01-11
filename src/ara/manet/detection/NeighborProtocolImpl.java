@@ -81,15 +81,16 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 			if (listener) {
 				// notify for 
 				values.add(msg.getValue()); // value for LP
-				
+				/*
 				int election_pid = Configuration.lookupPid("election");
 				GVLElection gvlEl = (GVLElection) host.getProtocol((election_pid));
 				gvlEl.newNeighborDetected(host, idNeighbor);
+				*/
 				
-				/*int listener_pid = Configuration.lookupPid("listener");
+				int listener_pid = Configuration.lookupPid("election");
 				NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
 				nl.newNeighborDetected(host, idNeighbor);
-				*/
+				
 			}
 		}
 	}
@@ -101,16 +102,16 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 		if (listener) {
 			
 			// notify for
-			
+			/*
 			int election_pid = Configuration.lookupPid("election");
 			GVLElection gvlEl = (GVLElection) host.getProtocol((election_pid));
 			gvlEl.newNeighborDetected(host, idNeighbor);
+			*/
 			
-			/*
-			int listener_pid = Configuration.lookupPid("listener");
+			int listener_pid = Configuration.lookupPid("election");
 			NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
 			nl.newNeighborDetected(host, idNeighbor);
-			*/
+			
 			values.remove(0);// value for LP
 		}
 		

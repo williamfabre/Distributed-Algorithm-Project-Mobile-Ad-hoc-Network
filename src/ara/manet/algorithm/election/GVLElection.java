@@ -272,7 +272,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 			String ev = (String) event;
 
 			if (ev.equals(leader_event)) {
-				//System.out.println(host.getIndex() + " : Leader " + getIDLeader());
+				System.out.println(host.getIndex() + " : Leader " + getIDLeader());
 				EDSimulator.add(periode, leader_event, host, my_pid);
 				return;
 			}
@@ -289,14 +289,13 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		if (getIDLeader() == host.getID())
 			return 1;
 		else
-			return 2;
+			return 0;
 	}
 
 	@Override
 	public List<String> infos(Node host) {
-		System.out.println("info");
 		List<String> res = new ArrayList<String>();
-		res.add("Node" + host.getID() + "["+ getIDLeader() + "]" + "(" + getValue() + ")");
+		res.add("Node" + host.getID() + " Boss["+ getIDLeader() + "]" + "\n Val(" + getValue() + ")");
 		return res;
 	}
 	

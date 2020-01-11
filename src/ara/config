@@ -1,4 +1,4 @@
-network.size 10
+network.size 20
 random.seed 10
 simulation.endtime 50000
 
@@ -35,6 +35,7 @@ control.monitor GraphicalMonitor
 control.monitor.positionprotocol position
 control.monitor.emitter emit
 control.monitor.neighborprotocol neighbor
+control.monitor.monitorableprotocol election
 control.monitor.time_slow 0.0002
 control.monitor.from 0
 control.monitor.until 50000
