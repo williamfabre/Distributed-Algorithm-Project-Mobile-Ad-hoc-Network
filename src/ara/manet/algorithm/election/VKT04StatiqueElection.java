@@ -106,7 +106,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	 */
 	public void initialisation(Node node) {
 		ExtendedRandom my_random = new ExtendedRandom(10);
-		this.desirability = (int) (my_random.nextInt(1000) / (node.getID() + 1));
+		//this.desirability = (int) (my_random.nextInt(1000) / (node.getID() + 1));
+		this.desirability = node.getIndex();
 		
 		// TODO initialiser le leader à même au départ? id_leader ?
 		// Trouves tes voisins
@@ -145,7 +146,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 				
 			} else {
 				// node pas dans le scope et deja dans la liste 		=> supprimer
-				if (!neighbors.contains(node.getID())) {
+				if (neighbors.contains(node.getID())) {
 					neighbors.remove(node.getID()); // recopie dans la liste des personnes que je dois attendre.
 					neighbors_ack.remove(node.getID());
 				}
@@ -155,6 +156,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		// création du réveil pour refaire une vérification de mes voisins
 		// Profites en pour m'afficher les leaders
 		EDSimulator.add(periode_neighbor, timer_event, host, my_pid);
+		//EDSimulator.add(periode_neighbor, leader_event_print, host, my_pid);
 	}
 	
 	/**
@@ -183,7 +185,6 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
 		// exactement en même temps.
 		EDSimulator.add(periode_leader, leader_event, host, my_pid);
-		EDSimulator.add(periode_leader, leader_event_print, host, my_pid);
 	}
 	
 	/**
@@ -221,12 +222,9 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 				}
 			}
 		} else {
-			// Je me choisi par défaut
-			this.desirability_potential_leader = desirability;
-			this.potential_leader = host.getID();
 			
-			// J'ai déjà un parent, réponse immediate de ma propre valeur 
-			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid, host.getID(), desirability);
+			// J'ai déjà un parent, réponse immediate de la valeur potentielle
+			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid, potential_leader, desirability_potential_leader);
 			emp.emit(host, am);
 		}
 		return;
@@ -296,9 +294,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		LeaderMessage lm = (LeaderMessage)event;
 		
 		if (state == 1) { // 1 : leader_unknown
-			LeaderMessage lm_propagete = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader);
-			emp.emit(host, lm_propagete);
-			
+
 			if (lm.getMostValuedNode() == host.getID()) {
 				state = 2; 		// 2 : leader_isMe
 				id_leader = host.getID();
@@ -308,6 +304,9 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 				id_leader = lm.getMostValuedNode();
 				desirability_leader = lm.getMostValuedNodeDesirability();
 			}
+			
+			LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader);
+			emp.emit(host, lm_propagate);
 		}
 		
 	}
@@ -348,7 +347,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
      * @return la valeur du noeud id_new_neighbor
      */
 	public int getNeighborValue(long id_new_neighbor) {
-		
+		// TODO fausse 
 		return values.get(neighbors.indexOf(id_new_neighbor));
 	}
 
@@ -387,7 +386,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	 */
 	public List<String> infos(Node host) {
 		List<String> res = new ArrayList<String>();
-		res.add("Node" + host.getID() + " Boss["+ getIDLeader() + "]" + "\n Val(" + getValue() + ")");
+		res.add("Node" + host.getID() + " Boss["+ getIDLeader() + "]");
+		res.add(" PBoss["+ potential_leader + "]" + "\n Val(" + getValue() + ")");
 		return res;
 	}
 	
@@ -441,7 +441,12 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			String ev = (String) event;
 
 			if (ev.equals(leader_event_print)) {
-				System.out.println("Last election :  " + host.getIndex() + " : value " + getValue() +" : Leader " + getIDLeader());
+				/*
+				System.out.println("Last election :  " + host.getIndex() 
+					+ " : value " + getValue() 
+					+ " : Leader " + getIDLeader()
+					+ " : potentialLeader " + potential_leader);
+				 */
 				return;
 			}
 		}
