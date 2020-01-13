@@ -2,19 +2,22 @@ package ara.util;
 
 public class AckMessage extends Message{
 
-	private int value;
+	private long most_valued_node;
+	private long most_valued_node_desirability;
 	
-	public AckMessage(long idsrc, long iddest, int pid) {
+	public AckMessage(long idsrc, long iddest, int pid, long most_valued_node, long most_valued_node_desirability ) {
 		super(idsrc, iddest, pid);
-		value = -1;
+
+		this.most_valued_node = most_valued_node;
+		this.most_valued_node_desirability = most_valued_node_desirability;
 	}
 	
-	public int setValue (int v) {
-		this.value = v;
-		return v;
+	
+	public long getMostValuedNode () {
+		return this.most_valued_node;
 	}
 	
-	public int getValue () {
-		return this.value;
+	public long getMostValuedNodeDesirability () {
+		return this.most_valued_node_desirability;
 	}
 }

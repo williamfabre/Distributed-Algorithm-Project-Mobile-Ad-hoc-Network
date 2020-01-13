@@ -27,29 +27,31 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	public static final String leader_event = "LEADEREVENT";
 	
 	
-	private int my_pid; 				// protocol
+	private int my_pid; 							// protocol
 	
-	private final int periode_leader;	// duree entre deux elections 
+	private final int periode_leader;				// duree entre deux elections 
 
-	private final int periode_neighbor;	// duree entre deux check de mes voisins
+	private final int periode_neighbor;				// duree entre deux check de mes voisins
 
-	private final long timer_event;		// Tant qu'il est armee, les noeuds de la liste 
-										// des neighbors sont consideres comme voisins
-										// apres timer seconde ils disparaissent de la liste.
+	private final long timer_event;					// Tant qu'il est armee, les noeuds de la liste 
+													// des neighbors sont consideres comme voisins
+													// apres timer seconde ils disparaissent de la liste.
 	
-	private int scope;					// visibilité d'un node
+	private int scope;								// visibilité d'un node
 	
-	private List<Long> neighbors;		// Liste de voisins.
-	private List<Integer> values; 		// Valeur nécessaire pour les leader protocol.
-	private List<Long> nb_ack;			// permet de compter le nombre de ack TODO					
-	private int desirability; 			// desirabilité du noeud									(-1 si inconnu)
-	private long parent; 				// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
-	private long nb_child;				// permet d'attendre ses fils lors de l'élection.			(-1 si inconnu)
-	private long id_leader;				// id du leader actuel, -1 si aucun leader.					(-1 si inconnu)
-
-	private int state;					// 0 : leader_known
-										// 1 : leader_unknown
-										// 2 : leader_isMe
+	private List<Long> neighbors;					// Liste de voisins.
+	private List<Integer> values; 					// Valeur nécessaire pour les leader protocol.
+	private List<Long> neighbors_ack;				// permet de compter le nombre de ack TODO					
+	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
+	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
+	private long nb_child;							// permet d'attendre ses fils lors de l'élection.			(-1 si inconnu)
+	private long id_leader;							// id du leader actuel, -1 si aucun leader.					(-1 si inconnu)
+	private long desirability_leader;				// desirabilité du noeud leader
+	private long potential_leader;					// id du leader potentiel, -1 si aucun leader.
+	private long desirability_potential_leader;		// désirabilité du leader potentiel, -1 si aucun leader.
+	private int state;								// 0 : leader_known
+													// 1 : leader_unknown
+													// 2 : leader_isMe
 
 
 	
@@ -66,11 +68,15 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		// Creation de liste privees.
 		neighbors = new ArrayList<Long>(); 	// Liste des voisins
 		values = new ArrayList<Integer>(); 	// liste des valeurs
-		nb_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
+		neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
 		parent = -1;
 		nb_child = -1;
 		id_leader = -1;
+		desirability_leader = -1;
+		potential_leader = -1;
+		desirability_potential_leader = -1;
 		state = 1;
+
 	}
 	
 	public Object clone() {
@@ -79,7 +85,14 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			vtk = (VKT04StatiqueElection) super.clone();
 			vtk.neighbors = new ArrayList<Long>(); 	// Liste des voisins
 			vtk.values = new ArrayList<Integer>(); 	// liste des valeurs
-			vtk.nb_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
+			vtk.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
+			vtk.parent = -1;
+			vtk.nb_child = -1;
+			vtk.id_leader = -1;
+			vtk.desirability_leader = -1;
+			vtk.potential_leader = -1;
+			vtk.desirability_potential_leader = -1;
+			vtk.state = 1;
 		} catch (CloneNotSupportedException e) {
 		}
 		return vtk;
@@ -96,6 +109,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	public void initialisation(Node node) {
 		ExtendedRandom my_random = new ExtendedRandom(10);
 		this.desirability = (int) (my_random.nextInt(1000) / (node.getID() + 1));
+		
+		// TODO initialiser le leader à même au départ? id_leader ?
 	}
 
 	
@@ -122,6 +137,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 				// node dans le scope et pas dans la liste encore 		=> ajouter
 				if (!neighbors.contains(node.getID())){
 					neighbors.add(node.getID());
+
 				}
 			} else {
 				// node pas dans le scope et deja dans la liste 		=> supprimer
@@ -129,11 +145,15 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 						neighbors.remove(node.getID());
 				}
 			}
+			
+			// recopie dans la liste des personnes que je dois attendre.
+			neighbors_ack.addAll(neighbors);
 		}
 	}
 	
 	/**
-	 * Partie élection statique
+	 * Partie élection statique, va lancer une nouvelle élection
+	 * avec la liste statique des neouds.
 	 * 
 	 * @param host
 	 */
@@ -175,6 +195,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 
 	/**
 	 * Fonction appelée lors d'évènement timer_event.
+	 * Elle va détecter statiquement les différentes neighborhoods.
+	 * Elle va enssuite trigger des élections si nécessaire.
 	 * 
 	 * @param host
 	 */
@@ -186,6 +208,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 
 	
 	/**
+	 * 
+	 * 
 	 * @param host
 	 * @param event
 	 */
@@ -199,32 +223,112 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		// Si je n'ai pas de parent j'ajoute l'envoyeur comme mon père
 		// le ack message attendra que j'ai reçu une réponse de tous
 		// mes fils.
-		if (this.parent == -1) {
+		if (this.parent == -1 && em.getIdSrc() != host.getID()) {
+			
+			// Ce noeud est mon père
 			this.parent = em.getIdSrc();
+			
+			// Je ne dois pas attendre mon père
+			neighbors_ack.remove(this.parent);
+			
+			// Propagation aux fils
+			for (Long neinei : neighbors) {
+				
+				Node dest = Network.get(neinei.intValue()); // TODO ??????
+				if(dest.getID() == parent) { continue; } // Skip l'id du pere
+				
+				ElectionMessage em_propagation = new ElectionMessage(host.getID(), dest.getID(), my_pid);
+				emp.emit(host, em_propagation);
+			}
+			
 		} else {
+			
 			// J'ai déjà un parent, réponse immediate.
-			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid);
+			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid, potential_leader, desirability_leader);
 			emp.emit(host, am);
 		}
 		return;
 	}
 
-	/**
-	 * @param host
-	 * @param event
-	 */
-	private void recvLeaderlMsg(Node host, LeaderMessage event) {
-		// TODO
-	}
-
+	
 	/**
 	 * @param host
 	 * @param event
 	 */
 	private void recvAckMsg(Node host, AckMessage event) {
-		// TODO
+		
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		
+		AckMessage am = (AckMessage)event;
+		
+		// Mise a jour de mon noeud leader si le leader que 
+		// j'ai est moins désirable.
+		if (am.getMostValuedNodeDesirability() > this.desirability_potential_leader) {
+			
+			this.potential_leader = am.getMostValuedNode();
+			this.desirability_potential_leader = am.getMostValuedNodeDesirability();
+		}
+		
+		// J'ai reçu un ack de ce node c'est bon !
+		neighbors_ack.remove(am.getIdSrc()); // remove is empty safe.
+		
+		// Je suis une feuille ou il n'y avait qu'un fils à attendre
+		if (neighbors_ack.isEmpty()) {
+		
+			// Fin de l'élection je suis le noeud de départ TODO??
+			// je dois maintenant propager ma valeur. TODO ??
+			if (parent == -1) {
+				id_leader = potential_leader;
+				desirability_leader = desirability_potential_leader;
+				
+				if (id_leader == host.getID()) {
+					state = 2; 		// 2 : leader_isMe
+				} else {
+					state = 0;		// 0 : leader_known
+				}
+
+				// Broadcast du message de leader
+				LeaderMessage lm_broadcast = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader);
+				emp.emit(host, lm_broadcast);
+			} else {
+				
+				// Envoie d'un ack à mon père, je suis une feuille
+				AckMessage am_to_father = new AckMessage(host.getID(), parent, my_pid, potential_leader, desirability_potential_leader);
+				emp.emit(host, am_to_father);
+			}
+		}
+		
 	}	
 	
+	/**
+	 * TODO 
+	 * 
+	 * @param host
+	 * @param event
+	 */
+	private void recvLeaderlMsg(Node host, LeaderMessage event) {
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		
+		LeaderMessage lm = (LeaderMessage)event;
+		
+		if (state == 1) { // 1 : leader_unknown
+			LeaderMessage lm_propagete = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader);
+			emp.emit(host, lm_propagete);
+			
+			if (lm.getMostValuedNode() == host.getID()) {
+				state = 2; 		// 2 : leader_isMe
+				id_leader = host.getID();
+				desirability_leader = desirability;
+			} else {
+				state = 0;		// 0 : leader_known
+				id_leader = lm.getMostValuedNode();
+				desirability_leader = lm.getMostValuedNodeDesirability();
+			}
+		}
+		
+	}
 
 
 	/********************************ELECTION PROTOCOL**********************************/
