@@ -1,5 +1,5 @@
-network.size 30
-random.seed 10
+network.size 100
+random.seed 200
 simulation.endtime 50000
 
 protocol.position PositionProtocolImpl
@@ -13,11 +13,6 @@ protocol.emit EmitterProtocolImpl
 protocol.emit.latency 500
 protocol.emit.scope 200
 protocol.emit.variance FALSE
-
-protocol.neighbor NeighborProtocolImpl
-protocol.neighbor.periode 10
-protocol.neighbor.timer 10
-protocol.neighbor.listener FALSE
 
 protocol.election VKT04StatiqueElection
 protocol.election.periode_leader 5000
@@ -37,7 +32,7 @@ next_destination_strategy.random_dest_period 20000
 control.monitor GraphicalMonitor
 control.monitor.positionprotocol position
 control.monitor.emitter emit
-control.monitor.neighborprotocol neighbor
+control.monitor.neighborprotocol election
 control.monitor.monitorableprotocol election
 control.monitor.time_slow 0.0002
 control.monitor.from 0

@@ -25,7 +25,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	private static final String PAR_TIMER = "timer";
 	private static final String PAR_SCOPE = "scope";
 	public static final String leader_event = "LEADEREVENT";
-	
+	public static final String leader_event_print = "LEADEREVENT_PRINT";
 	
 	private int my_pid; 							// protocol
 	
@@ -66,8 +66,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		this.scope = Configuration.getInt(prefix + "." + PAR_SCOPE);
 		
 		// Creation de liste privees.
-		neighbors = new ArrayList<Long>(); 	// Liste des voisins
-		values = new ArrayList<Integer>(); 	// liste des valeurs
+		neighbors = new ArrayList<Long>(); 		// Liste des voisins
+		values = new ArrayList<Integer>(); 		// liste des valeurs
 		neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
 		parent = -1;
 		id_leader = -1;
@@ -109,6 +109,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		this.desirability = (int) (my_random.nextInt(1000) / (node.getID() + 1));
 		
 		// TODO initialiser le leader à même au départ? id_leader ?
+		// Trouves tes voisins
+		EDSimulator.add(periode_neighbor, timer_event, node, my_pid);
 	}
 
 	
@@ -120,7 +122,11 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	 * @param host host
 	 */
 	private void staticDetection(Node host) {
-
+		
+		// neighbors = new ArrayList<Long>(); 		// Liste des voisins
+		// values = new ArrayList<Integer>(); 		// liste des valeurs
+		// neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
+		
 		int position_pid = Configuration.lookupPid("position");
 		PositionProtocol phost = (PositionProtocol) host.getProtocol(position_pid);
 		
@@ -130,24 +136,24 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			PositionProtocol pnode = (PositionProtocol) node.getProtocol(position_pid);
 			double distance = pnode.getCurrentPosition().distance(phost.getCurrentPosition());
 			
-			
-			if (distance <= getScope()) {
+			if (distance <= getScope() && node.getID() != host.getID()) {
 				// node dans le scope et pas dans la liste encore 		=> ajouter
-				if (!neighbors.contains(node.getID())){
+				if (!neighbors.contains(node.getID())) {
 					neighbors.add(node.getID());
-
+					neighbors_ack.add(node.getID());
 				}
+				
 			} else {
 				// node pas dans le scope et deja dans la liste 		=> supprimer
-				if (neighbors.contains(node.getID())) {
-						neighbors.remove(node.getID());
+				if (!neighbors.contains(node.getID())) {
+					neighbors.remove(node.getID()); // recopie dans la liste des personnes que je dois attendre.
+					neighbors_ack.remove(node.getID());
 				}
 			}
-			
-			// recopie dans la liste des personnes que je dois attendre.
-			neighbors_ack.addAll(neighbors);
 		}
+
 		// création du réveil pour refaire une vérification de mes voisins
+		// Profites en pour m'afficher les leaders
 		EDSimulator.add(periode_neighbor, timer_event, host, my_pid);
 	}
 	
@@ -174,10 +180,10 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		ElectionMessage em = new ElectionMessage(host.getID(), ALL, my_pid);
 		emp.emit(host, em);
 		
-		
 		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
 		// exactement en même temps.
 		EDSimulator.add(periode_leader, leader_event, host, my_pid);
+		EDSimulator.add(periode_leader, leader_event_print, host, my_pid);
 	}
 	
 	/**
@@ -206,11 +212,10 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 				neighbors_ack.remove(this.parent);
 			
 				// Propagation aux fils
-				for (Long neinei : neighbors) {
-				
+				for (Long neinei : neighbors_ack) {
+					
 					Node dest = Network.get(neinei.intValue()); // TODO ??????
 					if(dest.getID() == parent) { continue; } // Skip l'id du pere
-				
 					ElectionMessage em_propagation = new ElectionMessage(host.getID(), dest.getID(), my_pid);
 					emp.emit(host, em_propagation);
 				}
@@ -229,6 +234,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 
 	
 	/**
+	 * TODO 
+	 * 
 	 * @param host
 	 * @param event
 	 */
@@ -242,17 +249,15 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		// Mise a jour de mon noeud leader si le leader que 
 		// j'ai est moins désirable.
 		if (am.getMostValuedNodeDesirability() > this.desirability_potential_leader) {
-			
 			this.potential_leader = am.getMostValuedNode();
 			this.desirability_potential_leader = am.getMostValuedNodeDesirability();
 		}
 		
 		// J'ai reçu un ack de ce node c'est bon !
 		neighbors_ack.remove(am.getIdSrc()); // remove is empty safe.
-		
 		// Je suis une feuille ou il n'y avait qu'un fils à attendre
 		if (neighbors_ack.isEmpty()) {
-		
+
 			// Fin de l'élection je suis le noeud de départ TODO??
 			// je dois maintenant propager ma valeur. TODO ??
 			if (parent == -1) {
@@ -333,7 +338,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
      */
 	@Override
 	public List<Long> getNeighbors() {
-		return neighbors;
+		
+		return this.neighbors;
 	}
 	
 	 /**
@@ -420,13 +426,22 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			return;
 		}
 		
-		// Evènement périodique d'affichage d'élections.
+		// Evènement périodique d'élections.		
 		if (event instanceof String) {
 			String ev = (String) event;
 
 			if (ev.equals(leader_event)) {
-				System.out.println(host.getIndex() + " : value " + getValue() +" : Leader " + getIDLeader());
 				VKT04StaticElectionTrigger(host);
+				return;
+			}
+		}
+		
+		// Evènement périodique d'affichage d'élections.
+		if (event instanceof String) {
+			String ev = (String) event;
+
+			if (ev.equals(leader_event_print)) {
+				System.out.println("Last election :  " + host.getIndex() + " : value " + getValue() +" : Leader " + getIDLeader());
 				return;
 			}
 		}
