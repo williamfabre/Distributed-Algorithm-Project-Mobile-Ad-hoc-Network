@@ -5,8 +5,7 @@ import java.util.List;
 
 import ara.manet.Monitorable;
 import ara.manet.communication.EmitterProtocolImpl;
-import ara.manet.detection.NeighborProtocol;
-import ara.manet.positioning.PositionProtocol;
+import ara.manet.detection.NeighborhoodListener;
 import ara.util.AckMessage;
 import ara.util.ElectionMessage;
 import ara.util.LeaderMessage;
@@ -15,9 +14,9 @@ import peersim.core.Network;
 import peersim.core.Node;
 import peersim.edsim.EDSimulator;
 import peersim.util.ExtendedRandom;
-
-public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, NeighborProtocol{
 	
+public class VKT04Election implements ElectionProtocol, Monitorable, NeighborhoodListener {
+
 	private static final long ALL = -2; // Broadcast == true
 	
 	private static final String PAR_PERIODE_LEADER = "periode_leader";
@@ -42,7 +41,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	
 	private List<Long> neighbors;					// Liste de voisins.
 	private List<Integer> values; 					// Valeur nécessaire pour les leader protocol.
-	private List<Long> neighbors_ack;				// permet de compter le nombre de ack TODO					
+	private List<Long> neighbors_ack;				// permet de compter le nombre de ack				
 	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
 	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
 	private long id_leader;							// id du leader actuel, -1 si aucun leader.					(-1 si inconnu)
@@ -52,10 +51,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	private int state;								// 0 : leader_known
 													// 1 : leader_unknown
 													// 2 : leader_isMe
-
-
 	
-	public VKT04StatiqueElection(String prefix) {
+public VKT04Election(String prefix) {
 		
 		String tmp[] = prefix.split("\\.");
 		my_pid = Configuration.lookupPid(tmp[tmp.length - 1]);
@@ -79,9 +76,9 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	}
 	
 	public Object clone() {
-		VKT04StatiqueElection vtk = null;
+		VKT04Election vtk = null;
 		try {
-			vtk = (VKT04StatiqueElection) super.clone();
+			vtk = (VKT04Election) super.clone();
 			vtk.neighbors = new ArrayList<Long>(); 		// Liste des voisins
 			vtk.values = new ArrayList<Integer>(); 		// liste des valeurs
 			vtk.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
@@ -95,7 +92,6 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		}
 		return vtk;
 	}
-
 	
 	/**
 	 * Fonction utilisé par la classe d'initialisation qui est appelée
@@ -105,7 +101,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	 * @param node le node en lui même
 	 */
 	public void initialisation(Node node) {
-		ExtendedRandom my_random = new ExtendedRandom(10);
+		//ExtendedRandom my_random = new ExtendedRandom(10);
 		//this.desirability = (int) (my_random.nextInt(1000) / (node.getID() + 1));
 		this.desirability = node.getIndex();
 		
@@ -113,53 +109,10 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		// Trouves tes voisins
 		EDSimulator.add(periode_neighbor, timer_event, node, my_pid);
 	}
-
-	/*****************************Detection******************************/	
-	/**
-	 * Partie détection statique
-	 * Détecteur statique de voisins qui va déterminer 
-	 * en tout instant qui est dans mon scope atteignable.
-	 * 
-	 * @param host host
-	 */
-	private void staticDetection(Node host) {
-		
-		// neighbors = new ArrayList<Long>(); 		// Liste des voisins
-		// values = new ArrayList<Integer>(); 		// liste des valeurs
-		// neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
-		
-		int position_pid = Configuration.lookupPid("position");
-		PositionProtocol phost = (PositionProtocol) host.getProtocol(position_pid);
-		
-		for (int i = 0; i < Network.size(); i++) {
-			
-			Node node = Network.get(i);
-			PositionProtocol pnode = (PositionProtocol) node.getProtocol(position_pid);
-			double distance = pnode.getCurrentPosition().distance(phost.getCurrentPosition());
-			
-			if (distance <= getScope() && node.getID() != host.getID()) {
-				// node dans le scope et pas dans la liste encore 		=> ajouter
-				if (!neighbors.contains(node.getID())) {
-					neighbors.add(node.getID());
-					neighbors_ack.add(node.getID());
-				}
-				
-			} else {
-				// node pas dans le scope et deja dans la liste 		=> supprimer
-				if (neighbors.contains(node.getID())) {
-					neighbors.remove(node.getID()); // recopie dans la liste des personnes que je dois attendre.
-					neighbors_ack.remove(node.getID());
-				}
-			}
-		}
-
-		// création du réveil pour refaire une vérification de mes voisins
-		// Profites en pour m'afficher les leaders
-		EDSimulator.add(periode_neighbor, timer_event, host, my_pid);
-		//EDSimulator.add(periode_neighbor, leader_event_print, host, my_pid);
-	}
-
+	
+	
 	/*****************************Election******************************/	
+	
 	/**
 	 * Partie élection statique, va lancer une nouvelle élection
 	 * avec la liste statique des neouds.
@@ -324,40 +277,21 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		return this.desirability;
 	}
 	
-	/*****************************NEIGHBORHOOD PROTOCOL******************************/
-	/* NeighborProtocol. Puisque nous sommes dans un système
-	 * statique, nous allons nous passer ici de la couche de détection dynamique de
-	 * voisins via heartbeat (codée dans le précédent exercice) en calculant directement
-	 * et statiquement les voisins selon leur position par rapport au rayon d'émission.
-	 */
-	
-    /**
-     * Retourne la liste des neighbours du noeud courant
-     * 
-     * @return np liste de noeud
-     */
-	@Override
-	public List<Long> getNeighbors() {
-		
-		return this.neighbors;
-	}
-	
-	 /**
-     * Retourne la valeur du noeud dans notre liste.
-     * 
-     * @return la valeur du noeud id_new_neighbor
-     */
-	public int getNeighborValue(long id_new_neighbor) {
-		// TODO fausse 
-		return values.get(neighbors.indexOf(id_new_neighbor));
-	}
-
+	/*****************************NEIGHBORHOOD Listener******************************/
 	/**
-	 * @return le scope du current node.
+	 * TODO
 	 */
-	public int getScope() {
-		
-		return this.scope;
+	@Override
+	public void newNeighborDetected(Node host, long id_new_neighbor) {
+		// TODO
+	}
+	
+	/**
+	 * TODO
+	 */
+	@Override
+	public void lostNeighborDetected(Node host, long id_lost_neighbor) {
+		// TODO
 	}
 	
 	/********************************MONITORABLE**********************************/
@@ -419,11 +353,11 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			recvAckMsg(host, (AckMessage) event);
 			return;
 		}
-			
+		
 		// Je dois verifier la liste de mes voisins a chaque periode de temps
 		// nommee timer.
 		if (event.equals(timer_event)) {
-			staticDetection(host);
+			//staticDetection(host);
 			return;
 		}
 		
@@ -454,4 +388,5 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		
 		throw new RuntimeException("Receive unknown Event");
 	}
+
 }
