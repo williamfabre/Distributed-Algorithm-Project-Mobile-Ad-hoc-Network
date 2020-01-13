@@ -158,41 +158,30 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	 * @param host
 	 */
 	void VKT04StaticElectionTrigger(Node host) {
-		// Création d'un message 
 
 		// Récupération du protocol de communication
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
-		// Vérification de l'état du noeud pour savoir ce qu'il doit faire.
-		// TODO verifier si je suis en train de faire une election ?
-		switch (state) {
-		case 0: 	// 0 : leader_known
-			// Si le leader a disparu depuis la mise à jour des neighbors.
-			// Je commence une éléction
-			if (!neighbors.contains(this.id_leader)) {
-				state = 1;
-				ElectionMessage em = new ElectionMessage(host.getID(), ALL, my_pid);
-				emp.emit(host, em);
-			}
-			break;
-		case 1: 	// 1 : leader_unknown
-			// Je n'ai pas de leader je dois en trouver un.
-			// Je commence une éléction
-			ElectionMessage em = new ElectionMessage(host.getID(), ALL, my_pid);
-			emp.emit(host, em);
-			break;	
-		case 2:		// 2 : leader_isMe
-			// TODO ne rien faire?
-			break;
-		default: 
-			break;
-		}
+		// Début d'une demande d'éléction globale, mise à jour du node
+		// pour débuter une éléction
+		this.state = 1;
+		this.parent = -1;
+		this.id_leader = -1;
+		this.desirability_leader = -1;
+		this.desirability_potential_leader = desirability;
+		this.potential_leader = host.getID();
+		ElectionMessage em = new ElectionMessage(host.getID(), ALL, my_pid);
+		emp.emit(host, em);
+		
+		
+		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
+		// exactement en même temps.
 		EDSimulator.add(periode_leader, leader_event, host, my_pid);
 	}
 	
 	/**
-	 * 
+	 * TODO
 	 * 
 	 * @param host
 	 * @param event
@@ -207,28 +196,32 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		// Si je n'ai pas de parent j'ajoute l'envoyeur comme mon père
 		// le ack message attendra que j'ai reçu une réponse de tous
 		// mes fils.
-		if (this.parent == -1 && em.getIdSrc() != host.getID()) {
+		if (this.parent == -1) {
 			
-			// Ce noeud est mon père
-			this.parent = em.getIdSrc();
+			if (em.getIdSrc() != host.getID()) {
+				// Ce noeud est mon père
+				this.parent = em.getIdSrc();
+
+				// Je ne dois pas attendre mon père
+				neighbors_ack.remove(this.parent);
 			
-			// Je ne dois pas attendre mon père
-			neighbors_ack.remove(this.parent);
-			
-			// Propagation aux fils
-			for (Long neinei : neighbors) {
+				// Propagation aux fils
+				for (Long neinei : neighbors) {
 				
-				Node dest = Network.get(neinei.intValue()); // TODO ??????
-				if(dest.getID() == parent) { continue; } // Skip l'id du pere
+					Node dest = Network.get(neinei.intValue()); // TODO ??????
+					if(dest.getID() == parent) { continue; } // Skip l'id du pere
 				
-				ElectionMessage em_propagation = new ElectionMessage(host.getID(), dest.getID(), my_pid);
-				emp.emit(host, em_propagation);
+					ElectionMessage em_propagation = new ElectionMessage(host.getID(), dest.getID(), my_pid);
+					emp.emit(host, em_propagation);
+				}
 			}
-			
 		} else {
+			// Je me choisi par défaut
+			this.desirability_potential_leader = desirability;
+			this.potential_leader = host.getID();
 			
-			// J'ai déjà un parent, réponse immediate.
-			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid, potential_leader, desirability_leader);
+			// J'ai déjà un parent, réponse immediate de ma propre valeur 
+			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid, host.getID(), desirability);
 			emp.emit(host, am);
 		}
 		return;
@@ -432,7 +425,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			String ev = (String) event;
 
 			if (ev.equals(leader_event)) {
-				System.out.println(host.getIndex() + " : Leader " + getIDLeader());
+				System.out.println(host.getIndex() + " : value " + getValue() +" : Leader " + getIDLeader());
 				VKT04StaticElectionTrigger(host);
 				return;
 			}
