@@ -9,11 +9,11 @@ import peersim.core.Protocol;
  */
 public interface NeighborhoodListener extends Protocol {
 
-	/* appelÃ© lorsque le noeud host dÃ©tecte un nouveau voisin */
+	/* appelée lorsque le noeud host détecte un nouveau voisin */
 	public default void newNeighborDetected(Node host, long id_new_neighbor) {
 	}
 
-	/* appelÃ© lorsque le noeud host dÃ©tecte la perte d'un voisin */
+	/* appelée lorsque le noeud host détecte la perte d'un voisin */
 	public default void lostNeighborDetected(Node host, long id_lost_neighbor) {
 	}
 }
