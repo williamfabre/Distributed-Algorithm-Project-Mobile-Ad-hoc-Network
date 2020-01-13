@@ -31,7 +31,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	
 	private final int periode_leader;				// duree entre deux elections 
 
-	private final int periode_neighbor;				// duree entre deux check de mes voisins
+	private final int periode_neighbor;				// delay avant declenchement timer 
+													// entre deux check de mes voisins
 
 	private final long timer_event;					// Tant qu'il est armee, les noeuds de la liste 
 													// des neighbors sont consideres comme voisins
@@ -44,11 +45,10 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	private List<Long> neighbors_ack;				// permet de compter le nombre de ack TODO					
 	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
 	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
-	private long nb_child;							// permet d'attendre ses fils lors de l'élection.			(-1 si inconnu)
 	private long id_leader;							// id du leader actuel, -1 si aucun leader.					(-1 si inconnu)
-	private long desirability_leader;				// desirabilité du noeud leader
-	private long potential_leader;					// id du leader potentiel, -1 si aucun leader.
-	private long desirability_potential_leader;		// désirabilité du leader potentiel, -1 si aucun leader.
+	private long desirability_leader;				// desirabilité du noeud leader								(-1 si inconnu)
+	private long potential_leader;					// id du leader potentiel, -1 si aucun leader.				(-1 si inconnu)
+	private long desirability_potential_leader;		// désirabilité du leader potentiel, -1 si aucun leader.	(-1 si inconnu)
 	private int state;								// 0 : leader_known
 													// 1 : leader_unknown
 													// 2 : leader_isMe
@@ -70,7 +70,6 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		values = new ArrayList<Integer>(); 	// liste des valeurs
 		neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
 		parent = -1;
-		nb_child = -1;
 		id_leader = -1;
 		desirability_leader = -1;
 		potential_leader = -1;
@@ -83,11 +82,10 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		VKT04StatiqueElection vtk = null;
 		try {
 			vtk = (VKT04StatiqueElection) super.clone();
-			vtk.neighbors = new ArrayList<Long>(); 	// Liste des voisins
-			vtk.values = new ArrayList<Integer>(); 	// liste des valeurs
+			vtk.neighbors = new ArrayList<Long>(); 		// Liste des voisins
+			vtk.values = new ArrayList<Integer>(); 		// liste des valeurs
 			vtk.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
 			vtk.parent = -1;
-			vtk.nb_child = -1;
 			vtk.id_leader = -1;
 			vtk.desirability_leader = -1;
 			vtk.potential_leader = -1;
@@ -149,6 +147,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			// recopie dans la liste des personnes que je dois attendre.
 			neighbors_ack.addAll(neighbors);
 		}
+		// création du réveil pour refaire une vérification de mes voisins
+		EDSimulator.add(periode_neighbor, timer_event, host, my_pid);
 	}
 	
 	/**
@@ -188,24 +188,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		default: 
 			break;
 		}
-		// création du réveil pour refaire une vérification de mes voisins
-		EDSimulator.add(periode_neighbor, timer_event, host, my_pid);
+		EDSimulator.add(periode_leader, leader_event, host, my_pid);
 	}
-	
-
-	/**
-	 * Fonction appelée lors d'évènement timer_event.
-	 * Elle va détecter statiquement les différentes neighborhoods.
-	 * Elle va enssuite trigger des élections si nécessaire.
-	 * 
-	 * @param host
-	 */
-	private void NeighborStaticDetectionElection(Node host) {
-			
-		staticDetection(host);
-		VKT04StaticElectionTrigger(host);
-	}
-
 	
 	/**
 	 * 
@@ -256,7 +240,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	 * @param event
 	 */
 	private void recvAckMsg(Node host, AckMessage event) {
-		
+
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
@@ -439,7 +423,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		// Je dois verifier la liste de mes voisins a chaque periode de temps
 		// nommee timer.
 		if (event.equals(timer_event)) {
-			NeighborStaticDetectionElection(host);
+			staticDetection(host);
 			return;
 		}
 		
@@ -449,7 +433,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 
 			if (ev.equals(leader_event)) {
 				System.out.println(host.getIndex() + " : Leader " + getIDLeader());
-				EDSimulator.add(periode_leader, leader_event, host, my_pid);
+				VKT04StaticElectionTrigger(host);
 				return;
 			}
 		}

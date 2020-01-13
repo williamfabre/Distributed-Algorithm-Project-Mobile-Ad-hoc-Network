@@ -20,7 +20,10 @@ protocol.neighbor.timer 10
 protocol.neighbor.listener FALSE
 
 protocol.election VKT04StatiqueElection
-protocol.election.periode 5000
+protocol.election.periode_leader 5000
+protocol.election.periode_neighbor 10
+protocol.election.timer 10
+protocol.election.scope 200
 
 initial_position_strategy FullRandom
 initial_position_strategy.positionprotocol position
