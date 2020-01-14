@@ -48,6 +48,12 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	private long desirability_leader;				// desirabilité du noeud leader								(-1 si inconnu)
 	private long potential_leader;					// id du leader potentiel, -1 si aucun leader.				(-1 si inconnu)
 	private long desirability_potential_leader;		// désirabilité du leader potentiel, -1 si aucun leader.	(-1 si inconnu)
+	
+	// new variables for dynamic protocol
+	private long is_electing;						// Variable qui dit si ce noeud est en train de faire une éléction.
+	private long ack_2_parent;						// Variable qui dit si ce noeud a envoyé son ack à son père.
+	private long source_election;					// Noeud d'où provient l'élection dans laquelle je suis.
+	
 	private int state;								// 0 : leader_known
 													// 1 : leader_unknown
 													// 2 : leader_isMe
@@ -133,7 +139,7 @@ public VKT04Election(String prefix) {
 		this.desirability_leader = -1;
 		this.desirability_potential_leader = desirability;
 		this.potential_leader = host.getID();
-		ElectionMessage em = new ElectionMessage(host.getID(), ALL, my_pid);
+		ElectionMessage em = new ElectionMessage(host.getID(), ALL, host.getID(), my_pid);
 		emp.emit(host, em);
 		
 		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
@@ -171,7 +177,7 @@ public VKT04Election(String prefix) {
 					
 					Node dest = Network.get(neinei.intValue()); // TODO ??????
 					if(dest.getID() == parent) { continue; } // Skip l'id du pere
-					ElectionMessage em_propagation = new ElectionMessage(host.getID(), dest.getID(), my_pid);
+					ElectionMessage em_propagation = new ElectionMessage(host.getID(), dest.getID(), em.getSource_election(), my_pid);
 					emp.emit(host, em_propagation);
 				}
 			}

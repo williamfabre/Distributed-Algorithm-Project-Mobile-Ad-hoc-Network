@@ -193,9 +193,12 @@ public class GraphicalMonitor extends JPanel implements Control {
 						}
 						for (Node n : entry.getValue()) {
 							ElectionProtocol ep = (ElectionProtocol) n.getProtocol(election_pid);
-							if (ep.getIDLeader() == max || ep.getIDLeader() == -1) {
+
+							// Ajout de la condition pour les algos de marya.
+							if (ep.getIDLeader() == max 
+									|| ep.getIDLeader() == -1 
+									|| ep.getIDLeader() == n.getID()) {
 								good_elections++;
-								//System.err.println("check " + ep.getIDLeader() + "=?" + max);
 							}
 						}
 					}

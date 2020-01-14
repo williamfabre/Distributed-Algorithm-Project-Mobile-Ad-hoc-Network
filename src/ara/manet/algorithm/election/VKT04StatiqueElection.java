@@ -183,7 +183,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		this.desirability_leader = -1;
 		this.desirability_potential_leader = desirability;
 		this.potential_leader = host.getID();
-		ElectionMessage em = new ElectionMessage(host.getID(), ALL, my_pid);
+		ElectionMessage em = new ElectionMessage(host.getID(), ALL, host.getID(), my_pid);
 		emp.emit(host, em);
 		
 		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des �lections
@@ -221,7 +221,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 					
 					Node dest = Network.get(neinei.intValue()); // TODO ??????
 					if(dest.getID() == parent) { continue; } // Skip l'id du pere
-					ElectionMessage em_propagation = new ElectionMessage(host.getID(), dest.getID(), my_pid);
+					ElectionMessage em_propagation = new ElectionMessage(host.getID(), dest.getID(), em.getSource_election(), my_pid);
 					emp.emit(host, em_propagation);
 				}
 			}
@@ -351,8 +351,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
      * @return la valeur du noeud id_new_neighbor
      */
 	public int getNeighborValue(long id_new_neighbor) {
-		// TODO fausse 
-		return values.get(neighbors.indexOf(id_new_neighbor));
+		// TODO fausse... incomplete.
+		return (int) id_new_neighbor;
 	}
 
 	/**

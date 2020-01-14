@@ -12,7 +12,6 @@ public class AckMessage extends Message{
 		this.most_valued_node_desirability = most_valued_node_desirability;
 	}
 	
-	
 	public long getMostValuedNode () {
 		return this.most_valued_node;
 	}
@@ -20,4 +19,6 @@ public class AckMessage extends Message{
 	public long getMostValuedNodeDesirability () {
 		return this.most_valued_node_desirability;
 	}
+
+
 }
