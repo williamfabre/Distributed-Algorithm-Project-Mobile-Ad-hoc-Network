@@ -7,6 +7,8 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -14,8 +16,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.lsmp.djep.xjep.function.Max;
+
+import ara.manet.algorithm.election.ElectionProtocol;
 import ara.manet.communication.Emitter;
 import ara.manet.detection.NeighborProtocol;
+import ara.manet.positioning.Position;
 import ara.manet.positioning.PositionProtocol;
 import ara.util.Peer;
 import peersim.config.Configuration;
@@ -23,6 +29,8 @@ import peersim.core.CommonState;
 import peersim.core.Control;
 import peersim.core.Network;
 import peersim.core.Node;
+
+import java.lang.Math;
 
 /**
  * @author jonathan.lejeune@lip6.fr
@@ -32,6 +40,7 @@ public class GraphicalMonitor extends JPanel implements Control {
 
 	private static final long serialVersionUID = -4639751772079773440L;
 
+	private static final String PAR_ELECTIONPID = "electionprotocol";
 	private static final String PAR_POSITIONPID = "positionprotocol";
 	private static final String PAR_NEIGHBORPID = "neighborprotocol";
 	private static final String PAR_EMITTER = "emitter";
@@ -49,6 +58,7 @@ public class GraphicalMonitor extends JPanel implements Control {
 			Color.BLACK // etat 7
 	};
 
+	private final int election_pid;
 	private final int position_pid;
 	private final int neighbor_pid;
 	private final int emitter_pid;
@@ -76,6 +86,8 @@ public class GraphicalMonitor extends JPanel implements Control {
 	private boolean stop = false;
 
 	public GraphicalMonitor(String prefix) {
+		
+		election_pid = Configuration.getPid(prefix + "." + PAR_ELECTIONPID, -1);
 		neighbor_pid = Configuration.getPid(prefix + "." + PAR_NEIGHBORPID, -1);
 		position_pid = Configuration.getPid(prefix + "." + PAR_POSITIONPID);
 
@@ -150,10 +162,56 @@ public class GraphicalMonitor extends JPanel implements Control {
 				}
 			}
 		});
+		
+		JButton verification = new JButton("Verification");
+		verification.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				GraphicalMonitor mon = GraphicalMonitor.this;
+				synchronized (mon) {
+					
+					long good_elections = 0;
+					long size = 0;
+					
+					//mon.stop = !mon.stop
+					Map<Long, Position> positions = PositionProtocol.getPositions(position_pid);
+					// Tout le monde possede le meme scope
+					Emitter em = (Emitter) Network.get(0).getProtocol(emitter_pid);
+					// recuperation de toutes les composantes connexes.
+					Map<Integer, Set<Node>> connected_components = PositionProtocol.getConnectedComponents(positions, em.getScope());
+					
+					size = connected_components.size();
+					
+					// calcule du pourcentage de bon leader.
+					for (Map.Entry<Integer, Set<Node> > entry : connected_components.entrySet()) {
+						
+						long max = -1;
+						
+						for (Node n : entry.getValue()) {
+							// On joue sur le fait que les id sont la valeur de desirability
+							max = Math.max(max, n.getID());
+						}
+						for (Node n : entry.getValue()) {
+							ElectionProtocol ep = (ElectionProtocol) n.getProtocol(election_pid);
+							if (ep.getIDLeader() == max || ep.getIDLeader() == -1) {
+								good_elections++;
+								//System.err.println("check " + ep.getIDLeader() + "=?" + max);
+							}
+						}
+					}
+					float percentage = (float) good_elections / Network.size();
+					System.err.println("Pourcentage d'election correct par noeud : "
+											+ percentage);
+					mon.notify();
+				}
+			}
+		});
+		
 
 		this.add(speed_down);
 		this.add(speed_up);
 		this.add(pause);
+		this.add(verification);
 		this.add(date);
 
 	}

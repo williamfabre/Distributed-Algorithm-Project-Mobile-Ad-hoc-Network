@@ -2,10 +2,13 @@ package ara.manet.algorithm.election;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import ara.manet.Monitorable;
 import ara.manet.communication.EmitterProtocolImpl;
 import ara.manet.detection.NeighborProtocol;
+import ara.manet.positioning.Position;
 import ara.manet.positioning.PositionProtocol;
 import ara.util.AckMessage;
 import ara.util.ElectionMessage;
@@ -38,17 +41,17 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 													// des neighbors sont consideres comme voisins
 													// apres timer seconde ils disparaissent de la liste.
 	
-	private int scope;								// visibilité d'un node
+	private int scope;								// visibilitï¿½ d'un node
 	
 	private List<Long> neighbors;					// Liste de voisins.
-	private List<Integer> values; 					// Valeur nécessaire pour les leader protocol.
+	private List<Integer> values; 					// Valeur nï¿½cessaire pour les leader protocol.
 	private List<Long> neighbors_ack;				// permet de compter le nombre de ack TODO					
-	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
-	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
+	private int desirability; 						// desirabilitï¿½ du noeud									(-1 si inconnu)
+	private long parent; 							// permet de connaï¿½tre son pï¿½re et remonter dans l'arbre 	(-1 si inconnu)
 	private long id_leader;							// id du leader actuel, -1 si aucun leader.					(-1 si inconnu)
-	private long desirability_leader;				// desirabilité du noeud leader								(-1 si inconnu)
+	private long desirability_leader;				// desirabilitï¿½ du noeud leader								(-1 si inconnu)
 	private long potential_leader;					// id du leader potentiel, -1 si aucun leader.				(-1 si inconnu)
-	private long desirability_potential_leader;		// désirabilité du leader potentiel, -1 si aucun leader.	(-1 si inconnu)
+	private long desirability_potential_leader;		// dï¿½sirabilitï¿½ du leader potentiel, -1 si aucun leader.	(-1 si inconnu)
 	private int state;								// 0 : leader_known
 													// 1 : leader_unknown
 													// 2 : leader_isMe
@@ -98,26 +101,26 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 
 	
 	/**
-	 * Fonction utilisé par la classe d'initialisation qui est appelée
-	 * en début de programme pour tous les noeuds.
-	 * Elle a pour but d'initialisé la désirability du node avec son ID en paramètre.
+	 * Fonction utilisï¿½ par la classe d'initialisation qui est appelï¿½e
+	 * en dï¿½but de programme pour tous les noeuds.
+	 * Elle a pour but d'initialisï¿½ la dï¿½sirability du node avec son ID en paramï¿½tre.
 	 * 
-	 * @param node le node en lui même
+	 * @param node le node en lui mï¿½me
 	 */
 	public void initialisation(Node node) {
 		ExtendedRandom my_random = new ExtendedRandom(10);
 		//this.desirability = (int) (my_random.nextInt(1000) / (node.getID() + 1));
 		this.desirability = node.getIndex();
 		
-		// TODO initialiser le leader à même au départ? id_leader ?
+		// TODO initialiser le leader ï¿½ mï¿½me au dï¿½part? id_leader ?
 		// Trouves tes voisins
 		EDSimulator.add(periode_neighbor, timer_event, node, my_pid);
 	}
 
 	/*****************************Detection******************************/	
 	/**
-	 * Partie détection statique
-	 * Détecteur statique de voisins qui va déterminer 
+	 * Partie dï¿½tection statique
+	 * Dï¿½tecteur statique de voisins qui va dï¿½terminer 
 	 * en tout instant qui est dans mon scope atteignable.
 	 * 
 	 * @param host host
@@ -153,7 +156,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			}
 		}
 
-		// création du réveil pour refaire une vérification de mes voisins
+		// crï¿½ation du rï¿½veil pour refaire une vï¿½rification de mes voisins
 		// Profites en pour m'afficher les leaders
 		EDSimulator.add(periode_neighbor, timer_event, host, my_pid);
 		//EDSimulator.add(periode_neighbor, leader_event_print, host, my_pid);
@@ -161,19 +164,19 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 
 	/*****************************Election******************************/	
 	/**
-	 * Partie élection statique, va lancer une nouvelle élection
+	 * Partie ï¿½lection statique, va lancer une nouvelle ï¿½lection
 	 * avec la liste statique des neouds.
 	 * 
 	 * @param host
 	 */
 	void VKT04StaticElectionTrigger(Node host) {
 
-		// Récupération du protocol de communication
+		// Rï¿½cupï¿½ration du protocol de communication
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
-		// Début d'une demande d'éléction globale, mise à jour du node
-		// pour débuter une éléction
+		// Dï¿½but d'une demande d'ï¿½lï¿½ction globale, mise ï¿½ jour du node
+		// pour dï¿½buter une ï¿½lï¿½ction
 		this.state = 1;
 		this.parent = -1;
 		this.id_leader = -1;
@@ -183,8 +186,8 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		ElectionMessage em = new ElectionMessage(host.getID(), ALL, my_pid);
 		emp.emit(host, em);
 		
-		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
-		// exactement en même temps.
+		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des ï¿½lections
+		// exactement en mï¿½me temps.
 		EDSimulator.add(periode_leader, leader_event, host, my_pid);
 	}
 	
@@ -201,16 +204,16 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		
 		ElectionMessage em = (ElectionMessage)event;
 		
-		// Si je n'ai pas de parent j'ajoute l'envoyeur comme mon père
-		// le ack message attendra que j'ai reçu une réponse de tous
+		// Si je n'ai pas de parent j'ajoute l'envoyeur comme mon pï¿½re
+		// le ack message attendra que j'ai reï¿½u une rï¿½ponse de tous
 		// mes fils.
 		if (this.parent == -1) {
 			
 			if (em.getIdSrc() != host.getID()) {
-				// Ce noeud est mon père
+				// Ce noeud est mon pï¿½re
 				this.parent = em.getIdSrc();
 
-				// Je ne dois pas attendre mon père
+				// Je ne dois pas attendre mon pï¿½re
 				neighbors_ack.remove(this.parent);
 			
 				// Propagation aux fils
@@ -224,7 +227,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			}
 		} else {
 			
-			// J'ai déjà un parent, réponse immediate de la valeur potentielle
+			// J'ai dï¿½jï¿½ un parent, rï¿½ponse immediate de la valeur potentielle
 			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid, potential_leader, desirability_potential_leader);
 			emp.emit(host, am);
 		}
@@ -246,18 +249,18 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		AckMessage am = (AckMessage)event;
 		
 		// Mise a jour de mon noeud leader si le leader que 
-		// j'ai est moins désirable.
+		// j'ai est moins dï¿½sirable.
 		if (am.getMostValuedNodeDesirability() > this.desirability_potential_leader) {
 			this.potential_leader = am.getMostValuedNode();
 			this.desirability_potential_leader = am.getMostValuedNodeDesirability();
 		}
 		
-		// J'ai reçu un ack de ce node c'est bon !
+		// J'ai reï¿½u un ack de ce node c'est bon !
 		neighbors_ack.remove(am.getIdSrc()); // remove is empty safe.
-		// Je suis une feuille ou il n'y avait qu'un fils à attendre
+		// Je suis une feuille ou il n'y avait qu'un fils ï¿½ attendre
 		if (neighbors_ack.isEmpty()) {
 
-			// Fin de l'élection je suis le noeud de départ TODO??
+			// Fin de l'ï¿½lection je suis le noeud de dï¿½part TODO??
 			// je dois maintenant propager ma valeur. TODO ??
 			if (parent == -1) {
 				id_leader = potential_leader;
@@ -274,7 +277,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 				emp.emit(host, lm_broadcast);
 			} else {
 				
-				// Envoie d'un ack à mon père, je suis une feuille
+				// Envoie d'un ack ï¿½ mon pï¿½re, je suis une feuille
 				AckMessage am_to_father = new AckMessage(host.getID(), parent, my_pid, potential_leader, desirability_potential_leader);
 				emp.emit(host, am_to_father);
 			}
@@ -325,10 +328,10 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	}
 	
 	/*****************************NEIGHBORHOOD PROTOCOL******************************/
-	/* NeighborProtocol. Puisque nous sommes dans un système
-	 * statique, nous allons nous passer ici de la couche de détection dynamique de
-	 * voisins via heartbeat (codée dans le précédent exercice) en calculant directement
-	 * et statiquement les voisins selon leur position par rapport au rayon d'émission.
+	/* NeighborProtocol. Puisque nous sommes dans un systï¿½me
+	 * statique, nous allons nous passer ici de la couche de dï¿½tection dynamique de
+	 * voisins via heartbeat (codï¿½e dans le prï¿½cï¿½dent exercice) en calculant directement
+	 * et statiquement les voisins selon leur position par rapport au rayon d'ï¿½mission.
 	 */
 	
     /**
@@ -361,29 +364,29 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 	}
 	
 	/********************************MONITORABLE**********************************/
-	/* MONITORABLE : implémente l'interface Monitorable pour afficher sur le moniteur 
-	 * graphique l'é©tat de chaque noeud : on peut différencier dans 
-	 * cet algorithme trois états : 
+	/* MONITORABLE : implï¿½mente l'interface Monitorable pour afficher sur le moniteur 
+	 * graphique l'ï¿½tat de chaque noeud : on peut diffï¿½rencier dans 
+	 * cet algorithme trois ï¿½tats : 
 	 * 
 	 * * leader inconnu,
 	 * * leader connu, 
-	 * * être le leader.
+	 * * ï¿½tre le leader.
 	 */
 	
-	/* permet d'obtenir le nombre d'état applicatif du noeud */
+	/* permet d'obtenir le nombre d'ï¿½tat applicatif du noeud */
 	public int nbState() {
 		return 3;
 	}
 
-	/* permet d'obtenir l'état courant du noeud */
+	/* permet d'obtenir l'ï¿½tat courant du noeud */
 	@Override
 	public  int getState(Node host) {
 		return state;
 	}
 
 	/*
-	 * permet d'obtenir une liste de chaine de caractère, affichable en colonne à 
-	 * coté du noeud sur un moniteur graphique
+	 * permet d'obtenir une liste de chaine de caractï¿½re, affichable en colonne ï¿½
+	 * cotï¿½ du noeud sur un moniteur graphique
 	 */
 	public List<String> infos(Node host) {
 		List<String> res = new ArrayList<String>();
@@ -402,19 +405,19 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			throw new RuntimeException("Receive Event for wrong protocol");
 		}
 		
-		// Gestion de la réception d'un message de type ElectionMessage
+		// Gestion de la rï¿½ception d'un message de type ElectionMessage
 		if (event instanceof ElectionMessage) {
 			recvElectionMsg(host, (ElectionMessage) event);
 			return;
 		}
 		
-		// Gestion de la réception d'un message de type LeaderMessage
+		// Gestion de la rï¿½ception d'un message de type LeaderMessage
 		if (event instanceof LeaderMessage) {
 			recvLeaderlMsg(host, (LeaderMessage) event);
 			return;
 		}
 
-		// Gestion de la réception d'un message de type AckMessage
+		// Gestion de la rï¿½ception d'un message de type AckMessage
 		if (event instanceof AckMessage) {
 			recvAckMsg(host, (AckMessage) event);
 			return;
@@ -427,7 +430,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			return;
 		}
 		
-		// Evènement périodique d'élections.		
+		// Evï¿½nement pï¿½riodique d'ï¿½lections.		
 		if (event instanceof String) {
 			String ev = (String) event;
 
@@ -437,17 +440,14 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			}
 		}
 		
-		// Evènement périodique d'affichage d'élections.
+		// Evï¿½nement pï¿½riodique d'affichage d'ï¿½lections.
 		if (event instanceof String) {
 			String ev = (String) event;
 
 			if (ev.equals(leader_event_print)) {
-				/*
-				System.out.println("Last election :  " + host.getIndex() 
-					+ " : value " + getValue() 
-					+ " : Leader " + getIDLeader()
-					+ " : potentialLeader " + potential_leader);
-				 */
+				//Map<Long, Position> positions = PositionProtocol.getPositions(my_pid);
+				//Map<Integer, Set<Node>> connected_components = PositionProtocol.getConnectedComponents(positions, scope);
+				
 				return;
 			}
 		}
