@@ -53,6 +53,13 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	private long is_electing;						// Variable qui dit si ce noeud est en train de faire une éléction.
 	private long ack_2_parent;						// Variable qui dit si ce noeud a envoyé son ack à son père.
 	private long source_election;					// Noeud d'où provient l'élection dans laquelle je suis.
+	private long ieme_election;						// indique pour ce node la ieme election qu'il lance.
+													// utile pour differencier les elections et choisir parmi elles.
+													// Plus un node lance d'election plus il a de chance d'en lancer.
+													// Soit i,j Node² : (i.ieme_election(), i.getID()) > (j.ieme_election(), j.getID())
+													// <=> i.ieme_election() > j.ieme_election() ||
+													// (i.ieme_election() == j.ieme_election()) &&  (i.getID() >  j.getID())
+	private long ieme_election_max;					// La plus grande election à laquelle j'ai participé.
 	
 	private int state;								// 0 : leader_known
 													// 1 : leader_unknown
