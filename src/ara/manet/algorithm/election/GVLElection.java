@@ -53,8 +53,9 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 	public void initialisation(Node node) {
 
-		ExtendedRandom my_random = new ExtendedRandom(10);
-		this.value = (int) (my_random.nextInt(1000) / (node.getID() + 1));
+		//ExtendedRandom my_random = new ExtendedRandom(10);
+		//this.value = (int) (my_random.nextInt(1000) / (node.getID() + 1));
+		this.value = (int) node.getID();
 
 		long id = node.getID();
 		Peer p = new Peer(id, value);
@@ -63,7 +64,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 		this.knowledge.setView(0, v);
 		this.knowledge.setPosition(node.getID());
-		System.out.println("Node " + node.getID() + " : "+ knowledge.getKnowledge().size());
+		//System.out.println("Node " + node.getID() + " : "+ knowledge.getKnowledge().size());
 
 	}
 
@@ -86,7 +87,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		emp.emit(host, knowlmsg);
 		
-		System.out.println("Node " + host.getID() + " : "+ knowledge.getKnowledge().size());
+		//System.out.println("Node " + host.getID() + " : "+ knowledge.getKnowledge().size());
 	}
 
 	@Override
@@ -111,7 +112,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		emp.emit(host, edmsg);
 		
-		System.out.println("Node " + host.getID() + " : "+ knowledge.getKnowledge().size());
+		//System.out.println("Node " + host.getID() + " : "+ knowledge.getKnowledge().size());
 	}
 
 	@Override
@@ -272,7 +273,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 			String ev = (String) event;
 
 			if (ev.equals(leader_event)) {
-				System.out.println(host.getIndex() + " : Leader " + getIDLeader());
+				//System.out.println(host.getIndex() + " : Leader " + getIDLeader());
 				EDSimulator.add(periode, leader_event, host, my_pid);
 				return;
 			}
