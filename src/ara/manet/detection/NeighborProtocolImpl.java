@@ -33,13 +33,13 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 										// de rendre facultatifs le NeighborhoodListener.
 
 	private List<Long> neighbors;		// Liste de voisins.
-	private List<Integer> values; 		// Valeur nécessaire pour les leader protocol. // TODO LISTE INUTILE ET N'A RIEN A FAIRE ICI
+	private List<Integer> values; 		// Valeur nÃ©cessaire pour les leader protocol. // TODO LISTE INUTILE ET N'A RIEN A FAIRE ICI
 
 	
     /**
      * Constructor  pour peersim
      * 
-     * @param prefix prefix, le bon prefix à utiliser.
+     * @param prefix prefix, le bon prefix Ã  utiliser.
      */
 	public NeighborProtocolImpl(String prefix) {
 
@@ -98,30 +98,30 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 
 	
 	/**
-	 * Méthode de reception d'un message périodique dans le champ scope
+	 * MÃ©thode de reception d'un message pÃ©riodique dans le champ scope
 	 * Permet d'ajouter de nouveaux voisins
 	 * 
-	 * @param host noeud associé à cet évènement
-	 * @param msg  le message reçu
+	 * @param host noeud associÃ© Ã  cet Ã©vÃ¨nement
+	 * @param msg  le message reÃ§u
 	 */
 	public void recvProbMsg(Node host, ProbeMessage msg) {
 		
-		// Je n'ai pas reçu de message provenant de ce neighbor
+		// Je n'ai pas reÃ§u de message provenant de ce neighbor
 		if (!neighbors.contains(msg.getIdSrc())) {
 		
 			long idNeighbor = msg.getIdSrc();
-			neighbors.add(idNeighbor); // Je l'ajoute à mes neighbor
+			neighbors.add(idNeighbor); // Je l'ajoute Ã  mes neighbor
 			values.add(msg.getValue()); // value for LP
 			
-			// je crée un timer avant lequel je dois recevoir un message
-			// provenant de ce node sinon il sera supprimé de ma liste des voisins.
+			// je crÃ©e un timer avant lequel je dois recevoir un message
+			// provenant de ce node sinon il sera supprimÃ© de ma liste des voisins.
 			EDSimulator.add(timer, timer_event, host, my_pid);
 
-			// Gestion du NeighborhoodListener pour certains algorithme d'élection.
+			// Gestion du NeighborhoodListener pour certains algorithme d'Ã©lection.
 			if (listener) {
 				int listener_pid = Configuration.lookupPid("election");
 				NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
-				/* appelée lorsque le noeud host détecte un nouveau voisin */
+				/* appelÃ©e lorsque le noeud host dÃ©tecte un nouveau voisin */
 				nl.newNeighborDetected(host, idNeighbor);
 			}
 		}
@@ -129,24 +129,23 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 
 	
 	/**
-	 * Méthoode permettant de supprimer un voisin qui n'a pas su
-	 * renvoyer un hearbeat avant que son timer soit arrivé 
-	 * à son terme.
+	 * MÃ©thoode permettant de supprimer un voisin qui n'a pas su
+	 * renvoyer un hearbeat avant que son timer soit arrivÃ© 
+	 * Ã  son terme.
 	 * 
-	 * @param host  noeud associé à cet évènement
+	 * @param host  noeud associÃ© Ã  cet Ã©vÃ¨nement
 	 */
 	public void delNeighbor(Node host) {
 
 		// On prend le premier de la liste qui a le timer le plus petit
 		long idNeighbor = neighbors.get(0);
 		
-		// Gestion du NeighborhoodListener pour certains algorithme d'élection.
+		// Gestion du NeighborhoodListener pour certains algorithme d'Ã©lection.
 		if (listener) {
 			int listener_pid = Configuration.lookupPid("election");
 			NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
-			/* appelée lorsque le noeud host détecte la perte d'un voisin */
+			/* appelÃ©e lorsque le noeud host dÃ©tecte la perte d'un voisin */
 			
-			// TODO lost?
 			nl.lostNeighborDetected(host, idNeighbor); 
 		}
 		// Supression de la liste des valeurs et de la liste des voisins.
@@ -155,20 +154,20 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 	}
 
 	/**
-	 * Méthode permettant d'envoyer un message de probe tous les
-	 * periode secondes en broadcast à tous les noeuds dans mon scope.
+	 * MÃ©thode permettant d'envoyer un message de probe tous les
+	 * periode secondes en broadcast Ã  tous les noeuds dans mon scope.
 	 * 
-	 * @param host noeud associé à cet évènement
+	 * @param host noeud associÃ© Ã  cet Ã©vÃ¨nement
 	 */
 	public void heartbeat(Node host) {
 
-		// Récupère la valeur provenant du Leader protocol de manière généique
+		// RÃ©cupÃ¨re la valeur provenant du Leader protocol de maniÃ¨re gÃ©nÃ©ique
 		int election_pid = Configuration.lookupPid("election");
 		ElectionProtocol ep = (ElectionProtocol) host.getProtocol((election_pid));
 		int value = ep.getValue();
 		
-		// Crée un message de broadcast local de type ProbeMessage
-		// tagué avec mon ID, la valeur provenant du protocol d'élection et à destination de tous.
+		// CrÃ©e un message de broadcast local de type ProbeMessage
+		// taguÃ© avec mon ID, la valeur provenant du protocol d'Ã©lection et Ã  destination de tous.
 		ProbeMessage probmsg = new ProbeMessage(host.getID(), ALL, my_pid, value); 
 
 		// Envoie du message
@@ -177,13 +176,13 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 		emp.emit(host, probmsg);
 
 		// Armement d'un timer pour me rappeller d'envoyer un nouveau heartbeat 
-		// local broadcast dans periode secondes à tous mes voisins.
+		// local broadcast dans periode secondes Ã  tous mes voisins.
 		EDSimulator.add(periode, heart_event, host, my_pid);
 	}
 
 	/**
-	 * Permet la gestion d'évènement de type ProbeMessage
-	 * Permet la gestion d'évènement de type heartbeat ou timer 
+	 * Permet la gestion d'Ã©vÃ¨nement de type ProbeMessage
+	 * Permet la gestion d'Ã©vÃ¨nement de type heartbeat ou timer 
 	 * 
 	 * @param host node 
 	 * @param pid protocol
