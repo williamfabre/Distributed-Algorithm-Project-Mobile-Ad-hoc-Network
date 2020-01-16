@@ -147,7 +147,7 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 			/* appelée lorsque le noeud host détecte la perte d'un voisin */
 			
 			// TODO lost?
-			nl.lostNeighborDetected(host, idNeighbor); 
+			nl.newNeighborDetected(host, idNeighbor); 
 		}
 		// Supression de la liste des valeurs et de la liste des voisins.
 		values.remove(0);
