@@ -5,6 +5,7 @@ import java.util.List;
 
 import ara.manet.algorithm.election.ElectionProtocol;
 import ara.manet.communication.EmitterProtocolImpl;
+import ara.util.Pair;
 import ara.util.ProbeMessage;
 import ara.util.ReplyMessage;
 import peersim.config.Configuration;
@@ -31,10 +32,10 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 										// des neighbors sont consideres comme voisins
 										// apres timer seconde ils disparaissent de la liste.
 	
-	private final boolean listener; 	// Boolean provenant de la configuration qui permet
-										// de rendre facultatifs le NeighborhoodListener.
-
-	private List<Long> neighbors;		// Liste de voisins.
+	private final boolean listener; 		// Boolean provenant de la configuration qui permet
+											// de rendre facultatifs le NeighborhoodListener.
+	private List<Long> neighbors;			// Liste de voisins.
+	private List<Pair<Long, Boolean>> neighbors_reply;	// Pour chaque voisin, vrai si j'ai entendu un reply.
 
 	
     /**
@@ -53,8 +54,25 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 		
 		// Creation de liste privees.
 		neighbors = new ArrayList<Long>(); // Liste des voisins
+		neighbors_reply = new ArrayList<Pair<Long, Boolean>>(); 
 	}
 	
+	@Override
+	public Object clone() {
+		
+		NeighborProtocolVKTImpl np = null;
+
+		try {
+			np = (NeighborProtocolVKTImpl) super.clone();
+			np.neighbors = new ArrayList<Long>();
+			np.neighbors_reply = new ArrayList<Pair<Long, Boolean>>(); 
+		} catch (CloneNotSupportedException e) {
+			System.err.println(e.toString());
+		}
+
+		return np;
+	}
+
 	
 	/**
 	 * TODO a verifier. 
@@ -68,7 +86,6 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 		int election_pid = Configuration.lookupPid("election");
 		ElectionProtocol ep = (ElectionProtocol) Network.get((int) id_new_neighbor).getProtocol((election_pid));
 		int value = ep.getValue();
-		//System.err.println(id_new_neighbor + " test " + value);
 		return value;
 	}
 	
@@ -86,22 +103,6 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 
 	
 	
-	@Override
-	public Object clone() {
-		
-		NeighborProtocolVKTImpl np = null;
-
-		try {
-			np = (NeighborProtocolVKTImpl) super.clone();
-			np.neighbors = new ArrayList<Long>();
-		} catch (CloneNotSupportedException e) {
-			System.err.println(e.toString());
-		}
-
-		return np;
-	}
-
-	
 	/**
 	 * Méthode de reception d'un message périodique dans le champ scope
 	 * Permet d'ajouter de nouveaux voisins
@@ -117,23 +118,48 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 			long idNeighbor = msg.getIdSrc();
 			neighbors.add(idNeighbor); // Je l'ajoute à mes neighbor
 			
+			Pair<Long, Boolean> pair = new Pair<Long, Boolean>(idNeighbor, false); 
+			neighbors_reply.add(pair);
+			
 			// je crée un timer avant lequel je dois recevoir un message
 			// provenant de ce node sinon il sera supprimé de ma liste des voisins.
-			EDSimulator.add(timer, timer_event, host, my_pid);
+
 
 			// Gestion du NeighborhoodListener pour certains algorithme d'élection.
 			if (listener) {
 				int listener_pid = Configuration.lookupPid("election");
 				NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
 				/* appelée lorsque le noeud host détecte un nouveau voisin */
-				nl.lostNeighborDetected(host, idNeighbor);
+				nl.newNeighborDetected(host, idNeighbor);
 			}
 		}
+
+		// Envoie du message de reply apres reception d'un probe.
+		ReplyMessage replymsg = new ReplyMessage(host.getID(), msg.getIdSrc(), my_pid, -1); 
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		emp.emit(host, replymsg);
+
 	}
 	
+	/**
+	 * TODO est-ce qu'on ne devrait pas faire du probe/reply seulement
+	 * pour la liste des noeuds neighbors_ack?
+	 * 
+	 * @param host
+	 * @param event
+	 */
 	private void recvReplyMessage(Node host, ReplyMessage event) {
-		// TODO Auto-generated method stub
 		
+		// Recherche dans la liste et mise a jour du boolean comme quoi j'ai recu
+		// un message de type reply
+		for (Pair<Long, Boolean> pair : neighbors_reply) {
+			if (pair.getId() == event.getIdSrc()) {
+				pair.setBool(true);
+				return;
+			}
+		}
+		EDSimulator.add(timer, timer_event, host, my_pid);
 	}
 	
 	
@@ -150,17 +176,30 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 		long idNeighbor = neighbors.get(0);
 		
 		// Gestion du NeighborhoodListener pour certains algorithmes d'élections.
-		if (listener) {
-			int listener_pid = Configuration.lookupPid("election");
-			NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
-			/* appelée lorsque le noeud host détecte la perte d'un voisin */
-			nl.newNeighborDetected(host, idNeighbor); 
-		}
-		
+		if (neighbors_reply.get(0).getBool() == false) {
+			
+			if (listener) {
+				
+				int listener_pid = Configuration.lookupPid("election");
+				NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
+				
+				/* appelée lorsque le noeud host détecte la perte d'un voisin */
+				nl.lostNeighborDetected(host, idNeighbor); 
+			}
+			
+			// Supression de la liste des valeurs et de la liste des voisins.
+			neighbors.remove(0);
+			neighbors_reply.remove(0);
+			
+		} else {
+			
+			// On le remet a la fin de la fifo, car on a recu un message de type reply
+			neighbors.add(neighbors.remove(0));
+			Pair<Long, Boolean> p = neighbors_reply.remove(0);
+			p.setBool(false); 	// On remet a 0 car on attend un nouveau 
+			neighbors_reply.add(p);
 
-		
-		// Supression de la liste des valeurs et de la liste des voisins.
-		neighbors.remove(0);
+		}
 	}
 
 	/**
@@ -216,14 +255,16 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 			return;
 		}
 		
-		
-		
 		if (event instanceof String) {
+			
+			// Gestion d'evennement de type heatbeat
 			String ev = (String) event;
 			if (ev.equals(heart_event)) {
 				heartbeat(host);
 				return;
 			}
+			
+			
 			if (ev.equals(timer_event)) {
 				delNeighbor(host);
 				return;

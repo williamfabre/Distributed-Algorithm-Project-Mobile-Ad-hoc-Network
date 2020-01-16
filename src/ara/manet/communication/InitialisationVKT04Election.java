@@ -49,7 +49,6 @@ public class InitialisationVKT04Election implements Control {
 			// fonction d'initialisation si nécessaire
 			vkt04.initialisation(node);
 			
-			
 			/* ensemble des processevent nécessaire au fonctionnement */
 			
 			// Evenement de detection de voisins
