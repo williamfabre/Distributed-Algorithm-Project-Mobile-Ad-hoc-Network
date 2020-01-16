@@ -26,7 +26,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 	private static final long ALL = -2;
 
 	private static final String PAR_PERIODE = "periode";
-	public static final String leader_event = "LEADEREVENT";
+	//public static final String leader_event = "LEADEREVENT";
 
 	private final int my_pid;
 	private int value;
@@ -53,8 +53,8 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 	public void initialisation(Node node) {
 
-		//ExtendedRandom my_random = new ExtendedRandom(10);
-		//this.value = (int) (my_random.nextInt(1000) / (node.getID() + 1));
+		// ExtendedRandom my_random = new ExtendedRandom(10);
+		// this.value = (int) (my_random.nextInt(1000) / (node.getID() + 1));
 		this.value = (int) node.getID();
 
 		long id = node.getID();
@@ -64,13 +64,14 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 		this.knowledge.setView(0, v);
 		this.knowledge.setPosition(node.getID());
-		//System.out.println("Node " + node.getID() + " : "+ knowledge.getKnowledge().size());
+		// System.out.println("Node " + node.getID() + " : "+
+		// knowledge.getKnowledge().size());
 
 	}
 
 	@Override
 	public void newNeighborDetected(Node host, long id_new_neighbor) {
-		
+
 		// get neighbors value
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		NeighborProtocolImpl np = (NeighborProtocolImpl) host.getProtocol(neighbor_pid);
@@ -86,8 +87,9 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		emp.emit(host, knowlmsg);
-		
-		//System.out.println("Node " + host.getID() + " : "+ knowledge.getKnowledge().size());
+
+		// System.out.println("Node " + host.getID() + " : "+
+		// knowledge.getKnowledge().size());
 	}
 
 	@Override
@@ -111,8 +113,9 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		emp.emit(host, edmsg);
-		
-		//System.out.println("Node " + host.getID() + " : "+ knowledge.getKnowledge().size());
+
+		// System.out.println("Node " + host.getID() + " : "+
+		// knowledge.getKnowledge().size());
 	}
 
 	@Override
@@ -121,15 +124,15 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		// max value in all reachable peer from i
 		int max_val = 0;
 		long idLeader = 0;
-		
-		View v = knowledge.getView(0);
-		
-		for (Peer p : v.getNeighbors()) {
-		
-			if (p.getValue() >= max_val) {
+		for (View v : knowledge.getKnowledge()) {
 			
-				max_val = p.getValue();
-				idLeader = p.getId();
+			for (Peer p : v.getNeighbors()) {
+
+				if (p.getValue() >= max_val) {
+
+					max_val = p.getValue();
+					idLeader = p.getId();
+				}
 			}
 		}
 
@@ -138,7 +141,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 	@Override
 	public int getValue() {
-		
+
 		return this.value;
 	}
 
@@ -272,19 +275,20 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		if (event instanceof String) {
 			String ev = (String) event;
 
-			if (ev.equals(leader_event)) {
-				//System.out.println(host.getIndex() + " : Leader " + getIDLeader());
-				EDSimulator.add(periode, leader_event, host, my_pid);
-				return;
-			}
+			//if (ev.equals(leader_event)) {
+				// System.out.println(host.getIndex() + " : Leader " + getIDLeader());
+				//EDSimulator.add(periode, leader_event, host, my_pid);
+				//return;
+			//}
 		}
 
 	}
+
 	@Override
 	public int nbState() {
 		return 2;
 	}
-	
+
 	@Override
 	public int getState(Node host) {
 		if (getIDLeader() == host.getID())
@@ -296,9 +300,8 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 	@Override
 	public List<String> infos(Node host) {
 		List<String> res = new ArrayList<String>();
-		res.add("Node" + host.getID() + " Boss["+ getIDLeader() + "]" + "\n Val(" + getValue() + ")");
+		res.add("Node" + host.getID() + " Boss[" + getIDLeader() + "]"/* + "\n Val(" + getValue() + ")"*/);
 		return res;
 	}
-	
-	
+
 }
