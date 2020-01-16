@@ -4,14 +4,14 @@ simulation.endtime 50000
 
 protocol.position PositionProtocolImpl
 protocol.position.maxspeed 300
-protocol.position.minspeed 30
+protocol.position.minspeed 300
 protocol.position.width 3000
 protocol.position.height 3000
 protocol.position.pause 200
 
 protocol.emit EmitterProtocolImpl
 protocol.emit.latency 500
-protocol.emit.scope 100
+protocol.emit.scope 150
 protocol.emit.variance FALSE
 
 protocol.neighbor NeighborProtocolVKTImpl
@@ -20,7 +20,7 @@ protocol.neighbor.timer 10
 protocol.neighbor.listener TRUE
 
 protocol.election VKT04Election
-protocol.election.periode_leader 500
+protocol.election.periode_leader 2000
 
 initial_position_strategy FullRandom
 initial_position_strategy.positionprotocol position

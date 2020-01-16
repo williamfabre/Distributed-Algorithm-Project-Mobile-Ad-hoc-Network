@@ -3,13 +3,26 @@ package ara.util;
 public class LeaderMessage extends Message{
 	
 	private long most_valued_node;
-	private long most_valued_node_desirability;	
+	private long most_valued_node_desirability;
+	private long source_election;
+	private long ieme_election;
 	
-	public LeaderMessage(long idsrc, long iddest, int pid, long most_valued_node, long most_valued_node_desirability ) {
+	public LeaderMessage(
+			long idsrc, 
+			long iddest, 
+			int pid,
+			long most_valued_node,
+			long most_valued_node_desirability,
+			long source_election,
+			long ieme_election
+			){
+		
 		super(idsrc, iddest, pid);
 
 		this.most_valued_node = most_valued_node;
 		this.most_valued_node_desirability = most_valued_node_desirability;
+		this.source_election = source_election;
+		this.ieme_election = ieme_election;
 	}
 	
 	
@@ -19,5 +32,17 @@ public class LeaderMessage extends Message{
 	
 	public long getMostValuedNodeDesirability () {
 		return this.most_valued_node_desirability;
+	}
+
+
+	public long getSource_election() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	public long getIeme_election() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

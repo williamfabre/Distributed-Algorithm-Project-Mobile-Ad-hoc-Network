@@ -274,7 +274,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 				}
 
 				// Broadcast du message de leader
-				LeaderMessage lm_broadcast = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader);
+				LeaderMessage lm_broadcast = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader, -1, -1); // TODO
 				emp.emit(host, lm_broadcast);
 			} else {
 				
@@ -310,7 +310,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 				desirability_leader = lm.getMostValuedNodeDesirability();
 			}
 			
-			LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader);
+			LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader, -1, -1); // TODO
 			emp.emit(host, lm_propagate);
 		}
 		

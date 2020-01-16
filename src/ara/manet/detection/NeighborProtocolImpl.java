@@ -147,7 +147,7 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 			/* appelée lorsque le noeud host détecte la perte d'un voisin */
 			
 			// TODO lost?
-			nl.newNeighborDetected(host, idNeighbor); 
+			nl.lostNeighborDetected(host, idNeighbor); 
 		}
 		// Supression de la liste des valeurs et de la liste des voisins.
 		values.remove(0);
@@ -166,7 +166,6 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 		int election_pid = Configuration.lookupPid("election");
 		ElectionProtocol ep = (ElectionProtocol) host.getProtocol((election_pid));
 		int value = ep.getValue();
-
 		
 		// Crée un message de broadcast local de type ProbeMessage
 		// tagué avec mon ID, la valeur provenant du protocol d'élection et à destination de tous.

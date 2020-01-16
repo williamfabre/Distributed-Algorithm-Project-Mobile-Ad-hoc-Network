@@ -75,20 +75,19 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 
 	
 	/**
-	 * TODO a verifier. 
-     * Retourne la valeur du noeud dans notre liste.
+	 * TODO a verifier. INTERDITE, c'est tricher.
+     * Retourne la valeur de desirabilite du noeud dans notre liste.
      * 
      * @return la valeur du noeud id_new_neighbor
      */
 	public int getNeighborValue(long id_new_neighbor) {
 		
 		// Récupère la valeur provenant du Leader protocol de manière générique
-		int election_pid = Configuration.lookupPid("election");
-		ElectionProtocol ep = (ElectionProtocol) Network.get((int) id_new_neighbor).getProtocol((election_pid));
-		int value = ep.getValue();
-		return value;
+		//int election_pid = Configuration.lookupPid("election");
+		//ElectionProtocol ep = (ElectionProtocol) Network.get((int) id_new_neighbor).getProtocol((election_pid));
+		//int value = ep.getValue();
+		return 0;
 	}
-	
 	
     /**
      * Retourne la liste des neighbours du noeud courant
@@ -123,7 +122,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 			
 			// je crée un timer avant lequel je dois recevoir un message
 			// provenant de ce node sinon il sera supprimé de ma liste des voisins.
-
+			EDSimulator.add(timer, timer_event, host, my_pid);
 
 			// Gestion du NeighborhoodListener pour certains algorithme d'élection.
 			if (listener) {
@@ -159,7 +158,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 				return;
 			}
 		}
-		EDSimulator.add(timer, timer_event, host, my_pid);
+
 	}
 	
 	
@@ -198,7 +197,10 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 			Pair<Long, Boolean> p = neighbors_reply.remove(0);
 			p.setBool(false); 	// On remet a 0 car on attend un nouveau 
 			neighbors_reply.add(p);
-
+			
+			// je crée un timer avant lequel je dois recevoir un message
+			// provenant de ce node sinon il sera supprimé de ma liste des voisins.
+			EDSimulator.add(timer, timer_event, host, my_pid);
 		}
 	}
 
