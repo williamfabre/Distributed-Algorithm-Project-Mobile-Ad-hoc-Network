@@ -125,7 +125,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		int max_val = 0;
 		long idLeader = 0;
 		for (View v : knowledge.getKnowledge()) {
-			
+			//View v = knowledge.getView(0);
 			for (Peer p : v.getNeighbors()) {
 
 				if (p.getValue() >= max_val) {
