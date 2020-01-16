@@ -41,10 +41,10 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 													// des neighbors sont consideres comme voisins
 													// apres timer seconde ils disparaissent de la liste.
 	
-	private int scope;								// visibilité d'un node
+	private final int scope;						// visibilité d'un node
 	
 	private List<Long> neighbors;					// Liste de voisins.
-	private List<Integer> values; 					// Valeur nécessaire pour les leader protocol.
+	//private List<Integer> values; 					// Valeur nécessaire pour les leader protocol.
 	private List<Long> neighbors_ack;				// permet de compter le nombre de ack				
 	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
 	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
@@ -70,7 +70,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		
 		// Creation de liste privees.
 		neighbors = new ArrayList<Long>(); 		// Liste des voisins
-		values = new ArrayList<Integer>(); 		// liste des valeurs
+		//values = new ArrayList<Integer>(); 		// liste des valeurs
 		neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
 		parent = -1;
 		id_leader = -1;
@@ -86,7 +86,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		try {
 			vtk = (VKT04StatiqueElection) super.clone();
 			vtk.neighbors = new ArrayList<Long>(); 		// Liste des voisins
-			vtk.values = new ArrayList<Integer>(); 		// liste des valeurs
+			//vtk.values = new ArrayList<Integer>(); 		// liste des valeurs
 			vtk.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
 			vtk.parent = -1;
 			vtk.id_leader = -1;

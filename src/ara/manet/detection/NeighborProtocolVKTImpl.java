@@ -6,7 +6,9 @@ import java.util.List;
 import ara.manet.algorithm.election.ElectionProtocol;
 import ara.manet.communication.EmitterProtocolImpl;
 import ara.util.ProbeMessage;
+import ara.util.ReplyMessage;
 import peersim.config.Configuration;
+import peersim.core.Network;
 import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.edsim.EDSimulator;
@@ -54,15 +56,21 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 	}
 	
 	
-	 /**
+	/**
+	 * TODO a verifier. 
      * Retourne la valeur du noeud dans notre liste.
      * 
      * @return la valeur du noeud id_new_neighbor
      */
-	//public int getNeighborValue(long id_new_neighbor) {
+	public int getNeighborValue(long id_new_neighbor) {
 		
-		//return values.get(neighbors.indexOf(id_new_neighbor));
-	//}
+		// Récupère la valeur provenant du Leader protocol de manière générique
+		int election_pid = Configuration.lookupPid("election");
+		ElectionProtocol ep = (ElectionProtocol) Network.get((int) id_new_neighbor).getProtocol((election_pid));
+		int value = ep.getValue();
+		//System.err.println(id_new_neighbor + " test " + value);
+		return value;
+	}
 	
 	
     /**
@@ -118,11 +126,16 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 				int listener_pid = Configuration.lookupPid("election");
 				NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
 				/* appelée lorsque le noeud host détecte un nouveau voisin */
-				nl.newNeighborDetected(host, idNeighbor);
+				nl.lostNeighborDetected(host, idNeighbor);
 			}
 		}
 	}
-
+	
+	private void recvReplyMessage(Node host, ReplyMessage event) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	
 	/**
 	 * Méthode permettant de supprimer un voisin qui n'a pas su
@@ -136,13 +149,16 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 		// On prend le premier de la liste qui a le timer le plus petit
 		long idNeighbor = neighbors.get(0);
 		
-		// Gestion du NeighborhoodListener pour certains algorithme d'élection.
+		// Gestion du NeighborhoodListener pour certains algorithmes d'élections.
 		if (listener) {
 			int listener_pid = Configuration.lookupPid("election");
 			NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
 			/* appelée lorsque le noeud host détecte la perte d'un voisin */
 			nl.newNeighborDetected(host, idNeighbor); 
 		}
+		
+
+		
 		// Supression de la liste des valeurs et de la liste des voisins.
 		neighbors.remove(0);
 	}
@@ -155,7 +171,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 	 */
 	public void heartbeat(Node host) {
 
-		// Récupère la valeur provenant du Leader protocol de manière généique
+		// Récupère la valeur provenant du Leader protocol de manière générique
 		int election_pid = Configuration.lookupPid("election");
 		ElectionProtocol ep = (ElectionProtocol) host.getProtocol((election_pid));
 		int value = ep.getValue();
@@ -193,7 +209,15 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 			recvProbMsg(host, (ProbeMessage) event);
 			return;
 		}
-
+		
+		// Gestion de la reception d'un message de type ProbeMessage
+		if (event instanceof ReplyMessage) {
+			recvReplyMessage(host, (ReplyMessage) event);
+			return;
+		}
+		
+		
+		
 		if (event instanceof String) {
 			String ev = (String) event;
 			if (ev.equals(heart_event)) {
@@ -207,5 +231,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 		}
 		throw new RuntimeException("Receive unknown Event");
 	}
+
+
 
 }

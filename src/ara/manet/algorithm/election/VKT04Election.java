@@ -5,45 +5,29 @@ import java.util.List;
 
 import ara.manet.Monitorable;
 import ara.manet.communication.EmitterProtocolImpl;
-import ara.manet.detection.NeighborProtocolImpl;
+import ara.manet.detection.NeighborProtocolVKTImpl;
 import ara.manet.detection.NeighborhoodListener;
 import ara.util.AckMessage;
 import ara.util.ElectionDynamicMessage;
 import ara.util.LeaderMessage;
-import ara.util.ProbeMessage;
-import ara.util.ReplyMessage;
 import peersim.config.Configuration;
 import peersim.core.Network;
 import peersim.core.Node;
 import peersim.edsim.EDSimulator;
-import peersim.util.ExtendedRandom;
 	
 public class VKT04Election implements ElectionProtocol, Monitorable, NeighborhoodListener {
 
 	private static final long ALL = -2; // Broadcast == true
 	
 	private static final String PAR_PERIODE_LEADER = "periode_leader";
-	private static final String PAR_PERIODE_NEIGHBOR = "periode_neighbor";
 	private static final String PAR_TIMER = "timer";
-	private static final String PAR_SCOPE = "scope";
 	public static final String leader_event = "LEADEREVENT";
-	public static final String leader_event_print = "LEADEREVENT_PRINT";
 	
 	private int my_pid; 							// protocol
 	
 	private final int periode_leader;				// duree entre deux elections 
 
-	private final int periode_neighbor;				// delay avant declenchement timer 
-													// entre deux check de mes voisins
-
-	private final long timer_event;					// Tant qu'il est armee, les noeuds de la liste 
-													// des neighbors sont consideres comme voisins
-													// apres timer seconde ils disparaissent de la liste.
-	
-	private int scope;								// visibilité d'un node
-	
 	private List<Long> neighbors;					// Liste de voisins.
-	private List<Integer> values; 					// Valeur nécessaire pour les leader protocol.
 	private List<Long> neighbors_ack;				// permet de compter le nombre de ack				
 	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
 	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
@@ -74,13 +58,9 @@ public VKT04Election(String prefix) {
 		my_pid = Configuration.lookupPid(tmp[tmp.length - 1]);
 		
 		this.periode_leader = Configuration.getInt(prefix + "." + PAR_PERIODE_LEADER);
-		this.periode_neighbor = Configuration.getInt(prefix + "." + PAR_PERIODE_NEIGHBOR);
-		this.timer_event = Configuration.getInt(prefix + "." + PAR_TIMER);
-		this.scope = Configuration.getInt(prefix + "." + PAR_SCOPE);
 		
 		// Creation de liste privees.
 		neighbors = new ArrayList<Long>(); 		// Liste des voisins
-		values = new ArrayList<Integer>(); 		// liste des valeurs
 		neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
 		parent = -1;
 		id_leader = -1;
@@ -101,7 +81,6 @@ public VKT04Election(String prefix) {
 		try {
 			vkt = (VKT04Election) super.clone();
 			vkt.neighbors = new ArrayList<Long>(); 		// Liste des voisins
-			vkt.values = new ArrayList<Integer>(); 		// liste des valeurs
 			vkt.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
 			vkt.parent = -1;
 			vkt.id_leader = -1;
@@ -128,13 +107,7 @@ public VKT04Election(String prefix) {
 	 * @param node le node en lui même
 	 */
 	public void initialisation(Node node) {
-		//ExtendedRandom my_random = new ExtendedRandom(10);
-		//this.desirability = (int) (my_random.nextInt(1000) / (node.getID() + 1));
 		this.desirability = node.getIndex();
-		
-		// TODO initialiser le leader à même au départ? id_leader ?
-		// Trouves tes voisins
-		EDSimulator.add(periode_neighbor, timer_event, node, my_pid);
 	}
 	
 	
@@ -146,11 +119,16 @@ public VKT04Election(String prefix) {
 	 * 
 	 * @param host
 	 */
-	void VKT04StaticElectionTrigger(Node host) {
+	void VKT04ElectionTrigger(Node host) {
 
 		// Récupération du protocol de communication
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		
+		// Recuperation du protocol de Neighbor
+		int neighbor_pid = Configuration.lookupPid("neighbor");
+		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
+		
 		
 		// Début d'une demande d'éléction globale, mise à jour du node
 		// pour débuter une éléction
@@ -161,18 +139,18 @@ public VKT04Election(String prefix) {
 		this.desirability_potential_leader = desirability;
 		this.potential_leader = host.getID();
 		
-		is_electing = 1;									// je suis passe en mode election.
-		ack_2_parent = 1;									// je n'ai pas besoin d'attendre un ack.
-		source_election = host.getID();						// je suis le createur de cette election.
-		ieme_election++;									// Pour calculer la priorite de mon election.
+		is_electing = 1;				// je suis passe en mode election.
+		ack_2_parent = 1;				// je n'ai pas besoin d'attendre un ack.
+		source_election = host.getID();	// je suis le createur de cette election.
+		ieme_election++;				// Pour calculer la priorite de mon election.
 		ieme_election_max = Math.max(ieme_election_max, ieme_election);
 		
 		ElectionDynamicMessage edm = new ElectionDynamicMessage(host.getID(), ALL, host.getID(), ieme_election, my_pid);
 		emp.emit(host, edm);
-		
+		neighbors = np.getNeighbors();
 		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
 		// exactement en même temps.
-		// EDSimulator.add(periode_leader, leader_event, host, my_pid);
+		EDSimulator.add(periode_leader, leader_event, host, my_pid);
 	}
 	
 	/**
@@ -187,7 +165,6 @@ public VKT04Election(String prefix) {
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
 		ElectionDynamicMessage em = (ElectionDynamicMessage)event;
-		
 		// Si je n'ai pas de parent j'ajoute l'envoyeur comme mon père
 		// le ack message attendra que j'ai reçu une réponse de tous
 		// mes fils.
@@ -297,28 +274,6 @@ public VKT04Election(String prefix) {
 			emp.emit(host, lm_propagate);
 		}	
 	}
-	
-	/**
-	 * TODO 
-	 * 
-	 * @param host
-	 * @param event
-	 */
-	private void recvProbeMessage(Node Host, ProbeMessage event) {
-		// Je dois repondre a cette personne avec un message de type reply
-		return;
-	}
-	
-	/**
-	 * TODO 
-	 * 
-	 * @param host
-	 * @param event
-	 */
-	private void recvReplyMessage(Node Host, ReplyMessage event) {
-		// Arme a nouveau le timer pour preparer un nouveau Probe Message
-		return;
-	}
 
 
 	/********************************ELECTION PROTOCOL**********************************/
@@ -339,7 +294,8 @@ public VKT04Election(String prefix) {
 	@Override
 	public void newNeighborDetected(Node host, long id_new_neighbor) {
 		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolImpl np = (NeighborProtocolImpl) host.getProtocol(neighbor_pid);
+		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
+		neighbors = np.getNeighbors();
 	}
 	
 	/**
@@ -348,7 +304,8 @@ public VKT04Election(String prefix) {
 	@Override
 	public void lostNeighborDetected(Node host, long id_lost_neighbor) {
 		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolImpl np = (NeighborProtocolImpl) host.getProtocol(neighbor_pid);
+		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
+		neighbors = np.getNeighbors();
 	}
 	
 	/********************************MONITORABLE**********************************/
@@ -384,7 +341,6 @@ public VKT04Election(String prefix) {
 	}
 	
 	
-	
 	/********************************ProcessEvent**********************************/	
 	@Override
 	public void processEvent(Node host, int pid, Object event) {
@@ -410,43 +366,13 @@ public VKT04Election(String prefix) {
 			recvAckMsg(host, (AckMessage) event);
 			return;
 		}
-
-		// Gestion de la reception d'un message de type ProbeMessage
-		if (event instanceof ProbeMessage) {
-			recvProbeMessage(host, (ProbeMessage) event);
-			return;
-		}
-		
-		// Gestion de la reception d'un message de type ProbeMessage
-		if (event instanceof ReplyMessage) {
-			recvReplyMessage(host, (ReplyMessage) event);
-			return;
-		}
-		
-		
-		// Je dois verifier la liste de mes voisins a chaque periode de temps
-		// nommee timer.
-		if (event.equals(timer_event)) {
-			//staticDetection(host);
-			return;
-		}
 		
 		// Evènement périodique d'élections.		
 		if (event instanceof String) {
 			String ev = (String) event;
 
 			if (ev.equals(leader_event)) {
-				VKT04StaticElectionTrigger(host);
-				return;
-			}
-		}
-		
-		// Evènement périodique d'affichage d'élections.
-		if (event instanceof String) {
-			String ev = (String) event;
-
-			if (ev.equals(leader_event_print)) {
-				// Traitement si necessaire
+				VKT04ElectionTrigger(host);
 				return;
 			}
 		}

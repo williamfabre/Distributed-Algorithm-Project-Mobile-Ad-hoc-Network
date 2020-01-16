@@ -33,7 +33,7 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 										// de rendre facultatifs le NeighborhoodListener.
 
 	private List<Long> neighbors;		// Liste de voisins.
-	private List<Integer> values; 		// Valeur nécessaire pour les leader protocol.
+	private List<Integer> values; 		// Valeur nécessaire pour les leader protocol. // TODO LISTE INUTILE ET N'A RIEN A FAIRE ICI
 
 	
     /**
@@ -145,7 +145,9 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 			int listener_pid = Configuration.lookupPid("election");
 			NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
 			/* appelée lorsque le noeud host détecte la perte d'un voisin */
-			nl.newNeighborDetected(host, idNeighbor); 
+			
+			// TODO lost?
+			nl.lostNeighborDetected(host, idNeighbor); 
 		}
 		// Supression de la liste des valeurs et de la liste des voisins.
 		values.remove(0);
