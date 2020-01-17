@@ -119,8 +119,10 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 
 			// Gestion du NeighborhoodListener pour certains algorithme d'élection.
 			if (listener) {
+				
 				int listener_pid = Configuration.lookupPid("election");
 				NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
+				
 				/* appelée lorsque le noeud host détecte un nouveau voisin */
 				nl.newNeighborDetected(host, idNeighbor);
 			}
@@ -142,10 +144,11 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 		
 		// Gestion du NeighborhoodListener pour certains algorithme d'élection.
 		if (listener) {
+			
 			int listener_pid = Configuration.lookupPid("election");
 			NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
-			/* appelée lorsque le noeud host détecte la perte d'un voisin */
 			
+			/* appelée lorsque le noeud host détecte la perte d'un voisin */
 			nl.lostNeighborDetected(host, idNeighbor); 
 		}
 		// Supression de la liste des valeurs et de la liste des voisins.
