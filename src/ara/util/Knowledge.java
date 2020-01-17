@@ -67,8 +67,12 @@ public class Knowledge {
 	}
 
 	public void updateMyViewRemove(Peer p) {
-		knowledge.get(0).updateViewRemove(p);
-		knowledge.get(0).setClock(knowledge.get(0).getClock() + 1);
+		long hostId = position.elementAt(0);
+		if (hostId != p.getId()) {
+			knowledge.get(0).updateViewRemove(p);
+		}
+			knowledge.get(0).setClock(knowledge.get(0).getClock() + 1);
+		
 	}
 
 	public void updateOneView(Long peerID, Vector<Peer> neighbors, int clock) {
@@ -129,8 +133,10 @@ public class Knowledge {
 
 		if (found) {
 			int pos = position.indexOf(peerID);
+			long hostId = position.elementAt(0);
+
 			for (Peer n : neighbors) {
-				if (n != null) {
+				if (n != null && hostId != peerID) {
 					// System.out.println("remove " + n.getId());
 					knowledge.elementAt(pos).updateViewRemove(n);
 				}

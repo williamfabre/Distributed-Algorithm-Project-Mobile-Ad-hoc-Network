@@ -87,7 +87,7 @@ public class EmitterProtocolImpl implements Emitter {
 
 		// Si c'est moi m�me alors je d�lire.
 		if (emitter == host) {
-			//deliver(host, msg);
+			deliver(host, msg);
 			return;
 		}
 
