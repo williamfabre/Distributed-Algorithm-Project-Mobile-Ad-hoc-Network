@@ -159,6 +159,7 @@ public VKT04Election(String prefix) {
 		EDSimulator.add(periode_leader, leader_event, host, my_pid);
 	}
 	
+	
 	/**
 	 * TODO
 	 * 
@@ -279,7 +280,45 @@ public VKT04Election(String prefix) {
 			}
 		}
 		
-	}	
+	}
+	
+	//
+	private void patchLeader(Node host, LeaderMessage event) {
+		id_leader = event.getMostValuedNode();
+		ieme_election_max = event.getIeme_election();
+		desirability_leader = event.getMostValuedNodeDesirability();
+	}
+	
+	// TODO
+	private boolean worthyLeader(Node host, LeaderMessage event){
+		
+		return this.source_ieme_election > event.getIeme_election() ||
+				this.source_ieme_election <= event.getIeme_election() 
+				&& this.desirability_leader > event.getSource_election();
+	}
+	
+	// TODO
+	private void mergeLeader(Node host, LeaderMessage event) {
+		
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		
+		if (worthyLeader(host, event)) {
+			
+			// propager  mon leader
+			LeaderMessage lm_local = new LeaderMessage(host.getID(), event.getIdSrc(), my_pid, id_leader,desirability_leader, source_election, source_ieme_election);
+			emp.emit(host, lm_local);
+		
+		} else {
+			
+			// Si il est illegitime alors je dois le modifier propager le nouveau leader
+			
+			// me mettre a jour et propager.
+			patchLeader(host, event);
+			LeaderMessage lm_broadcast = new LeaderMessage(host.getID(), ALL, my_pid, event.getMostValuedNode(), event.getMostValuedNodeDesirability(),event.getSource_election(), event.getIeme_election());
+			emp.emit(host, lm_broadcast);
+		}
+	}
 	
 	/**
 	 * TODO 
@@ -297,60 +336,24 @@ public VKT04Election(String prefix) {
 		switch (state) {
 		case 0:							// 0 : leader_known
 		case 2: 						// 2 : leader_isMe
-			// Je recois un message de leader et je connais deja mon leader
-			// Si il est legitime alors
-			if (this.source_ieme_election > event.getIeme_election() ||
-					this.source_ieme_election <= event.getIeme_election() 
-					&& this.desirability_leader > event.getSource_election()) {
-				// propager  mon leader
-				LeaderMessage lm_local = new LeaderMessage(host.getID(), event.getIdSrc(), 
-						my_pid, 
-						id_leader,
-						desirability_leader, 
-						source_election, 
-						source_ieme_election);
-				
-				emp.emit(host, lm_local);
-			
-			} else {
-				
-				// Si il est illegitime alors je dois le modifier
-					// propager le nouveau leader
-				LeaderMessage lm_broadcast = new LeaderMessage(host.getID(), ALL, my_pid, 
-						event.getMostValuedNode(), 
-						event.getMostValuedNodeDesirability(),
-						event.getSource_election(), 
-						event.getIeme_election());
-				
-				emp.emit(host, lm_broadcast);
-				
-			}
+			mergeLeader(host, event);
 			break;
 			
 		case 1:							// 1 : leader_unknown
-			if (is_electing) {
-				if (lm.getMostValuedNode() == host.getID()) {
-					state = 2; 		// 2 : leader_isMe
-					id_leader = host.getID();
-					desirability_leader = desirability;
-				} else {
-					state = 0;		// 0 : leader_known
-					id_leader = lm.getMostValuedNode();
-					desirability_leader = lm.getMostValuedNodeDesirability();
-				}
-				
-				LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader, source_election, source_ieme_election);
-				emp.emit(host, lm_propagate);
-				
+			if (lm.getMostValuedNode() == host.getID()) {
+				state = 2; 			// 2 : leader_isMe
+				id_leader = host.getID();
+				desirability_leader = desirability;
+				ieme_election_max = ieme_election;
 			} else {
-				// Je ne suis pas en cours d'election et je recois un message de leader
-				// Je dois verifier si je ne peux pas devenir le leader
-				// Je peux etre leader ?
-				// election!
-				// Je ne peux pas, je me soumet.
-				// TODO
+				// check leader
+				state = 0;		// 0 : leader_known
+				patchLeader(host, lm);
 			}
-			break;
+			is_electing = false;
+			
+			LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader, source_election, source_ieme_election);
+			emp.emit(host, lm_propagate);
 		default:
 			break;
 		}
@@ -389,17 +392,24 @@ public VKT04Election(String prefix) {
 		case 2: 						// 2 : leader_isMe
 			// Echange de leader
 			// Je rediffuse pour qu'il s'insere avec nous ou pas
+			// Deux cas :
+			// 1) je suis un nouveau parmi un groupe => beaucoup d'envoie
+			// 2) Je suis un groupe et j'accueil un nouveau => peu d'envoie, beaucoup de receptions (tester l'egalite pour ne pas flicker)
 			LeaderMessage lm_cible = new LeaderMessage(host.getID(), id_new_neighbor, my_pid, id_leader, desirability_leader, source_election, source_ieme_election);
 			emp.emit(host, lm_cible);
 			break;
 		case 1:							// 1 : leader_unknown
 			if (is_electing) {
 				// phase de diffusion du ElectionMessage [en cours]
+				// 1) je suis un nouveau parmi un groupe => beaucoup d'envoie
+				// 2) Je suis un groupe et j'accueil un nouveau => peu d'envoie, beaucoup de receptions (tester l'egalite pour ne pas flicker)
 				ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), id_new_neighbor, source_election, source_ieme_election, my_pid);
 				emp.emit(host, em_propagation);
 
 			} else {
 				// Je trigger une election TODO?
+				// 1) Tentative d'election dans un nouveau groupe
+				// 2) un nouveau arrive il declenche une election, est-ce normal?
 				 VKT04ElectionTrigger(host);
 			}
 			break;
