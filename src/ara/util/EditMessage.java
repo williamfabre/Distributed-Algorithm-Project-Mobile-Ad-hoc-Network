@@ -4,14 +4,19 @@ import java.util.Vector;
 
 public class EditMessage extends Message {
 	
-	private Vector<Long> autors = new Vector<Long>();
-	private Vector<Vector<Peer>> added = new Vector<Vector<Peer>>();
-	private Vector<Vector<Peer>> removed = new Vector<Vector<Peer>>();
-	private Vector<Integer> old_clock = new Vector<Integer>();
-	private Vector<Integer> new_clock = new Vector<Integer>();
+	private Vector<Long> autors;
+	private Vector<Vector<Peer>> added;
+	private Vector<Vector<Peer>> removed;
+	private Vector<Integer> old_clock;
+	private Vector<Integer> new_clock;
 
 	public EditMessage(long idsrc, long iddest, int pid) {
 		super(idsrc, iddest, pid);
+		autors = new Vector<Long>();
+		added = new Vector<Vector<Peer>>();
+		removed = new Vector<Vector<Peer>>();
+		old_clock = new Vector<Integer>();
+		new_clock = new Vector<Integer>();
 	}
 	
 	public void setClock(int old_clock, int new_clock) {
@@ -36,7 +41,7 @@ public class EditMessage extends Message {
 	}
 	public void setAdded(Vector<Peer> j) {
 		if (j == null) {
-			added.add(new Vector());
+			added.add(new Vector<Peer>());
 			return;
 		}
 			added.add(j);
@@ -44,14 +49,14 @@ public class EditMessage extends Message {
 	
 	public void setRemoved(Vector<Peer> j) {
 		if (j == null) {
-			added.add(new Vector());
+			added.add(new  Vector<Peer>());
 			return;
 		}
 		removed.add(j);
 	}
 	public void setUpdates(Peer k, Peer j) {
-		Vector vk = new Vector();
-		Vector vj = new Vector();
+		Vector vk = new Vector<Peer>();
+		Vector vj = new Vector<Peer>();
 		vk.add(k);
 		vj.add(j);
 		setAdded(vk);
@@ -71,19 +76,11 @@ public class EditMessage extends Message {
 	}
 	
 	public boolean addedIsEmpty(int pos) {
-		
-		if(added.size()<=pos)
-			return false;
-		
-		return added.elementAt(pos).isEmpty();
+			return added.size() <= pos || added.elementAt(pos).isEmpty();
 	}
 	
 	public boolean removedIsEmpty(int pos) {
-		
-		if(removed.size()<=pos)
-			return false;
-		
-		return removed.elementAt(pos).isEmpty();
+			return removed.size() <= pos || removed.elementAt(pos).isEmpty();
 	}
 	
 	public boolean empty() {

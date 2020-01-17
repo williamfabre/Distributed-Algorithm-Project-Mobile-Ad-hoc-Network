@@ -1,22 +1,22 @@
-network.size 20
+network.size 10
 random.seed 10
-simulation.endtime 50000
+simulation.endtime 30000
 
 protocol.position PositionProtocolImpl
 protocol.position.maxspeed 300
 protocol.position.minspeed 30
-protocol.position.width 3000
-protocol.position.height 3000
+protocol.position.width 800
+protocol.position.height 800
 protocol.position.pause 200
 
 protocol.emit EmitterProtocolImpl
-protocol.emit.latency 500
-protocol.emit.scope 200
+protocol.emit.latency 90
+protocol.emit.scope 100
 protocol.emit.variance FALSE
 
 protocol.neighbor NeighborProtocolImpl
-protocol.neighbor.periode 10
-protocol.neighbor.timer 10
+protocol.neighbor.periode 300
+protocol.neighbor.timer 400
 protocol.neighbor.listener TRUE
 
 protocol.election GVLElection

@@ -12,6 +12,10 @@ public class Peer {
 	
 	public Peer() {};
 	
+	public void print() {
+		System.out.print(" ("+id+") ");
+	}
+	
 	public void setValue(int v) {
 		this.value = v;
 	}
