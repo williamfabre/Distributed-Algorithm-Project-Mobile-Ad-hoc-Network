@@ -1,5 +1,7 @@
 package ara.util;
 
+import java.util.Vector;
+
 public class Peer {
 
 	private long id;
@@ -11,6 +13,15 @@ public class Peer {
 	};
 	
 	public Peer() {};
+	
+	public Object clone() {
+		Peer p = null;
+		try {
+			p = (Peer) super.clone();
+		} catch (CloneNotSupportedException e) {
+		}
+		return p;
+	}
 	
 	public void print() {
 		System.out.print(" ("+id+") ");

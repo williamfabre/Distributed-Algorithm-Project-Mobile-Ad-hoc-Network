@@ -15,18 +15,26 @@ public class View {
 
 	public View(Vector<Peer> neighbors, int clock) {
 		this.neighbors = new Vector<Peer>();
-		// System.out.println("New view to add : " + neighbors.size());
 		updateViewAddMult(neighbors);
 		setClock(clock);
-		// System.out.println("Added: " + this.neighbors.size());
-
 	};
-
+	
+	public Object clone() {
+		View v = null;
+		try {
+			v = (View) super.clone();
+			neighbors = new Vector<Peer>();
+			
+		} catch (CloneNotSupportedException e) {
+		}
+		return v;
+	}
+	
 	public void print() {
 		System.out.println();
 		System.out.print(" [" + clock + "] ");
 		for (Peer p : neighbors) {
-				p.print();
+			p.print();
 		}
 		System.out.println();
 	}
@@ -43,22 +51,21 @@ public class View {
 		return neighbors;
 	}
 
-	public void updateViewAdd(Peer neighbor) {
+	public void updateViewAdd(Peer neighbor) {	//copy ?
 
-		for (Peer n : neighbors) {
+		for (Peer n : this.neighbors) {
+			
 			if (n.getId() == neighbor.getId()) {
 				return;
 			}
 		}
-		//System.out.println(neighbor.getId() + " added");
 		this.neighbors.add(neighbor);
 	}
 
-	public void updateViewAddMult(Vector<Peer> neighbors_to_add) {
-		//System.out.println("empty : " + neighbors_to_add.size());
+	private void updateViewAddMult(Vector<Peer> neighbors_to_add) {	//copy ?
+		
 		for (Peer n : neighbors_to_add) {
-			// if (this.neighbors.isEmpty())
-
+			
 			for (Peer n1 : this.neighbors) {
 
 				if (n.getId() == n1.getId()) {
@@ -69,13 +76,12 @@ public class View {
 		}
 	}
 
+	//Delete a peer from a current view
 	public void updateViewRemove(Peer neighbor) {
-		// System.out.println(this.neighbors.isEmpty() + " removed");
 		for (Peer n : this.neighbors) {
-			if (n != null) {
+			if (n != null) {	//null ?
 				if ((n.getId() == neighbor.getId())) {
 					this.neighbors.remove(n);
-					 //System.out.println(neighbor.getId() + " removed");
 					return;
 				}
 			}

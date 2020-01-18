@@ -14,10 +14,18 @@ public class Knowledge {
 
 		knowledge = new Vector<View>();
 		position = new Vector<Long>();
+	}
 
-		// this.knowledge.add(my_pos, v);
-		// position.add(host.getID());
+	public Object clone() {
+		Knowledge k = null;
+		try {
+			k = (Knowledge) super.clone();
+			k.knowledge = new Vector<View>();
+			k.position = new Vector<Long>();
 
+		} catch (CloneNotSupportedException e) {
+		}
+		return k;
 	}
 
 	public void print() {
@@ -43,6 +51,7 @@ public class Knowledge {
 	}
 
 	public View getView(int pos) {
+
 		return knowledge.elementAt(pos);
 	}
 
@@ -51,6 +60,7 @@ public class Knowledge {
 		if (knowledge.size() <= pos) {
 			knowledge.setSize(pos + 1);
 		}
+
 		knowledge.set(pos, v);
 	}
 
@@ -59,99 +69,107 @@ public class Knowledge {
 		return knowledge.get(pos).getClock();
 	}
 
+	// add peer in host's list neighbors
 	public void updateMyViewAdd(Peer p) {
 		knowledge.get(0).updateViewAdd(p);
 		knowledge.get(0).setClock(knowledge.get(0).getClock() + 1);
-		// System.out.println(p.getId() + " updateMyView " +
-		// knowledge.get(0).getNeighbors().size());
 	}
 
+	// remove peer from host's list neighbors
 	public void updateMyViewRemove(Peer p) {
-		long hostId = position.elementAt(0);
-		if (hostId != p.getId()) {
-			knowledge.get(0).updateViewRemove(p);
-		}
-			knowledge.get(0).setClock(knowledge.get(0).getClock() + 1);
+		
+		//test if src is in knowledge of host
+			/*	boolean found = false;
+				for (Long peer : position) {
+					if (peer == p.getId()) {
+						found = true;
+						break;
+					}
+				}
+
+				if (found) {
+					for (Peer n : knowledge.get(0).getNeighbors()) {
+						if (p.getId() == n.getId())
+							knowledge.get(0).updateViewRemove(p);
+					}
+				}
+				*/	
+		knowledge.get(0).updateViewRemove(p);
+		knowledge.get(0).setClock(knowledge.get(0).getClock() + 1);
 		
 	}
 
-	public void updateOneView(Long peerID, Vector<Peer> neighbors, int clock) {
+	public void updateOneView(Long source, Vector<Peer> neighbors, int clock) {
 
+		// test if src is in knowledge of host
 		boolean found = false;
 		for (Long p : position) {
-			if (p == peerID) {
+			if (p == source) {
 				found = true;
 				break;
 			}
 		}
 
 		if (!found) {
-			position.add(peerID);
+			position.add(source);
 		}
 
-		int pos = position.indexOf(peerID);
+		int pos = position.indexOf(source);
 
 		if (knowledge.size() <= pos) {
 			knowledge.setSize(pos + 1);
-			// System.out.println(peerID + " resize : " + knowledge.size() + " pos : " +
-			// pos);
 		}
 
+		// view of src is vide in the knowledge of host
 		if (knowledge.elementAt(pos) == null || knowledge.elementAt(pos).getNeighbors() == null) {
-			// System.out.println(peerID + " to add " + neighbors.size());
-			View v = new View(neighbors, clock); // clock ??
+
+			// create and insert new view
+			View v = new View(neighbors, clock);
 			knowledge.set(pos, v);
 
-			// System.out.println(peerID + " added " +
-			// knowledge.elementAt(pos).getNeighbors());
-		} else {
-			// System.out.println("voila : " +
-			// knowledge.elementAt(pos).getNeighbors().size());
+		} else { // view of src has some elts in the knowledge of host
+
 			for (Peer p : neighbors) {
-				// knowledge.elementAt(pos).updateViewAddMult(neighbors);
+
 				if (p != null) {
-					View v = new View(neighbors, clock); // clock ??
+					View v = new View(neighbors, clock);
 					knowledge.set(pos, v);
 				}
 			}
 		}
-		// System.out.println(peerID + " updateOneView Res " +
-		// knowledge.elementAt(pos).getNeighbors());
-		// View v = new View(neighbors);
-		// setView(pos, v);
 	}
 
-	public void updateOneViewRem(Long peerID, Vector<Peer> neighbors) {
+	public void updateOneViewRem(Long source, Vector<Peer> neighbors) {
 
+		// test if src is in knowledge of host
 		boolean found = false;
 		for (Long p : position) {
-			if (p == peerID) {
+			if (p == source) {
 				found = true;
 				break;
 			}
 		}
 
 		if (found) {
-			int pos = position.indexOf(peerID);
-			long hostId = position.elementAt(0);
+			int pos = position.indexOf(source);
 
 			for (Peer n : neighbors) {
-				if (n != null && hostId != peerID) {
-					// System.out.println("remove " + n.getId());
+				if (n != null) {
+					// Delete a peer from a current view defined by pos
 					knowledge.elementAt(pos).updateViewRemove(n);
+					/*
+					for (Peer p : knowledge.elementAt(pos).getNeighbors()) {
+						if (p.getId() == n.getId())
+							knowledge.elementAt(pos).updateViewRemove(p);
+					}
+					*/
 				}
 			}
-
-			/*
-			 * if (knowledge.elementAt(pos).getNeighbors().isEmpty()) {
-			 * position.remove(peerID); knowledge.remove(pos); System.out.println("remove "
-			 * + peerID); }
-			 */
 		}
 	}
 
-	public void updateOneClock(Long peerID, int clock) {
-		int pos = position.indexOf(peerID);
+	public void updateOneClock(Long source, int clock) {
+		int pos = position.indexOf(source);
 		knowledge.get(pos).setClock(clock);
 	}
 

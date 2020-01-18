@@ -1,18 +1,18 @@
-network.size 75
+network.size 3
 random.seed 10
 simulation.endtime 50000
 
 protocol.position PositionProtocolImpl
 protocol.position.maxspeed 300
 protocol.position.minspeed 30
-protocol.position.width 1200
-protocol.position.height 1200
+protocol.position.width 600
+protocol.position.height 600
 protocol.position.pause 200
 
 protocol.emit EmitterProtocolImpl
 protocol.emit.latency 90
 protocol.emit.scope 80
-protocol.emit.variance FALSE
+protocol.emit.variance TRUE
 
 protocol.neighbor NeighborProtocolImpl
 protocol.neighbor.periode 300
