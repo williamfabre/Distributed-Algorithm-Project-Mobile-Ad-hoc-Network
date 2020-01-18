@@ -160,11 +160,74 @@ public VKT04Election(String prefix) {
 	}
 	
 	
+	
 	/**
-	 * TODO
+	 * Met à jour les champs nécessaire à l'élection avec les valeurs worthy
+	 * du nouveau parent.
+	 * @param host moi même
+	 * @param edm message d'éléction dynamique
+	 */
+	private void patchAfterElectionMessage(Node host, ElectionDynamicMessage edm) {
+		
+		// passe en mode election
+		is_electing = true;
+		
+		// patch le parent
+		parent = edm.getIdSrc();						// Ce noeud est mon père
+		
+		//patch les listes
+		//neighbors_ack.remove(this.parent); 				// Je ne dois pas attendre mon père
+		
+		// patch les variables d'election
+		source_election = edm.getSource_election(); 	// Je met a jour a source de l'election
+		source_ieme_election = edm.getIeme_election(); 	// Je met a jour le ieme de la source de l'election
+		ieme_election_max = source_ieme_election;
+		
+		// patch des variables leader potentiel (techniquement rien a faire)
+		potential_leader = -1;
+		desirability_potential_leader = -1;
+		
+		//patch state
+		state = 1; // ?
+	}
+	
+	/**
+	 * Le but est de propager le l'éléction provenant du message en paramètre
+	 * @param host moi même
+	 * @param edm message d'éléction dynamique
+	 */
+	private void PropagateElection2children(Node host, ElectionDynamicMessage edm) {
+		
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		
+		for (Long neinei : neighbors_ack) {
+			Node dest = Network.get(neinei.intValue());
+			if(dest.getID() == parent) { continue; } // Skip l'id du pere
+			ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), dest.getID(), edm.getSource_election(), ieme_election, my_pid);
+			emp.emit(host, em_propagation);
+		}
+	}
+
+	
+	/**
+	 * @param host moi même
+	 * @param edm message d'éléction dynamique
+	 * @return Vrai si je suis plus worthy
+	 */
+	private boolean worthierElection(Node host, ElectionDynamicMessage edm) {
+		return this.ieme_election > edm.getIeme_election() ||
+				this.ieme_election == edm.getIeme_election() 
+				&& this.desirability_leader > edm.getSource_election();
+	}
+	
+	/**
+	 * Fonction appelée en cas de réception d'un message d'éléction dynamique
+	 * Elle sert a résoudre les conflits si une éléction est déjà en cours
+	 * ou si j'ai un parent illégitime de devenir leader.
 	 * 
-	 * @param host
-	 * @param event
+	 * @param host moi même
+	 * @param edm message d'éléction dynamique
 	 */
 	private void recvElectionDynamicMsg(Node host, ElectionDynamicMessage event) {
 		
@@ -173,64 +236,78 @@ public VKT04Election(String prefix) {
 		
 		ElectionDynamicMessage edm = (ElectionDynamicMessage)event;
 		
-		// Si je n'ai pas de parent j'ajoute l'envoyeur comme mon père
-		// le ack message attendra que j'ai reçu une réponse de tous
-		// mes fils.
 		if (this.parent == -1) {
 			
-			if (edm.getIdSrc() != host.getID()) {
-				
-				is_electing = true;	// je passe en mode election
-				parent = edm.getIdSrc();// Ce noeud est mon père
-				neighbors_ack.remove(this.parent); // Je ne dois pas attendre mon père
-				source_election = edm.getSource_election(); // Je met a jour a source de l'election
-				source_ieme_election = edm.getIeme_election(); // Je met a jour le ieme de la source de l'election
+				// Il devient mon pere
+				patchAfterElectionMessage(host, edm);
 			
 				// Propagation aux fils
-				for (Long neinei : neighbors_ack) {
-					
-					Node dest = Network.get(neinei.intValue()); // TODO ??????
-					if(dest.getID() == parent) { continue; } // Skip l'id du pere
-					ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), dest.getID(), edm.getSource_election(), ieme_election, my_pid);
-					emp.emit(host, em_propagation);
-				}
-			}
-			
-		// J'ai deja un pere alors il faut checker si cette personne est plus prioritaire.
+				 PropagateElection2children(host, edm);
 		} else {
 			
-			// Checker si cette election n'est pas plus priritaire pour changer mon pere
-			if (this.ieme_election > edm.getIeme_election() ||
-					this.ieme_election <= edm.getIeme_election() 
-					&& this.desirability_leader > edm.getSource_election()) {
-				// J'ai déjà un parent, 
-				// J'ai déjà un parent, réponse immediate de la valeur potentielle
-				AckMessage am = new AckMessage(host.getID(), edm.getIdSrc(), my_pid, potential_leader, desirability_potential_leader);
+			// Qui est le plus legitime ?
+			if (worthierElection(host, edm)) {
+				
+				// J'ai déjà un parent legitime, réponse immediate de la valeur potentielle
+				AckMessage am = new AckMessage(host.getID(), edm.getIdSrc(), my_pid, potential_leader, desirability_potential_leader, source_election, source_ieme_election);
 				emp.emit(host, am);
+				
 			} else {
+				// Mon parent est illegitime
+				patchAfterElectionMessage(host, edm);
 				
-				if (edm.getIdSrc() != host.getID()) {
-					
-					is_electing = true;	// je passe en mode election
-					parent = edm.getIdSrc();// Ce noeud est mon père
-					neighbors_ack.remove(this.parent); // Je ne dois pas attendre mon père
-					source_election = edm.getSource_election(); // Je met a jour a source de l'election
-					source_ieme_election = edm.getIeme_election(); // Je met a jour le ieme de la source de l'election
-				
-					// Propagation aux fils
-					for (Long neinei : neighbors_ack) {
-						
-						Node dest = Network.get(neinei.intValue()); // TODO ??????
-						if(dest.getID() == parent) { continue; } // Skip l'id du pere
-						ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), dest.getID(), edm.getSource_election(), ieme_election, my_pid);
-						emp.emit(host, em_propagation);
-					}
-				}
+				// Propagation aux fils
+				PropagateElection2children(host, edm);
 			}
 		}
-		return;
 	}
 
+	
+	
+	/**
+	 * Surcharge de la fonction pour les messages de type AckMessge
+	 * @param host
+	 * @param ack
+	 */
+	private void patchAfterAckMessage(Node host, AckMessage am) {
+		
+		int neighbor_pid = Configuration.lookupPid("neighbor");
+		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
+		
+		// passe en mode election
+		is_electing = true;
+		
+		// patch le parent
+		parent = am.getIdSrc();						// Ce noeud est mon père
+		
+		//patch les listes (remise a neutre)
+		//neighbors_ack = np.getNeighbors();
+		
+		// patch les variables d'election
+		source_election = am.getSource_election(); 	// Je met a jour a source de l'election
+		source_ieme_election = am.getIeme_election(); 	// Je met a jour le ieme de la source de l'election
+		ieme_election_max = source_ieme_election;
+		
+		// patch des variables leader potentiel 
+		potential_leader = am.getMostValuedNode();
+		desirability_potential_leader = am.getMostValuedNodeDesirability();
+		
+		// patch etat
+		state = 1;
+	}
+	
+	
+	
+	/**
+	 * @param host moi même
+	 * @param edm message d'éléction dynamique
+	 * @return Vrai si je suis plus worthy
+	 */
+	private boolean worthierElection(Node host, AckMessage am) {
+		return this.ieme_election > am.getIeme_election() ||
+				this.ieme_election == am.getIeme_election() 
+				&& this.desirability_leader > am.getMostValuedNodeDesirability();
+	}
 	
 	/**
 	 * TODO 
@@ -245,59 +322,88 @@ public VKT04Election(String prefix) {
 		
 		AckMessage am = (AckMessage)event;
 		
-		// Mise a jour de mon noeud leader si le leader que 
-		// j'ai est moins désirable.
-		if (am.getMostValuedNodeDesirability() > this.desirability_potential_leader) {
-			this.potential_leader = am.getMostValuedNode();
-			this.desirability_potential_leader = am.getMostValuedNodeDesirability();
+		// Mise a jour de mon noeud leader si le leader que j'ai est moins désirable.
+		if (worthierElection(host, am)) {
+			patchAfterAckMessage(host, am);
 		}
 		
 		// J'ai reçu un ack de ce node c'est bon, remove safe d'un node DANS (il y est) ma liste !
 		neighbors_ack.remove(am.getIdSrc()); // remove is empty safe.
+		
 		// Je suis une feuille ou il n'y avait qu'un fils à attendre
 		if (neighbors_ack.isEmpty()) {
 
-			// Fin de l'élection je suis le noeud de départ TODO??
-			// je dois maintenant propager ma valeur. TODO ??
-			if (parent == -1) {
+			// Si je suis le lanceur de l'election (je n'ai donc pas de pere)
+			if (parent != -1) {
+				
+				// Envoie d'un ack à mon père, je suis une feuille
+				AckMessage am_to_father = new AckMessage(host.getID(), parent, my_pid, potential_leader, desirability_potential_leader, source_election, source_ieme_election);
+				emp.emit(host, am_to_father);
+				
+			} else {
+				// Je propose l'election de mon potentiel
 				id_leader = potential_leader;
 				desirability_leader = desirability_potential_leader;
-				
-				if (id_leader == host.getID()) {
-					state = 2; 		// 2 : leader_isMe
-				} else {
-					state = 0;		// 0 : leader_known
-				}
+				state = (id_leader == host.getID())? 2 : 0;
 
 				// Broadcast du message de leader
 				LeaderMessage lm_broadcast = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader, source_election, ieme_election);
 				emp.emit(host, lm_broadcast);
-			} else {
-				
-				// Envoie d'un ack à mon père, je suis une feuille
-				AckMessage am_to_father = new AckMessage(host.getID(), parent, my_pid, potential_leader, desirability_potential_leader);
-				emp.emit(host, am_to_father);
 			}
 		}
+	}
+	
+
+	/**
+	 * @param host
+	 * @param event
+	 */
+	private void patchLeader(Node host, LeaderMessage lm) {
 		
+		// passe en mode election
+		is_electing = false;
+		
+		// patch le parent
+		parent = -1;
+		
+		//patch les listes
+		
+		// patch les variables d'election
+		source_election = lm.getSource_election(); 	// Je met a jour a source de l'election
+		source_ieme_election = lm.getIeme_election(); 	// Je met a jour le ieme de la source de l'election
+		ieme_election_max = source_ieme_election;
+		
+		// patch des variables leader potentiel
+		potential_leader = -1;
+		desirability_potential_leader = -1;
+		
+		// Patch des variables leader
+		id_leader = lm.getMostValuedNode();
+		ieme_election_max = lm.getIeme_election();
+		desirability_leader = lm.getMostValuedNodeDesirability();
+		
+		// etat
+		state = lm.getMostValuedNode() == host.getID() ? 2 : 0; // 
 	}
 	
-	//
-	private void patchLeader(Node host, LeaderMessage event) {
-		id_leader = event.getMostValuedNode();
-		ieme_election_max = event.getIeme_election();
-		desirability_leader = event.getMostValuedNodeDesirability();
-	}
-	
-	// TODO
+
+	/**
+	 * @param host
+	 * @param event
+	 * @return
+	 */
 	private boolean worthyLeader(Node host, LeaderMessage event){
 		
 		return this.source_ieme_election > event.getIeme_election() ||
-				this.source_ieme_election <= event.getIeme_election() 
+				this.source_ieme_election == event.getIeme_election() 
 				&& this.desirability_leader > event.getSource_election();
 	}
 	
-	// TODO
+
+	/**
+	 * @param host
+	 * @param event
+	 */
 	private void mergeLeader(Node host, LeaderMessage event) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
@@ -338,20 +444,8 @@ public VKT04Election(String prefix) {
 		case 2: 						// 2 : leader_isMe
 			mergeLeader(host, event);
 			break;
-			
 		case 1:							// 1 : leader_unknown
-			if (lm.getMostValuedNode() == host.getID()) {
-				state = 2; 			// 2 : leader_isMe
-				id_leader = host.getID();
-				desirability_leader = desirability;
-				ieme_election_max = ieme_election;
-			} else {
-				// check leader
-				state = 0;		// 0 : leader_known
-				patchLeader(host, lm);
-			}
-			is_electing = false;
-			
+			patchLeader(host, event);
 			LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader, source_election, source_ieme_election);
 			emp.emit(host, lm_propagate);
 		default:
@@ -373,8 +467,9 @@ public VKT04Election(String prefix) {
 
 	
 	/*****************************NEIGHBORHOOD Listener******************************/
+
 	/**
-	 * TODO
+	 *
 	 */
 	@Override
 	public void newNeighborDetected(Node host, long id_new_neighbor) {
@@ -419,18 +514,45 @@ public VKT04Election(String prefix) {
 	}
 	
 	/**
-	 * TODO
+	 * @param host
+	 * @param id_lost_neighbor
+	 */
+	private void patchNeighbors(Node host, long id_lost_neighbor) {
+		int neighbor_pid = Configuration.lookupPid("neighbor");
+		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
+		
+		//neighbors = np.getNeighbors();
+		if (neighbors_ack.contains(id_lost_neighbor)) {
+			//neighbors_ack.remove(id_lost_neighbor);
+		}
+	}
+	
+
+	/**
+	 *
 	 */
 	@Override
 	public void lostNeighborDetected(Node host, long id_lost_neighbor) {
 		
+	
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
-		neighbors = np.getNeighbors();
 		
+		// Si j'ai besoin de tenter de m'auto elire apres la perte de mon leader
+		//LeaderMessage m = new LeaderMessage(host.getID(), host.getID(), my_pid, host.getID(), desirability, host.getID(), ieme_election);
+		
+		// fix les listes
+		//patchNeighbors(host, id_lost_neighbor);
+		
+		id_leader = -1;
+		/*
 		switch (state) {
 		case 0:							// 0 : leader_known
 			if (is_electing) {
+				
+				// perte du leader pendant une election
+				if (id_leader == id_lost_neighbor)
+					patchLeader(host, m);
 				
 			} else {
 				if (id_lost_neighbor == id_leader) {
@@ -455,8 +577,7 @@ public VKT04Election(String prefix) {
 			break;
 		}
 		
-		// TODO
-		neighbors_ack.remove(id_lost_neighbor); // remove is empty safe.
+		*/
 	}
 
 	

@@ -229,7 +229,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 		} else {
 			
 			// J'ai déjà un parent, réponse immediate de la valeur potentielle
-			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid, potential_leader, desirability_potential_leader);
+			AckMessage am = new AckMessage(host.getID(), em.getIdSrc(), my_pid, potential_leader, desirability_potential_leader, -1, -1);
 			emp.emit(host, am);
 		}
 		return;
@@ -279,7 +279,7 @@ public class VKT04StatiqueElection implements ElectionProtocol, Monitorable, Nei
 			} else {
 				
 				// Envoie d'un ack à mon père, je suis une feuille
-				AckMessage am_to_father = new AckMessage(host.getID(), parent, my_pid, potential_leader, desirability_potential_leader);
+				AckMessage am_to_father = new AckMessage(host.getID(), parent, my_pid, potential_leader, desirability_potential_leader, -1, -1);
 				emp.emit(host, am_to_father);
 			}
 		}
