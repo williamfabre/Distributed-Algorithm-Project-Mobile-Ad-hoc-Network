@@ -46,9 +46,7 @@ public class InitialisationVKT04Election implements Control {
 			position.initialiseCurrentPosition(node);
 	
 		
-			// fonction d'initialisation si nécessaire
-			vkt04.initialisation(node);
-			
+
 			/* ensemble des processevent nécessaire au fonctionnement */
 			
 			// Evenement de detection de voisins
@@ -56,6 +54,11 @@ public class InitialisationVKT04Election implements Control {
 			
 			// Evenement permettant le déplacement des noeuds.
 			position.processEvent(node, position_pid, "LOOPEVENT");
+			
+
+			// fonction d'initialisation si nécessaire
+			vkt04.initialisation(node);
+			
 			
 			// Evenement permettant l'affichage des résultats des élections périodiquement.
 			vkt04.processEvent(node, elect_pid, "LEADEREVENT");

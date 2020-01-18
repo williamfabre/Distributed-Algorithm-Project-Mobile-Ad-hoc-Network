@@ -6,6 +6,7 @@ public class ElectionMessage extends Message{
 	
 	public ElectionMessage(long idsrc, long iddest, long source_election, int pid) {
 		super(idsrc, iddest, pid);
+		this.source_election = source_election;
 	}
 
 	public long getSource_election() {
