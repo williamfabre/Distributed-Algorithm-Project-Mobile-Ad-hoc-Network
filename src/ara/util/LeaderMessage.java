@@ -36,13 +36,11 @@ public class LeaderMessage extends Message{
 
 
 	public long getSource_election() {
-		// TODO Auto-generated method stub
-		return 0;
+		return source_election;
 	}
 
 
 	public long getIeme_election() {
-		// TODO Auto-generated method stub
-		return 0;
+		return ieme_election;
 	}
 }
