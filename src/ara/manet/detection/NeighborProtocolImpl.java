@@ -88,7 +88,7 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 		try {
 			np = (NeighborProtocolImpl) super.clone();
 			np.neighbors = new ArrayList<Long>();
-			np.values = new ArrayList<Integer>(); // for leader protocol
+			np.values = new ArrayList<Integer>(); 
 		} catch (CloneNotSupportedException e) {
 			System.err.println(e.toString());
 		}
@@ -138,10 +138,19 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 	 * @param host  noeud associé à cet évènement
 	 */
 	public void delNeighbor(Node host) {
-
+		int k = 0;
 		// On prend le premier de la liste qui a le timer le plus petit
-		long idNeighbor = neighbors.get(0);
+		long idNeighbor = neighbors.get(k);
 		
+		if (idNeighbor == host.getID() && neighbors.size() > 1) {
+			k = 1;
+			idNeighbor = neighbors.get(k);
+		}
+		else {
+			if (idNeighbor == host.getID() && neighbors.size() == 1)
+			return;
+		}
+			
 		// Gestion du NeighborhoodListener pour certains algorithme d'élection.
 		if (listener) {
 			
@@ -152,8 +161,8 @@ public class NeighborProtocolImpl implements NeighborProtocol, EDProtocol {
 			nl.lostNeighborDetected(host, idNeighbor); 
 		}
 		// Supression de la liste des valeurs et de la liste des voisins.
-		values.remove(0);
-		neighbors.remove(0);
+		values.remove(k);
+		neighbors.remove(k);
 	}
 
 	/**

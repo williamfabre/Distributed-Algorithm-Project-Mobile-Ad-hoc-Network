@@ -16,7 +16,7 @@ import ara.util.View;
 import peersim.config.Configuration;
 import peersim.core.Node;
 
-public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodListener {
+public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, NeighborhoodListener {
 
 	private static final long ALL = -2;
 
@@ -34,14 +34,13 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		String tmp[] = prefix.split("\\.");
 		my_pid = Configuration.lookupPid(tmp[tmp.length - 1]);
 		this.periode = Configuration.getInt(prefix + "." + PAR_PERIODE);
-		knowledge = new Knowledge();
 	}
 
 	public Object clone() {
 		GVLElection p = null;
 		try {
 			p = (GVLElection) super.clone();
-			p.knowledge = new Knowledge(); 
+			p.knowledge = new Knowledge();
 		} catch (CloneNotSupportedException e) {
 		}
 		return p;
@@ -53,16 +52,20 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 	 * @param node - current peer
 	 */
 	public void initialisation(Node node) {
+		knowledge = new Knowledge();
 
 		// ExtendedRandom my_random = new ExtendedRandom(10);
 		// this.value = (int) (my_random.nextInt(1000) / (node.getID() + 1));
 		this.value = (int) node.getID();
 
 		long id = node.getID();
+		leader = id;
 		Peer p = new Peer(id, value);
 		int clock = 0;
-		View v = new View(p, clock);
-		leader = id;
+
+		View v = new View(/* p, clock */);
+		v.updateViewAdd((Peer) p.clone());
+		v.setClock(clock);
 
 		this.knowledge.setView(0, v);
 		this.knowledge.setPosition(node.getID());
@@ -88,13 +91,17 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		Peer j = new Peer(id_new_neighbor, neighbors_value);
 
 		// add new neighbor in list of host and clock++
+		// if (j.getId() != host.getID()) {
+		// System.out.println(host.getID() + "add" + id_new_neighbor);
 		this.knowledge.updateMyViewAdd(j);
-
+		// System.out.println(host.getID() + " Added " + id_new_neighbor +
+		// knowledge.toString());
 		// Broadcast knowledge
-		KnowledgeMessage knowlmsg = new KnowledgeMessage(host.getID(), ALL, my_pid, knowledge);
+		KnowledgeMessage knowlmsg = new KnowledgeMessage(host.getID(), ALL, my_pid, (Knowledge) knowledge.clone()); // clone?
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		emp.emit(host, knowlmsg);
+		// }
 
 	}
 
@@ -125,12 +132,16 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 		// Remove j from the knowledge of host and clock++
 		// But its id stays in positions list
-		this.knowledge.updateMyViewRemove(j);
+		// if (j.getId() != host.getID()) {
 
+		this.knowledge.updateMyViewRemove(j);
+		// System.out.println(host.getID() + " Lost " + id_lost_neighbor +
+		// knowledge.toString());
 		// Broadcast edit
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		emp.emit(host, edmsg);
+		// }
 
 	}
 
@@ -141,18 +152,47 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		int max_val = 0;
 		long idLeader = 0;
 
-		for (View v : knowledge.getKnowledge()) {
-			if (knowledge.getLastClock(0) == v.getClock()) { // clock test ?
-				for (Peer p : v.getNeighbors()) {
+		Vector<Peer> connexe = new Vector<Peer>();
+		Vector<Peer> visited = new Vector<Peer>();
 
-					if (p.getValue() > max_val) {
+		for (Peer p : knowledge.getKnowledge().elementAt(0).getNeighbors()) {
 
-						max_val = p.getValue();
-						idLeader = p.getId();
+			connexe.add(p);
+
+		}
+
+		for (int i = 0; i < connexe.size(); i++) {
+				
+				Peer p = connexe.elementAt(i);
+				
+				//profondeur
+				if (knowledge.getPosition().contains(p.getId())) {
+					
+					int pos = knowledge.getPosition().indexOf(p.getId());
+
+					Vector<Peer> tmp = knowledge.getKnowledge().elementAt(pos).getNeighbors();
+
+					/*for (Peer p1 : tmp) {
+
+						if (!visited.contains(p1))
+							connexe.add((Peer) p1.clone());
+					}*/
+					for (int j = 0; j < tmp.size(); j++) {
+						Peer kn = tmp.elementAt(j);
+						if (!visited.contains(kn))
+							connexe.add(kn);
 					}
 				}
-			}
+
+				if (p.getValue() > max_val)
+					idLeader = p.getId();
+				
+				visited.add(p);
+				connexe.remove(p);
+				// System.out.println(connexe);
+
 		}
+
 		return idLeader;
 	}
 
@@ -213,6 +253,8 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 							edmsg.setClock(i_view.getClock(), j_view.getClock());
 
 							// update the information in hosts knowledge about the peer
+							// System.out.println("KM, known, set, host=" + host.getID() + " : " +
+							// knowledge.toString());
 							knowledge.setView(i_position, j_view);
 						}
 					}
@@ -225,6 +267,8 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 					knowledge.setPosition(peerId);
 					int i_position = knowledge.getPosition().indexOf(peerId);
+					// System.out.println("KM, new, set, host=" + host.getID() + " : " +
+					// knowledge.toString());
 					knowledge.setView(i_position, j_view);
 				}
 			}
@@ -282,6 +326,8 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 					// old clock from msg = 0 ?
 					if (msg.getOldClock(p) == 0) {
+						// System.out.println("EM, update, new, host=" + host.getID() + " : " +
+						// knowledge.toString());
 						knowledge.updateOneView(source, msg.getAdded(p), 0);
 						updated = true;
 					}
@@ -290,6 +336,9 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 					// same time ?
 					if (msg.getOldClock(p) == knowledge.getLastClock(i_position)) {
+						// System.out.println(
+						// "EM, update, known, same t, host=" + host.getID() + " : " +
+						// knowledge.toString());
 						knowledge.updateOneView(source, msg.getAdded(p), msg.getOldClock(p));
 						updated = true;
 					}
@@ -321,8 +370,9 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 
 					// same time ?
 					if (msg.getOldClock(p) == knowledge.getLastClock(i_position)) {
-
-						knowledge.updateOneViewRem(source, msg.getRemoved(p));
+						// System.out.println("EM, remove, same t, host=" + host.getID() + " : " +
+						// knowledge.toString());
+						knowledge.updateOneViewRem(source, (Vector<Peer>) msg.getRemoved(p).clone());
 						updated = true;
 					}
 
@@ -345,10 +395,10 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 			}
 			p++; // next source
 		} // all changes checked
-		
-		//test if knowledge was updated
+
+		// test if knowledge was updated
 		if (kno_updated) {
-			
+
 			// broadcast msg
 			int emitter_pid = Configuration.lookupPid("emit");
 			EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
@@ -392,6 +442,7 @@ public class GVLElection implements Monitorable, ElectionProtocol, NeighborhoodL
 		List<String> res = new ArrayList<String>();
 		leader = getIDLeader();
 		res.add("Node" + host.getID() + " Boss[" + leader + "]");
+		// res.add(knowledge.toString());
 		return res;
 	}
 

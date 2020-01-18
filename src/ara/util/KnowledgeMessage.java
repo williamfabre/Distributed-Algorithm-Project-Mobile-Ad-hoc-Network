@@ -8,7 +8,7 @@ public class KnowledgeMessage extends Message {
 	
 	public KnowledgeMessage(long idsrc, long iddest, int pid, Knowledge k) {
 		super(idsrc, iddest, pid);
-		this.knowledge = k;
+		this.knowledge = (Knowledge)k.clone();
 	}
 	
 	public Knowledge getKnowledge() {

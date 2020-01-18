@@ -36,10 +36,16 @@ public class InitialisationGVLElection implements Control {
 			// EmitterProtocolImpl emp = (EmitterProtocolImpl)
 			// node.getProtocol((emitter_pid));
 			NeighborProtocolImpl np = (NeighborProtocolImpl) node.getProtocol(neighbor_pid);
+			np.processEvent(node, neighbor_pid, "HEARTEVENT");
+		}
+		
 
+		for (int i = 0; i < Network.size(); i++) {
+
+			Node node = Network.get(i);
 			GVLElection gvl = (GVLElection) node.getProtocol(elect_pid);
 			gvl.initialisation(node);
-			np.processEvent(node, neighbor_pid, "HEARTEVENT");
+			
 			// gvl.processEvent(node, elect_pid, "LEADEREVENT");
 		}
 

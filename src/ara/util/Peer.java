@@ -2,7 +2,7 @@ package ara.util;
 
 import java.util.Vector;
 
-public class Peer {
+public class Peer implements Cloneable{
 
 	private long id;
 	private int value;
@@ -18,13 +18,15 @@ public class Peer {
 		Peer p = null;
 		try {
 			p = (Peer) super.clone();
+			p.id = id;
+			p.value = value;
 		} catch (CloneNotSupportedException e) {
 		}
 		return p;
 	}
 	
-	public void print() {
-		System.out.print(" ("+id+") ");
+	public String toString() {
+		return id + " ";
 	}
 	
 	public void setValue(int v) {

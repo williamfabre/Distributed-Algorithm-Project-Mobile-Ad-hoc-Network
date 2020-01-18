@@ -1,42 +1,56 @@
 package ara.util;
 
+import java.util.Iterator;
 import java.util.Vector;
 
-public class View {
+public class View implements Cloneable {
 
 	private int clock;
 	private Vector<Peer> neighbors;
 
-	public View(Peer neighbor, int clock) {
-		neighbors = new Vector<Peer>();
-		updateViewAdd(neighbor);
-		setClock(clock);
-	};
+	public View(/*Peer neighbor, int clock*/) {
 
-	public View(Vector<Peer> neighbors, int clock) {
 		this.neighbors = new Vector<Peer>();
-		updateViewAddMult(neighbors);
-		setClock(clock);
+		//updateViewAdd((Peer)neighbor.clone());
+		//setClock(clock);
 	};
-	
+	/*
+	public View(Vector<Peer> neighbors, int clock) {
+
+		this.neighbors = new Vector<Peer>();
+		//updateViewAddMult(neighbors);
+		//setClock(clock);
+	};
+	*/
 	public Object clone() {
 		View v = null;
 		try {
 			v = (View) super.clone();
-			neighbors = new Vector<Peer>();
+			/*
+			 * for (Peer p : this.neighbors) { Peer tmp = (Peer)p.clone();
+			 * v.neighbors.add(tmp); }
+			 */
+			v.clock = this.clock;
+			v.neighbors = new Vector<Peer>();/*(Vector<Peer>)neighbors.clone();*/
+			Iterator<Peer> iterator = this.neighbors.iterator();
+			while (iterator.hasNext()) {
+				v.neighbors.add((Peer) iterator.next().clone());
+			}
 			
 		} catch (CloneNotSupportedException e) {
 		}
 		return v;
 	}
-	
-	public void print() {
-		System.out.println();
-		System.out.print(" [" + clock + "] ");
+
+	public String toString() {
+
+		String s = new String();
+		s = " T = [" + clock + "], { ";
 		for (Peer p : neighbors) {
-			p.print();
+			s = s + p.toString();
 		}
-		System.out.println();
+		s = s + "}";
+		return s;
 	}
 
 	public int getClock() {
@@ -51,35 +65,36 @@ public class View {
 		return neighbors;
 	}
 
-	public void updateViewAdd(Peer neighbor) {	//copy ?
+	public void updateViewAdd(Peer neighbor) { // copy ?
 
 		for (Peer n : this.neighbors) {
-			
+
 			if (n.getId() == neighbor.getId()) {
 				return;
 			}
 		}
-		this.neighbors.add(neighbor);
+		this.neighbors.add((Peer) neighbor.clone());
 	}
 
-	private void updateViewAddMult(Vector<Peer> neighbors_to_add) {	//copy ?
-		
+	public void updateViewAddMult(Vector<Peer> neighbors_to_add) { // copy ?
+
 		for (Peer n : neighbors_to_add) {
-			
+
 			for (Peer n1 : this.neighbors) {
 
 				if (n.getId() == n1.getId()) {
 					break;
 				}
 			}
-			this.neighbors.add(n);
+			this.neighbors.add((Peer) n.clone());
 		}
 	}
 
-	//Delete a peer from a current view
+	// Delete a peer from a current view
 	public void updateViewRemove(Peer neighbor) {
+
 		for (Peer n : this.neighbors) {
-			if (n != null) {	//null ?
+			if (n != null) { // null ?
 				if ((n.getId() == neighbor.getId())) {
 					this.neighbors.remove(n);
 					return;
