@@ -3,15 +3,15 @@ random.seed 10
 simulation.endtime 50000
 
 protocol.position PositionProtocolImpl
-protocol.position.maxspeed 300
-protocol.position.minspeed 30
+protocol.position.maxspeed 20
+protocol.position.minspeed 5
 protocol.position.width 1200
 protocol.position.height 1200
 protocol.position.pause 200
 
 protocol.emit EmitterProtocolImpl
 protocol.emit.latency 90
-protocol.emit.scope 50
+protocol.emit.scope 100
 protocol.emit.variance TRUE
 
 protocol.neighbor NeighborProtocolImpl

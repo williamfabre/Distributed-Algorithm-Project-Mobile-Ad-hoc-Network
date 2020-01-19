@@ -112,7 +112,8 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 	public void recvProbMsg(Node host, ProbeMessage msg) {
 		
 		// Je n'ai pas reçu de message provenant de ce neighbor
-		if (!neighbors.contains(msg.getIdSrc())) {
+		if (!neighbors.contains(msg.getIdSrc())
+				&& host.getID() != msg.getIdSrc()) {
 		
 			long idNeighbor = msg.getIdSrc();
 			neighbors.add(idNeighbor); // Je l'ajoute à mes neighbor

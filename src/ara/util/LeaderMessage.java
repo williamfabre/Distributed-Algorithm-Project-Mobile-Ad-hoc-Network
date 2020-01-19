@@ -7,8 +7,7 @@ public class LeaderMessage extends Message{
 	private long source_election;
 	private long ieme_election;
 	
-	public LeaderMessage(
-			long idsrc, 
+	public LeaderMessage(long idsrc, 
 			long iddest, 
 			int pid,
 			long most_valued_node,
@@ -16,7 +15,6 @@ public class LeaderMessage extends Message{
 			long source_election,
 			long ieme_election
 			){
-		
 		super(idsrc, iddest, pid);
 
 		this.most_valued_node = most_valued_node;
@@ -34,11 +32,9 @@ public class LeaderMessage extends Message{
 		return this.most_valued_node_desirability;
 	}
 
-
 	public long getSource_election() {
 		return source_election;
 	}
-
 
 	public long getIeme_election() {
 		return ieme_election;
