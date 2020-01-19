@@ -390,7 +390,7 @@ public VKT04Election(String prefix) {
 		this.is_electing = false;
 		
 		// patch le parent
-		this.parent = -1;
+		this.parent = lm.getIdSrc();
 		
 		//patch les listes
 		
@@ -497,7 +497,12 @@ public VKT04Election(String prefix) {
 		if (event.getIdSrc() != host.getID()) {
 			if (state == 1) { // 1 : leader_unknown
 				patchLeader(host, lm);			
-				LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, my_pid, id_leader, desirability_leader, -1, -1); // TODO
+				LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, 
+						my_pid,
+						id_leader,
+						desirability_leader,
+						-1,
+						-1); // TODO
 				emp.emit(host, lm_propagate);
 			} else {
 				mergeLeader(host, lm);
@@ -574,33 +579,63 @@ public VKT04Election(String prefix) {
 	 */
 	
 	private void patchNeighbors(Node host, long id_lost_neighbor) {
-		/*
-		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
 		
-		neighbors = new ArrayList<Long>(np.getNeighbors());
-		//neighbors_ack = new ArrayList<Long>(np.getNeighbors());
-		
-		if (state == 1) {			// leader inconnu
-			
-			if (id_lost_neighbor == potential_leader) { 	// le mecc qu'on voulait elire
-				potential_leader = host.getID();
-			}
-			
-			if (id_lost_neighbor == parent) {
-				parent = -1;
-			} else {
-				neighbors_ack.remove(id_lost_neighbor);
-			}
-			
-		} else {					// leader connu
-			
-			if (id_lost_neighbor == id_leader) {
-				potential_leader = host.getID();
-				//id_leader = -1;
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+
+
+		if (id_lost_neighbor != host.getID()) {
+			if (state == 1) {			// leader inconnu
+				
+				// perte pendant une election non finie
+				
+				if (is_electing) {
+					
+					// la perte est la personne qui devait etre elue
+					// la perte de la personne qui avait le lien vers la personne qui devait etre elu?
+
+					if (id_lost_neighbor == parent) {
+						System.err.println("me : " + host.getID() + " id_lost " + id_lost_neighbor + " parent: " + parent);
+						ElectionDynamicMessage edm = new ElectionDynamicMessage(host.getID(), ALL, 
+								host.getID(),
+								this.desirability,
+								host.getID(),
+								this.ieme_election,
+								this.my_pid);
+						patchAfterElectionMessage(host, edm);
+					}
+				}
+				
+			} else {					// leader connu
+				
+				// la perte de la personne qui avait le lien vers la personne qui est le leader ?
+				if (id_lost_neighbor == parent) {
+					System.err.println("me : " + host.getID() + " id_lost " + id_lost_neighbor + " parent: " + parent);
+					
+					LeaderMessage lm = new LeaderMessage(host.getID(), host.getID(), 
+							this.my_pid,
+							host.getID(),
+							this.desirability,
+							host.getID(),
+							this.ieme_election);
+					patchLeader(host, lm);
+					emp.emit(host, lm);
+				
+				// TODO
+				} else if (id_lost_neighbor == id_leader) {
+					System.err.println("me : " + host.getID() + " id_lost " + id_lost_neighbor + " parent: " + parent);
+					
+					LeaderMessage lm = new LeaderMessage(host.getID(), host.getID(), 
+							this.my_pid,
+							host.getID(),
+							this.desirability,
+							host.getID(),
+							this.ieme_election);
+					patchLeader(host, lm);
+					emp.emit(host, lm);
+				}
 			}
 		}
-		*/
 	}
 	
 	
@@ -688,9 +723,10 @@ public VKT04Election(String prefix) {
 
 			if (ev.equals(leader_event)) {
 				VKT04ElectionTrigger(host);
-				System.err.println("EDM : " + election_dynamic_message + "\n"
+				/*System.err.println("EDM : " + election_dynamic_message + "\n"
 						+ "LM : " + leader_message + "\n"
 						+ "AM : " + ack_message + "\n");
+						*/
 				return;
 			}
 		}

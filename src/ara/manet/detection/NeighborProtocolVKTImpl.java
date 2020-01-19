@@ -183,7 +183,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 				NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
 				
 				/* appelée lorsque le noeud host détecte la perte d'un voisin */
-				nl.lostNeighborDetected(host, idNeighbor); 
+				nl.lostNeighborDetected(host, idNeighbor);
 			}
 			
 			// Supression de la liste des valeurs et de la liste des voisins.
