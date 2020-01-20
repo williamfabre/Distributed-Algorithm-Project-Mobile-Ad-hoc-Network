@@ -1,4 +1,4 @@
-network.size 200
+network.size 75
 random.seed 200
 simulation.endtime 100000
 

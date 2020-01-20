@@ -97,7 +97,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 	@Override
 	public List<Long> getNeighbors() {
 		
-		return new ArrayList<Long>(neighbors);
+		return this.neighbors;
 	}
 
 	
