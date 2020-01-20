@@ -42,4 +42,18 @@ control.monitor.from 0
 control.monitor.until 50000
 control.monitor.step 1
 
+control.monitor Echantillon
+control.monitor.electionprotocol election
+control.monitor.positionprotocol position
+control.monitor.emitter emit
+control.monitor.neighborprotocol neighbor
+control.monitor.monitorableprotocol election
+control.monitor.timer 10
+control.monitor.echantillon 10
+control.monitor.from 0
+control.monitor.until 50000
+control.monitor.step 1
+
+
+
 init.i InitialisationVKT04Election
