@@ -112,7 +112,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 	public void recvProbMsg(Node host, ProbeMessage msg) {
 		
 		// Je n'ai pas reçu de message provenant de ce neighbor
-		if (!neighbors.contains(msg.getIdSrc())) {
+		if (!neighbors.contains(msg.getIdSrc()) && host.getID() != msg.getIdSrc()) {
 		
 			long idNeighbor = msg.getIdSrc();
 			neighbors.add(idNeighbor); // Je l'ajoute à mes neighbor
@@ -128,7 +128,10 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 			if (listener) {
 				int listener_pid = Configuration.lookupPid("election");
 				NeighborhoodListener nl = (NeighborhoodListener) host.getProtocol(listener_pid);
+				
 				/* appelée lorsque le noeud host détecte un nouveau voisin */
+				
+				//System.err.println(host.getID() + " i have found " + idNeighbor);
 				nl.newNeighborDetected(host, idNeighbor);
 			}
 		}

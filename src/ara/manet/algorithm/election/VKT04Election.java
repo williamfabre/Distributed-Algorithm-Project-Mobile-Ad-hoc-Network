@@ -31,6 +31,7 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	private List<Long> neighbors_ack;				// permet de compter le nombre de ack				
 	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
 	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
+	private long leader_direction;					// designe le noeud dans la direction du leader				(-1 si inconnu)
 	private long id_leader;							// id du leader actuel, -1 si aucun leader.					(-1 si inconnu)
 	private long desirability_leader;				// desirabilité du noeud leader								(-1 si inconnu)
 	private long potential_leader;					// id du leader potentiel, -1 si aucun leader.				(-1 si inconnu)
@@ -51,38 +52,47 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	
 	private long ieme_election_max;	// La plus grande election à laquelle j'ai participé.						(0 si inconnu)
 	
+	private long nb_ack;
+	
 	private int state;								// 0 : leader_known
-
-	private static int ack_message;
 													// 1 : leader_unknown
 													// 2 : leader_isMe
-
+	private static int ack_message;
 	private static int leader_message;
-
 	private static int election_dynamic_message;
 	
 public VKT04Election(String prefix) {
 		
-		String tmp[] = prefix.split("\\.");
-		this.my_pid = Configuration.lookupPid(tmp[tmp.length - 1]);
-		
-		this.periode_leader = Configuration.getInt(prefix + "." + PAR_PERIODE_LEADER);
-		
-		// Creation de liste privees.
-		this.neighbors = new ArrayList<Long>(); 		// Liste des voisins
-		this.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
-		this.parent = -1;
-		this.id_leader = -1;
-		this.desirability_leader = -1;
-		this.potential_leader = -1;
-		this.desirability_potential_leader = -1;
-		this.state = 1;
-		this.is_electing = false;
-		this.ack_2_parent = false;
-		this.source_election = -1;
-		this.source_ieme_election = -1;
-		this.ieme_election = 0;
-		this.ieme_election_max = 0;	
+	String tmp[] = prefix.split("\\.");
+	this.my_pid = Configuration.lookupPid(tmp[tmp.length - 1]);
+	
+	this.periode_leader = Configuration.getInt(prefix + "." + PAR_PERIODE_LEADER);
+	
+	// Creation de liste privees.
+	this.neighbors = new ArrayList<Long>(); 		// Liste des voisins
+	this.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
+	this.nb_ack = 0;
+	
+	this.parent = -1;
+	
+	this.id_leader = -1;
+	this.desirability_leader = -1;
+	this.leader_direction = -1;
+	
+	this.potential_leader = -1;
+	this.desirability_potential_leader = -1;
+	
+	this.state = 1;
+	
+	this.is_electing = false;
+	
+	this.ack_2_parent = false;
+	
+	
+	this.source_election = -1;
+	this.source_ieme_election = -1;
+	this.ieme_election = 0;
+	this.ieme_election_max = 0;	
 
 	}
 	
@@ -90,21 +100,31 @@ public VKT04Election(String prefix) {
 		VKT04Election vkt = null;
 		try {
 			vkt = (VKT04Election) super.clone();
+			
 			vkt.neighbors = new ArrayList<Long>(); 		// Liste des voisins
 			vkt.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
+			
+			vkt.nb_ack = 0;
 			vkt.parent = -1;
+			
 			vkt.id_leader = -1;
 			vkt.desirability_leader = -1;
+			vkt.leader_direction = -1;
+			
 			vkt.potential_leader = -1;
 			vkt.desirability_potential_leader = -1;
+			
 			vkt.state = 1;
 			
 			vkt.is_electing = false;
 			vkt.ack_2_parent = false;
+			
 			vkt.source_election = -1;
 			vkt.source_ieme_election = -1;
+			
 			vkt.ieme_election = 0;
 			vkt.ieme_election_max = 0;	
+			
 		} catch (CloneNotSupportedException e) {
 		}
 		return vkt;
@@ -133,41 +153,60 @@ public VKT04Election(String prefix) {
 	private void VKT04ElectionTrigger(Node host) {
 
 		// Récupération du protocol de communication
-		int emitter_pid = Configuration.lookupPid("emit");
-		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		
-		// Recuperation du protocol de Neighbor
-		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
-		
-		
-		// Début d'une demande d'éléction globale, mise à jour du node
-		// pour débuter une éléction
-		this.state = 1;
-		this.parent = -1;
-		this.id_leader = -1;
-		this.desirability_leader = -1;
-		this.desirability_potential_leader = this.desirability;
-		this.potential_leader = host.getID();
-		
-		this.is_electing = true;					// je suis passe en mode election.
-		this.ack_2_parent = false;					// TODO
-		this.source_election = host.getID();		// je suis le createur de cette election.
-		this.ieme_election = this.ieme_election + 1;	// Pour calculer la priorite de mon election.
-		this.source_ieme_election = this.ieme_election;	// je suis ma propre source
-		this.ieme_election_max = Math.max(this.ieme_election_max, this.ieme_election);
-		
-		ElectionDynamicMessage edm = new ElectionDynamicMessage(host.getID(), ALL,
-				this.potential_leader,
-				this.desirability_potential_leader,
-				source_election,
-				this.ieme_election,
-				this.my_pid);
-		emp.emit(host, edm);
-		
-		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
-		// exactement en même temps.
-		EDSimulator.add(periode_leader, leader_event, host, my_pid);
+				int emitter_pid = Configuration.lookupPid("emit");
+				EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+				
+				// Début d'une demande d'éléction globale, mise à jour du node
+				// pour débuter une éléction
+				
+				// Recuperation du protocol de Neighbor
+				int neighbor_pid = Configuration.lookupPid("neighbor");
+				NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
+				
+				// nombre de ack a recevoir 
+				this.nb_ack = np.getNeighbors().size() - 1;
+				//System.err.println(host.getID() + " " + this.nb_ack);
+				
+				// etat
+				this.state = 1;
+				
+				// lien de parente
+				this.parent = -1;
+				
+				// leader
+				this.id_leader = -1;
+				this.desirability_leader = -1;
+				
+				// valeur
+				this.desirability_potential_leader = this.desirability; // ma valeur par defaut
+				this.potential_leader = host.getID(); 					// moi meme par defaut
+				
+				// passer en moode election
+				this.is_electing = true;
+				
+				// j'ai pas repondu a mon pere (evite de repasser dans la liste ack_neigh quand elle est vide)
+				this.ack_2_parent = false;
+				
+				// source de l'electioon
+				this.source_election = host.getID();		// je suis le createur de cette election.
+				this.ieme_election = this.ieme_election + 1;	// Pour calculer la priorite de mon election.
+				this.source_ieme_election = this.ieme_election;	// je suis ma propre source
+				
+				// ma plus grande election
+				this.ieme_election_max = Math.max(this.ieme_election_max, this.ieme_election);
+				
+				ElectionDynamicMessage edm = new ElectionDynamicMessage(host.getID(), ALL,
+						this.my_pid,
+						this.potential_leader,
+						this.desirability_potential_leader,
+						this.source_election,
+						this.ieme_election);
+				
+				emp.emit(host, edm);
+				
+				// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
+				// exactement en même temps.
+				EDSimulator.add(periode_leader, leader_event, host, my_pid);
 	}
 	
 	
@@ -184,19 +223,26 @@ public VKT04Election(String prefix) {
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
-				
+		
+		// patch le parent *new father*
+		this.parent = edm.getIdSrc();
+		this.ack_2_parent = false;
+		this.nb_ack = np.getNeighbors().size();
+		//System.err.println(host.getID() + " " + this.nb_ack);
+		
 		// passe en mode election
 		this.is_electing = true;
 
-		// patch le parent
-		this.parent = edm.getIdSrc();
-		this.ack_2_parent = false;
-		this.neighbors_ack = new ArrayList<Long>(np.getNeighbors());
+		// valeur potentielles
+		this.potential_leader = edm.getMostValuedNode();
+		this.desirability_potential_leader = edm.getMostValuedNodeDesirability();
 		
 		// patch les variables d'election
 		this.source_election = edm.getSource_election();
 		this.source_ieme_election = edm.getIeme_election();
-		this.ieme_election_max = source_ieme_election;
+		
+		// ma plus grande election
+		this.ieme_election_max = Math.max(this.ieme_election_max, source_ieme_election);
 		
 		//patch state
 		this.state = 1;
@@ -209,8 +255,10 @@ public VKT04Election(String prefix) {
 	 */
 	private boolean worthierElection(Node host, ElectionDynamicMessage edm) {
 		
-		return this.source_ieme_election > edm.getIeme_election()
-				|| this.source_ieme_election == edm.getIeme_election() 
+		return this.ieme_election_max > edm.getIeme_election()
+				|| this.ieme_election_max == edm.getIeme_election()
+				//&& host.getID() > edm.getMostValuedNode()
+				//|| host.getID() == edm.getMostValuedNode()
 				&& this.desirability_potential_leader > edm.getMostValuedNodeDesirability();
 	}
 
@@ -226,14 +274,17 @@ public VKT04Election(String prefix) {
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
 		for (Long neinei : neighbors_ack) {
+			
 			Node dest = Network.get(neinei.intValue());
+			
 			if(dest.getID() == parent) { continue; } // Skip l'id du pere
+
 			ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), dest.getID(),
+					this.my_pid,
 					edm.getMostValuedNode(),
 					edm.getMostValuedNodeDesirability(),
 					edm.getSource_election(),
-					edm.getIeme_election(),
-					this.my_pid);
+					edm.getIeme_election());
 			emp.emit(host, em_propagation);
 		}
 	}
@@ -255,34 +306,28 @@ public VKT04Election(String prefix) {
 		ElectionDynamicMessage edm = (ElectionDynamicMessage)event;
 		
 		// Ce n'est pas mon propre message et c'est une election qui vaut le coup
-		if (host.getID() != event.getIdSrc()) {
+		if (host.getID() != event.getIdSrc()
+				&& event.getSource_election() != host.getID()
+				&& event.getMostValuedNode() != this.potential_leader) {	//redondance
 			
-				// worthy election
-				if (event.getIeme_election() >= this.ieme_election_max) {
-					
-					// je suis moins bon leader que lui
-					if (!worthierElection(host, event)) {
+			// mon leader potentiel est moin bon
+			if (!worthierElection(host, event)) {
+				patchAfterElectionMessage(host, edm);
+			}
 			
-						// Il devient mon pere, reconfiguration pour reorienter l'arbre
-						// la liste des ack a attendre doit-elle etre remise a 0 ?
-						// oui c'est une autre election
-						patchAfterElectionMessage(host, edm);
-					
-						// Propagation aux fils
-						 PropagateElection2children(host, edm);
-						 return;
-					}
-					
-					// J'ai déjà un parent legitime, réponse immediate de la valeur potentielle
-					AckMessage am = new AckMessage(host.getID(), edm.getIdSrc(), 
-							this.my_pid,
-							this.potential_leader,
-							this.desirability_potential_leader,
-							this.source_election,
-							this.source_ieme_election);
-					emp.emit(host, am);
-				}	
-		}
+			if (neighbors_ack.isEmpty()) {
+				// J'ai déjà un parent legitime, réponse immediate de la valeur potentielle
+				AckMessage am = new AckMessage(host.getID(), edm.getIdSrc(), 
+						this.my_pid,
+						this.potential_leader,
+						this.desirability_potential_leader,
+						this.source_election,
+						this.source_ieme_election);
+				emp.emit(host, am);
+			} else {
+				PropagateElection2children(host, edm);
+			}
+		}	
 	}
 
 	/********************************** ACK MESSAGE ****************************************/
@@ -293,9 +338,27 @@ public VKT04Election(String prefix) {
 	 */
 	private void patchAfterAckMessage(Node host, AckMessage am) {
 		
+		// important
+		this.parent = am.getIdSrc();
+		this.ack_2_parent = false;
+		
 		this.potential_leader = am.getMostValuedNode();
 		this.desirability_potential_leader = am.getMostValuedNodeDesirability();
-
+		
+		if (state == 0 || state == 2) {
+			this.leader_direction = (am.getIdSrc() == host.getID())? -1 : am.getIdSrc();
+			
+			if (this.parent == -1)
+				this.parent = leader_direction;
+			
+			// Patch des variables leader
+			this.id_leader = am.getMostValuedNode();
+			this.ieme_election_max = am.getIeme_election();
+			this.desirability_leader = am.getMostValuedNodeDesirability();
+			
+			// etat
+			this.state = am.getMostValuedNode() == host.getID() ? 2 : 0; // 
+		}
 	}
 	
 	
@@ -307,9 +370,8 @@ public VKT04Election(String prefix) {
 	 */
 	private boolean worthierElection(Node host, AckMessage am) {
 		
-		return source_ieme_election > am.getIeme_election()
-				|| source_ieme_election == am.getIeme_election() 
-				&& desirability_potential_leader > am.getMostValuedNodeDesirability();
+		// l'egalite pour ne pas changer de pere tout le temps, superieur pour trouver le meilleur.
+		return  desirability_potential_leader >= am.getMostValuedNodeDesirability();
 	}
 	
 	/**
@@ -328,8 +390,19 @@ public VKT04Election(String prefix) {
 		if (host.getID() != event.getIdSrc()) {
 			
 			// Mise a jour de mon noeud leader si le potentiel leader que j'ai est moins désirable.
-			if (!worthierElection(host, am)) {
+			if (!worthierElection(host, am)
+					&& this.desirability_potential_leader != am.getMostValuedNodeDesirability()) {
 				patchAfterAckMessage(host, am);
+			} else {
+				
+				// ack le mec qui est moins worth que moi
+				AckMessage ack = new AckMessage(host.getID(), am.getIdSrc(),
+						this.my_pid,
+						this.potential_leader,
+						this.desirability_potential_leader,
+						this.source_election,
+						this.source_ieme_election);
+				emp.emit(host, ack);
 			}
 			
 			// J'ai reçu un ack de ce node c'est bon, remove safe d'un node DANS (il y est) ma liste !
@@ -337,6 +410,20 @@ public VKT04Election(String prefix) {
 			
 			// Je suis une feuille ou il n'y avait qu'un fils à attendre
 			if (this.neighbors_ack.isEmpty() && !ack_2_parent) {
+				
+				/*
+				if (host.getID() == 67) {
+					System.err.println("HOSTID : " + host.getID() 
+					+ "  thesource : " + event.getIdSrc()
+					+ "  his_PL : " + event.getMostValuedNode()
+					+ "  his_ieme : " + event.getIeme_election()
+					+ "  my_value : " + this.desirability_potential_leader
+					+ "  my_ieme : " + this.ieme_election_max
+					+ "  my_parent : " + this.parent);
+					System.err.println();
+					System.err.println(neighbors_ack);
+				}
+				*/
 				
 				// J'ai repondu a mon pere (tres important sinon le nombre
 				// de messages explose
@@ -346,8 +433,7 @@ public VKT04Election(String prefix) {
 				if (this.parent >= 0) {
 					
 					// Envoie d'un ack à mon père, je suis une feuille
-					AckMessage am_to_father = new AckMessage(host.getID(), 
-							this.parent,
+					AckMessage am_to_father = new AckMessage(host.getID(), parent,
 							this.my_pid,
 							this.potential_leader,
 							this.desirability_potential_leader,
@@ -386,18 +472,11 @@ public VKT04Election(String prefix) {
 	 */
 	private void patchLeader(Node host, LeaderMessage lm) {
 		
-		// passe en mode election
-		this.is_electing = false;
+		// ATTENTION
+		this.leader_direction = (lm.getIdSrc() == host.getID())? -1 : lm.getIdSrc();
 		
-		// patch le parent
-		this.parent = lm.getIdSrc();
-		
-		//patch les listes
-		
-		// patch les variables d'election
-		this.source_election = lm.getSource_election(); 	// Je met a jour a source de l'election
-		this.source_ieme_election = lm.getIeme_election(); 	// Je met a jour le ieme de la source de l'election
-		this.ieme_election_max = lm.getIeme_election();
+		if (this.parent == -1)
+			this.parent = leader_direction;
 		
 		// patch des variables leader potentiel
 		this.potential_leader = lm.getMostValuedNode();
@@ -420,9 +499,9 @@ public VKT04Election(String prefix) {
 	 */
 	private boolean worthierLeader(Node host, LeaderMessage event){
 	
-		return this.source_ieme_election > event.getIeme_election()
-				|| this.source_ieme_election == event.getIeme_election() 
-				&& this.desirability_potential_leader > event.getMostValuedNodeDesirability();
+		return this.ieme_election_max > event.getIeme_election()
+				|| this.ieme_election_max == event.getIeme_election()
+				&& this.desirability_potential_leader > event.getMostValuedNodeDesirability();		
 	}
 
 	
@@ -437,18 +516,36 @@ public VKT04Election(String prefix) {
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
 		for (Long neinei : neighbors) {
+			
 			Node dest = Network.get(neinei.intValue());
-			if(dest.getID() == lm.getIdSrc()) { continue; } // Skip l'id du pere
-			ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), dest.getID(),
+			
+			LeaderMessage em_propagation = new LeaderMessage(host.getID(), dest.getID(),
+					this.my_pid,
 					lm.getMostValuedNode(),
 					lm.getMostValuedNodeDesirability(),
 					lm.getSource_election(),
-					lm.getIeme_election(),
-					this.my_pid);
+					lm.getIeme_election());
+			
 			emp.emit(host, em_propagation);
 		}
 	}
 
+	
+	/*
+	 * 		if (host.getID() == 57 || host.getID() == 11) {
+			System.err.println("HOSTID : " + host.getID() 
+			+ "  thesource : " + event.getIdSrc()
+			+ "  his_PL : " + event.getMostValuedNode()
+			+ "  his_ieme : " + event.getIeme_election()
+			+ "  my_value : " + this.desirability_potential_leader
+			+ "  my_ieme : " + this.ieme_election_max
+			+ "  my_parent : " + this.parent);
+			System.err.println();
+			System.err.println(neighbors_ack);
+		}
+	 */
+	
+	
 	/**
 	 * @param host
 	 * @param event
@@ -470,13 +567,36 @@ public VKT04Election(String prefix) {
 			emp.emit(host, lm_local);
 			
 			// mise a jour // TODO au cas ou?
-			patchLeader(host, lm_local);
-			
+			//patchLeader(host, lm_local);
+			//PropagateLeader(host, lm_local);	
 		}
 		else {
 
+			if (host.getID() == 57 || host.getID() == 11) {
+				System.err.println("BEFORE PATCH");
+				System.err.println("HOSTID : " + host.getID() 
+				+ "  thesource : " + event.getIdSrc()
+				+ "  his_PL : " + event.getMostValuedNode()
+				+ "  his_ieme : " + event.getIeme_election()
+				+ "  my_value : " + this.desirability_potential_leader
+				+ "  my_ieme : " + this.ieme_election_max
+				+ "  my_parent : " + this.parent);
+			}
+			
 			// Si il est illegitime alors je dois le modifier et propager le nouveau leader
 			patchLeader(host, event);
+
+			if (host.getID() == 57 || host.getID() == 11) {
+				System.err.println("AFTER PATCH");
+				System.err.println("HOSTID : " + host.getID() 
+				+ "  thesource : " + event.getIdSrc()
+				+ "  his_PL : " + event.getMostValuedNode()
+				+ "  his_ieme : " + event.getIeme_election()
+				+ "  my_value : " + this.desirability_potential_leader
+				+ "  my_ieme : " + this.ieme_election_max
+				+ "  my_parent : " + this.parent);
+			}
+			
 			PropagateLeader(host, event);
 		}
 	}
@@ -489,25 +609,30 @@ public VKT04Election(String prefix) {
 	 */
 	private void recvLeaderlMsg(Node host, LeaderMessage event) {
 		
+
+		
+		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
 		LeaderMessage lm = (LeaderMessage)event;
 		
 		if (event.getIdSrc() != host.getID()) {
-			if (state == 1) { // 1 : leader_unknown
+			
+			if (this.state == 1) { // 1 : leader_unknown
 				patchLeader(host, lm);			
 				LeaderMessage lm_propagate = new LeaderMessage(host.getID(), ALL, 
-						my_pid,
-						id_leader,
-						desirability_leader,
-						-1,
-						-1); // TODO
+						this.my_pid,
+						this.id_leader,
+						this.desirability_leader,
+						event.getSource_election(),
+						event.getIeme_election());
 				emp.emit(host, lm_propagate);
 			} else {
 				mergeLeader(host, lm);
 			}
 		}
+
 	}
 
 
@@ -532,18 +657,12 @@ public VKT04Election(String prefix) {
 	 */
 	@Override
 	public void newNeighborDetected(Node host, long id_new_neighbor) {
-		
+		/*
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 
-		switch (state) {
-		case 0:							// 0 : leader_known
-		case 2: 						// 2 : leader_isMe
+		if (state == 0 || state == 2) {
 			// Echange de leader
-			// Je rediffuse pour qu'il s'insere avec nous ou pas
-			// Deux cas :
-			// 1) je suis un nouveau parmi un groupe => beaucoup d'envoie
-			// 2) Je suis un groupe et j'accueil un nouveau => peu d'envoie, beaucoup de receptions (tester l'egalite pour ne pas flicker)
 			LeaderMessage lm_cible = new LeaderMessage(host.getID(), id_new_neighbor,
 					this.my_pid,
 					this.id_leader,
@@ -551,94 +670,27 @@ public VKT04Election(String prefix) {
 					this.source_election,
 					this.source_ieme_election);
 			emp.emit(host, lm_cible);
-			break;
-		case 1:							// 1 : leader_unknown
-			if (is_electing) {
-				// phase de diffusion du ElectionMessage [en cours]
-				// 1) je suis un nouveau parmi un groupe => beaucoup d'envoie
-				// 2) Je suis un groupe et j'accueil un nouveau => peu d'envoie, beaucoup de receptions (tester l'egalite pour ne pas flicker)
-				ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), id_new_neighbor,
-						this.potential_leader,
-						this.desirability_potential_leader,
-						this.source_election,
-						this.source_ieme_election,
-						this.my_pid);
-				emp.emit(host, em_propagation);
-			}
-			break;
-		default:
-			break;
+		} else {
+			// Propagation d'election
+			ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), id_new_neighbor,
+					this.my_pid,
+					this.potential_leader,
+					this.desirability_potential_leader,
+					this.source_election,
+					this.source_ieme_election);
+			emp.emit(host, em_propagation);
 		}
-		
+		*/
 	}
+	
+	/*
+	System.err.println("HOSTID : " + host.getID() +":"+id_new_neighbor 
+	+ " my_source : " + this.source_election
+	+ " my_PL : " + this.desirability_potential_leader
+	+ " my_ieme : " + this.ieme_election_max);
+	*/
 
 	/***********************Lost Neighbor Detected ******************************/
-	/**
-	 * @param host
-	 * @param id_lost_neighbor
-	 */
-	
-	private void patchNeighbors(Node host, long id_lost_neighbor) {
-		
-		int emitter_pid = Configuration.lookupPid("emit");
-		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-
-
-		if (id_lost_neighbor != host.getID()) {
-			if (state == 1) {			// leader inconnu
-				
-				// perte pendant une election non finie
-				
-				if (is_electing) {
-					
-					// la perte est la personne qui devait etre elue
-					// la perte de la personne qui avait le lien vers la personne qui devait etre elu?
-
-					if (id_lost_neighbor == parent) {
-						System.err.println("me : " + host.getID() + " id_lost " + id_lost_neighbor + " parent: " + parent);
-						ElectionDynamicMessage edm = new ElectionDynamicMessage(host.getID(), ALL, 
-								host.getID(),
-								this.desirability,
-								host.getID(),
-								this.ieme_election,
-								this.my_pid);
-						patchAfterElectionMessage(host, edm);
-					}
-				}
-				
-			} else {					// leader connu
-				
-				// la perte de la personne qui avait le lien vers la personne qui est le leader ?
-				if (id_lost_neighbor == parent) {
-					System.err.println("me : " + host.getID() + " id_lost " + id_lost_neighbor + " parent: " + parent);
-					
-					LeaderMessage lm = new LeaderMessage(host.getID(), host.getID(), 
-							this.my_pid,
-							host.getID(),
-							this.desirability,
-							host.getID(),
-							this.ieme_election);
-					patchLeader(host, lm);
-					emp.emit(host, lm);
-				
-				// TODO
-				} else if (id_lost_neighbor == id_leader) {
-					System.err.println("me : " + host.getID() + " id_lost " + id_lost_neighbor + " parent: " + parent);
-					
-					LeaderMessage lm = new LeaderMessage(host.getID(), host.getID(), 
-							this.my_pid,
-							host.getID(),
-							this.desirability,
-							host.getID(),
-							this.ieme_election);
-					patchLeader(host, lm);
-					emp.emit(host, lm);
-				}
-			}
-		}
-	}
-	
-	
 
 	/**
 	 *
@@ -648,9 +700,73 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-	
-		patchNeighbors(host, id_lost_neighbor);
-	
+
+		// Recuperation du protocol de Neighbor
+		int neighbor_pid = Configuration.lookupPid("neighbor");
+		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
+		
+		// leader connu
+		if (this.state == 2 || this.state == 0) {
+			
+			
+			
+			
+			if (this.leader_direction == id_lost_neighbor ||
+					id_lost_neighbor == this.id_leader) {
+				
+				
+				if (host.getID() == 8 || host.getID() == 1) {
+					System.err.println("HOSTID : " + host.getID() +":"+id_lost_neighbor 
+					+ " my_source : " + this.source_election
+					+ " my_PL : " + this.desirability_potential_leader
+					+ " my_ieme : " + this.ieme_election_max
+					+ " my_lead_dir : " + this.leader_direction
+					+ " id_leader : " + this.id_leader
+							);
+				}
+				
+				LeaderMessage lm = new LeaderMessage(host.getID(), ALL, 
+						this.my_pid,
+						host.getID(),
+						this.desirability_potential_leader,
+						host.getID(),
+						this.ieme_election);
+				//patchLeader(host, lm);
+				// y'a plus personne je suis sur que si je me patch y'a pas de probleme
+				if (np.getNeighbors().size() <= 2) {
+					//patchLeader(host, lm);
+				}
+				// en envoyant un faux message j'espere recevoir l'identite du leader
+				// de la composante connexe /////////sinon je serai elu?
+				//emp.emit(host, lm);
+			}
+		} else {
+				/*
+					if (is_electing) {
+						if (id_lost_neighbor == parent) {
+						
+						System.err.println("LPDE : " + host.getID() 
+						+ " id_lost: " + id_lost_neighbor 
+						+ " parent: " + parent
+						+ " size compo: " + np.getNeighbors().size());
+						
+						ElectionDynamicMessage edm = new ElectionDynamicMessage(host.getID(), ALL,
+								this.my_pid,
+								this.potential_leader,
+								this.desirability_potential_leader,
+								host.getID(),
+								this.ieme_election);
+						
+						// le dernier est parti je suis seul
+						//if (np.getNeighbors().size() <= 2) {
+							patchAfterElectionMessage(host, edm);
+						//}
+						emp.emit(host, edm);
+					}
+
+				}
+				*/
+			}
 	}
 
 	

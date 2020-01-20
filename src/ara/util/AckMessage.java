@@ -7,7 +7,13 @@ public class AckMessage extends Message{
 	private long source_election;
 	private long ieme_election;
 	
-	public AckMessage(long idsrc, long iddest, int pid, long most_valued_node, long most_valued_node_desirability, long source_election, long ieme_election) {
+	public AckMessage(long idsrc,
+			long iddest,
+			int pid,
+			long most_valued_node,
+			long most_valued_node_desirability,
+			long source_election,
+			long ieme_election) {
 		super(idsrc, iddest, pid);
 
 		this.most_valued_node = most_valued_node;

@@ -26,7 +26,7 @@ initial_position_strategy FullRandom
 initial_position_strategy.positionprotocol position
 initial_position_strategy.emitter emit
 
-next_destination_strategy FullRandom
+next_destination_strategy NextDestinationImmobility
 next_destination_strategy.positionprotocol position
 next_destination_strategy.emitter emit
 next_destination_strategy.random_dest_period 20000
