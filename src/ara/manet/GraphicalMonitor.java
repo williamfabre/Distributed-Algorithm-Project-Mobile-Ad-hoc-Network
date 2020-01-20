@@ -163,6 +163,7 @@ public class GraphicalMonitor extends JPanel implements Control {
 			}
 		});
 		
+		//VERIF
 		JButton verification = new JButton("Verification");
 		verification.addActionListener(new ActionListener() {
 			@Override
@@ -173,7 +174,7 @@ public class GraphicalMonitor extends JPanel implements Control {
 					long good_elections = 0;
 					long size = 0;
 					
-					//mon.stop = !mon.stop
+					mon.stop = !mon.stop;
 					Map<Long, Position> positions = PositionProtocol.getPositions(position_pid);
 					// Tout le monde possede le meme scope
 					Emitter em = (Emitter) Network.get(0).getProtocol(emitter_pid);
@@ -186,7 +187,7 @@ public class GraphicalMonitor extends JPanel implements Control {
 					for (Map.Entry<Integer, Set<Node> > entry : connected_components.entrySet()) {
 						
 						long max = -1;
-						int component_size = 0;
+						int component_size = entry.getValue().size();
 						
 						for (Node n : entry.getValue()) {
 							// On joue sur le fait que les id sont la valeur de desirability
@@ -198,8 +199,8 @@ public class GraphicalMonitor extends JPanel implements Control {
 							// Ajout de la condition pour les algos de marya.
 							if (ep.getIDLeader() == max 
 									//|| ep.getIDLeader() == -1 //=> a verifier
-									//|| entry.getValue().size() == 1
-									|| ep.getIDLeader() == n.getID()) {
+									//|| (component_size == 1 && ep.getIDLeader() == n.getID())
+									) {
 								good_elections++;
 							}
 

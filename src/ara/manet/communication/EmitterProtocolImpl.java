@@ -86,7 +86,7 @@ public class EmitterProtocolImpl implements Emitter {
 		}
 
 		// Si c'est moi m�me alors je d�lire.
-		if (emitter == host) {
+		if (emitter.getID() == host.getID()) {
 			deliver(host, msg);
 			return;
 		}
@@ -102,8 +102,8 @@ public class EmitterProtocolImpl implements Emitter {
 		double distance = pemitter.getCurrentPosition().distance(phost.getCurrentPosition());
 
 		if (distance <= getScope()) {
-		
-			deliver(host, msg);
+			if (msg.getIdDest() == host.getID() || msg.getIdDest() == ALL)
+				deliver(host, msg);
 			return;
 		}
 	}
@@ -126,7 +126,7 @@ public class EmitterProtocolImpl implements Emitter {
 			broadcast = true;
 
 		int position_pid = Configuration.lookupPid("position");
-		PositionProtocol phost = (PositionProtocol) host.getProtocol(position_pid);
+		//PositionProtocol phost = (PositionProtocol) host.getProtocol(position_pid);
 		// System.out.println(host.getID() + " host " + phost.getCurrentPosition());
 
 		for (int i = 0; i < Network.size(); i++) {
@@ -135,10 +135,10 @@ public class EmitterProtocolImpl implements Emitter {
 
 			if (dest.getID() == msg.getIdDest() || broadcast) {
 
-				PositionProtocol pdest = (PositionProtocol) dest.getProtocol(position_pid);
+				//PositionProtocol pdest = (PositionProtocol) dest.getProtocol(position_pid);
 
 				// System.out.println(dest.getID() + " dest " + pdest.getCurrentPosition());
-			//	distance = phost.getCurrentPosition().distance(pdest.getCurrentPosition());
+				//distance = phost.getCurrentPosition().distance(pdest.getCurrentPosition());
 
 				if (distance <= getScope()) {
 
