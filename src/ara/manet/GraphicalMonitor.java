@@ -174,7 +174,7 @@ public class GraphicalMonitor extends JPanel implements Control {
 					long good_elections = 0;
 					long size = 0;
 					
-					mon.stop = !mon.stop;
+					//mon.stop = !mon.stop;
 					Map<Long, Position> positions = PositionProtocol.getPositions(position_pid);
 					// Tout le monde possede le meme scope
 					Emitter em = (Emitter) Network.get(0).getProtocol(emitter_pid);
