@@ -1,4 +1,4 @@
-network.size 75
+network.size 200
 random.seed 200
 simulation.endtime 100000
 
@@ -12,7 +12,7 @@ protocol.position.pause 20
 protocol.emit EmitterProtocolImpl
 protocol.emit.latency 90
 protocol.emit.scope 100
-protocol.emit.variance FALSE
+protocol.emit.variance TRUE
 
 protocol.neighbor NeighborProtocolVKTImpl
 protocol.neighbor.periode 300
