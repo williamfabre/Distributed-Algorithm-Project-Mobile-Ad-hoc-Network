@@ -10,7 +10,8 @@ import ara.manet.detection.NeighborhoodListener;
 import ara.util.AckMessage;
 import ara.util.ElectionDynamicMessage;
 import ara.util.LeaderMessage;
-import ara.util.LostLeaderDirectionMessage;
+import ara.util.WhereIsLeaderAckMessage;
+import ara.util.WhereIsLeaderMessage;
 import peersim.config.Configuration;
 import peersim.core.Network;
 import peersim.core.Node;
@@ -29,7 +30,8 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	private final int periode_leader;				// duree entre deux elections 
 
 	private List<Long> neighbors;					// Liste de voisins.
-	private List<Long> neighbors_ack;				// permet de compter le nombre de ack				
+	private List<Long> neighbors_ack;				// permet de compter le nombre de ack
+	private List<Long> wil;							// where is leader
 	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
 	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
 	private long leader_direction;					// designe le noeud dans la direction du leader				(-1 si inconnu)
@@ -41,6 +43,7 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	// new variables for dynamic protocol
 	private boolean is_electing;		// Variable qui dit si ce noeud est en train de faire une éléction.			(0 si inconnu)
 	private boolean ack_2_parent;		// Variable qui dit si ce noeud a envoyé son ack à son père.				(false si inconnu)
+	private boolean wil_2_parent;		// Variable qui dit si ce noeud a envoye un ack where is leader a son pere	(false si inconnu)
 	private long source_election;		// Noeud d'où provient l'élection dans laquelle je suis.					(-1 si inconnu)
 	private long ieme_election;			// indique pour ce node la ieme election qu'il lance.						(0 si inconnu)
 										// utile pour differencier les elections et choisir parmi elles.			
@@ -73,6 +76,7 @@ public VKT04Election(String prefix) {
 		// Creation de liste privees.
 		this.neighbors = new ArrayList<Long>(); 		// Liste des voisins
 		this.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
+		this.wil = new ArrayList<Long>(); 				// liste noeuds qui m'ont dis ou est le leader
 		this.nb_ack = 0;
 		
 		this.parent = -1;
@@ -89,6 +93,7 @@ public VKT04Election(String prefix) {
 		this.is_electing = false;
 		
 		this.ack_2_parent = false;
+		this.wil_2_parent = false;
 		
 		
 		this.source_election = -1;
@@ -105,7 +110,7 @@ public VKT04Election(String prefix) {
 			
 			vkt.neighbors = new ArrayList<Long>(); 		// Liste des voisins
 			vkt.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
-			
+			vkt.wil = new ArrayList<Long>(); 			// liste noeuds qui m'ont dis ou est le leader
 			vkt.nb_ack = 0;
 			vkt.parent = -1;
 			
@@ -120,6 +125,7 @@ public VKT04Election(String prefix) {
 			
 			vkt.is_electing = false;
 			vkt.ack_2_parent = false;
+			vkt.wil_2_parent = false;
 			
 			vkt.source_election = -1;
 			vkt.source_ieme_election = -1;
@@ -164,14 +170,12 @@ public VKT04Election(String prefix) {
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
-
-		// nombre de ack a recevoir 
-		this.nb_ack = np.getNeighbors().size();
 		
 		// copie de la liste des personnes dont je dois attendre un ack (il y aura un skip sur le pere)
-		neighbors_ack = new ArrayList<Long>();
+		
+		this.neighbors_ack = new ArrayList<Long>();
 		for (int i = 0; i < np.getNeighbors().size(); i++) {
-			neighbors_ack.add(np.getNeighbors().get(i));
+			this.neighbors_ack.add(np.getNeighbors().get(i));
 		}
 		this.nb_ack = np.getNeighbors().size(); 	// nombre de ack a recevoir 
 		
@@ -194,6 +198,7 @@ public VKT04Election(String prefix) {
 		
 		// j'ai pas repondu a mon pere (evite de repasser dans la liste ack_neigh quand elle est vide)
 		this.ack_2_parent = false;
+		this.wil_2_parent = false;
 		
 		// source de l'electioon
 		this.source_election = host.getID();		// je suis le createur de cette election.
@@ -235,14 +240,14 @@ public VKT04Election(String prefix) {
 		// patch le parent *new father*
 		this.parent = edm.getIdSrc();
 		this.ack_2_parent = false;
-		
 
 		// copie de la liste des personnes dont je dois attendre un ack (il y aura un skip sur le pere)
-		neighbors_ack = new ArrayList<Long>();
+
+		this.neighbors_ack = new ArrayList<Long>();
 		for (int i = 0; i < np.getNeighbors().size(); i++) {
-			neighbors_ack.add(np.getNeighbors().get(i));
+			this.neighbors_ack.add(np.getNeighbors().get(i));
 		}
-		neighbors_ack.remove(edm.getIdSrc());
+		this.neighbors_ack.remove(edm.getIdSrc());
 		
 		this.nb_ack = np.getNeighbors().size() - 1;
 		
@@ -250,8 +255,8 @@ public VKT04Election(String prefix) {
 		this.is_electing = true;
 
 		// valeur potentielles
-		this.potential_leader = edm.getMostValuedNode();
-		this.desirability_potential_leader = edm.getMostValuedNodeDesirability();
+		this.potential_leader = Math.max(edm.getMostValuedNode(), this.potential_leader);
+		this.desirability_potential_leader =  Math.max(edm.getMostValuedNodeDesirability(), this.desirability_potential_leader);
 		
 		// patch les variables d'election
 		this.source_election = edm.getSource_election();
@@ -263,6 +268,7 @@ public VKT04Election(String prefix) {
 		//patch state
 		this.state = 1;
 	}
+
 	
 	/**
 	 * @param host moi même
@@ -273,7 +279,9 @@ public VKT04Election(String prefix) {
 		
 		return this.ieme_election_max > edm.getIeme_election()
 				|| this.ieme_election_max == edm.getIeme_election()
-				&& this.desirability_potential_leader > edm.getMostValuedNodeDesirability();
+				;
+				//TODO
+				//&& this.desirability_potential_leader > edm.getMostValuedNodeDesirability();
 	}
 
 	
@@ -286,9 +294,11 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-
-		for (Long neinei : neighbors_ack) {
-			
+		int neighbor_pid = Configuration.lookupPid("neighbor");
+		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
+		
+		for (Long neinei : np.getNeighbors()) {
+				
 			Node dest = Network.get(neinei.intValue());
 			
 			if(dest.getID() == parent) { continue; } // Skip l'id du pere
@@ -341,8 +351,10 @@ public VKT04Election(String prefix) {
 						this.source_ieme_election);
 				emp.emit(host, am);
 			} else {
+				
 				PropagateElection2children(host, edm);
 			}
+			
 		} else {
 			AckMessage am = new AckMessage(host.getID(), edm.getIdSrc(), 
 					this.my_pid,
@@ -528,9 +540,16 @@ public VKT04Election(String prefix) {
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
-		for (Long neinei : neighbors) {
+		// Recuperation du protocol de Neighbor
+		int neighbor_pid = Configuration.lookupPid("neighbor");
+		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
+		
+		for (Long neinei : np.getNeighbors()) {
 			
 			Node dest = Network.get(neinei.intValue());
+			
+			if (neinei.intValue() == this.leader_direction
+					|| neinei.intValue() == lm.getIdSrc()) { continue; }
 			
 			LeaderMessage em_propagation = new LeaderMessage(host.getID(), dest.getID(),
 					this.my_pid,
@@ -561,16 +580,13 @@ public VKT04Election(String prefix) {
 						this.desirability_leader,
 						this.source_election,
 						this.source_ieme_election);
-				emp.emit(host, lm_local);
-				
-				// mise a jour // TODO au cas ou?
-				patchLeader(host, lm_local);
-				PropagateLeader(host, lm_local);
+				patchLeader(host, event);
+				//emp.emit(host, lm_local);
 
 		} else {	
 				// Si il est illegitime alors je dois le modifier et propager le nouveau leader
 				patchLeader(host, event);
-				PropagateLeader(host, event);
+				//PropagateLeader(host, event);
 		}
 	}
 	
@@ -599,7 +615,10 @@ public VKT04Election(String prefix) {
 						event.getIeme_election());
 				emp.emit(host, lm_propagate);
 			} else {
-				mergeLeader(host, lm);
+				if (event.getMostValuedNode() != this.desirability_potential_leader
+					|| event.getMostValuedNode() != this.desirability_leader) {
+						//mergeLeader(host, lm);
+				}
 			}
 		}
 
@@ -650,57 +669,143 @@ public VKT04Election(String prefix) {
 					this.source_ieme_election);
 			emp.emit(host, em_propagation);
 		}
+		
 	}
 
 	/***********************Lost Neighbor Detected ******************************/
 	
-	private void recvLostLeaderDirectionMsg(Node host, LostLeaderDirectionMessage event) {
+	/**
+	 * @param host
+	 * @param event
+	 */
+	private void recvWhereIsLeaderMsg(Node host, WhereIsLeaderMessage event) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 
-		// Recuperation du protocol de Neighbor
-		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));	
-		
-		
 		if (event.getIdSrc() != host.getID()) {
 				
 				if (this.state == 1) { // 1 : leader_unknown
 					// discard?
 					
 				} else {
-					if (this.leader_direction == event.getLeader_direction()
-							&& !np.getNeighbors().contains(this.leader_direction)) {
-							// je l'ai perdu aussi?
+					if (this.leader_direction == event.getIdSrc()
+							|| !neighbors.contains(this.id_leader)) {
+						
+						// you are my link to the leader (don't search here)
+						WhereIsLeaderAckMessage wilam = new WhereIsLeaderAckMessage(host.getID(), event.getIdSrc(),
+								this.my_pid,
+								false,
+								event.getLost_node());
+						emp.emit(host, wilam);
+						
+					} else {
+						
+						//trouve
+						if (neighbors.contains(this.id_leader)) {
+							WhereIsLeaderAckMessage wilam = new WhereIsLeaderAckMessage(host.getID(), event.getIdSrc(),
+									this.my_pid,
+									true,
+									event.getLost_node());
+							emp.emit(host, wilam);
+							
+						} else {
+							
+							//suis le chemin du leader
+							WhereIsLeaderMessage wil_propagation = new WhereIsLeaderMessage(host.getID(), this.leader_direction,
+									this.my_pid,
+									false,
+									event.getLost_node());
+							PropagateWIL2children(host, wil_propagation);
+						}
 					}
 				}
 			}
 		}
+
+	
+	/**
+	 * TODO 
+	 * 
+	 * @param host
+	 * @param event
+	 */
+	private void recvWhereIsLeaderAckMsg(Node host, WhereIsLeaderAckMessage event) {
+
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		
+		if (host.getID() != event.getIdSrc()) {
+			
+			if (event.isLeaderfound()) {
+				// on a retrouve le lien vers le leader
+				this.leader_direction = event.getIdSrc();
+				wil.clear();
+				wil_2_parent = true;
+				return;
+			}
+			
+			// J'ai reçu un ack de ce node c'est bon, remove safe d'un node DANS (il y est) ma liste !
+			//this.neighbors_ack.remove(am.getIdSrc()); // remove is empty safe.
+			wil.remove((event.getIdSrc()));
+			
+			// Je suis une feuille ou il n'y avait qu'un fils à attendre
+			if (wil.isEmpty() && !wil_2_parent) {
+
+				// J'ai repondu a mon pere (tres important sinon le nombre
+				// de messages explose
+				wil_2_parent = true;
+				
+				// reponse a mon pere si j'en ai un
+				if (neighbors.contains(event.getLost_node())) {
+					
+					// Envoie d'un ack à mon père, je suis une feuille
+					WhereIsLeaderAckMessage wilam = new WhereIsLeaderAckMessage(host.getID(), event.getIdSrc(),
+							this.my_pid,
+							true,
+							event.getLost_node());
+					emp.emit(host, wilam);
+					
+				} else {
+					
+					// On a definitivement perdu le leader
+					// On fait quoi?
+					VKT04ElectionTrigger(host);
+				}
+			}
+		}
+	}
 	
 	
+	/**
+	 * Le but est de propager le l'éléction provenant du message en paramètre
+	 * @param host moi même
+	 * @param edm message d'éléction dynamique
+	 */
+	private void PropagateWIL2children(Node host, WhereIsLeaderMessage wilm) {
+		
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+
+		for (Long w : wil) {
+			
+			Node dest = Network.get(w.intValue());
+			
+			if(dest.getID() == leader_direction) { continue; } // Skip l'id du pere
+
+			WhereIsLeaderMessage wil_propagation = new WhereIsLeaderMessage(host.getID(), dest.getID(),
+					this.my_pid,
+					false,
+					wilm.getLost_node());
+			emp.emit(host, wil_propagation);
+		}
+	}
+
 	/**
 	 *
 	 */
 	@Override
 	public void lostNeighborDetected(Node host, long id_lost_neighbor) {
-		
-		int emitter_pid = Configuration.lookupPid("emit");
-		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-
-		// Recuperation du protocol de Neighbor
-		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
-		
-		
-		if (this.state == 2 || this.state == 0) {
-			if (this.leader_direction == id_lost_neighbor) {
-				
-			}
-		}
-		
-		
-		
 		/*
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
@@ -708,34 +813,54 @@ public VKT04Election(String prefix) {
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));
-
+		
+		//deja on le vire de la liste.
+		neighbors_ack.remove(id_lost_neighbor);
+		
 		// leader connu
-		if (this.state == 2 || this.state == 0) {
+		if (state == 0 || state == 2) {
+			
+			// Here be dragons
+			// On va faire une inondation pour retrouver le leader dans la composante connexe.
+			// la liste wil = where is leader va nous servir a la meme chose les ack messages dans une
+			// election. Le but est : Trouver le leader parmi la foule pour reforger un lien vers lui.
+			
+			// formation de la liste where is leader
 			if (this.leader_direction == id_lost_neighbor) {
-				System.err.println("reparation...");
+				
+				// on la remet a -1 pour l'instant, on va voir ce que ca donne
+				//leader_direction = -1;
+				
+				wil = new ArrayList<Long>();
+				for (int i = 0; i < np.getNeighbors().size(); i++) {
+					wil.add(np.getNeighbors().get(i));
+				}
+				
+				WhereIsLeaderMessage wilm = new WhereIsLeaderMessage(host.getID(), ALL,
+						this.my_pid,
+						false,
+						id_lost_neighbor);
+				
+				emp.emit(host, wilm);
+			}
+	
+		// leader inconnu
+		} else {
+			
+			if (neighbors_ack.size() == 0 ) {
 				LeaderMessage lm = new LeaderMessage(host.getID(), ALL, 
 						this.my_pid,
-						id_lost_neighbor,
-						-2,
-						parent,
-						-1); // TODO
-			
-				// y'a plus personne je suis sur que si je me patch y'a pas de probleme
+						host.getID(),
+						this.desirability_potential_leader,
+						this.potential_leader,
+						this.ieme_election); // TODO
+				// le dernier
 				if (np.getNeighbors().size() <= 2) {
-					patchLeader(host, lm);
+					//patchLeader(host, lm);
 				}
-				// en envoyant un faux message j'espere recevoir l'identite du leader
-				// de la composante connexe
 				emp.emit(host, lm);
 			}
-		} 
-		*/
-		/*else {
-			if (is_electing) {
-				if (id_lost_neighbor == parent 
-						|| id_lost_neighbor == this.leader_direction) {
-				
-				
+			else {
 				
 				ElectionDynamicMessage edm = new ElectionDynamicMessage(host.getID(), ALL,
 						this.my_pid,
@@ -743,14 +868,12 @@ public VKT04Election(String prefix) {
 						this.desirability_potential_leader,
 						host.getID(),
 						this.ieme_election);
-				
-				// le dernier est parti je suis seul
-				//if (np.getNeighbors().size() <= 2) {
+				// le dernier
+				if (np.getNeighbors().size() <= 2) {
 					patchAfterElectionMessage(host, edm);
-				//}
-				emp.emit(host, edm);
 				}
-			}	
+			}
+
 		}
 		*/
 	}
@@ -820,11 +943,17 @@ public VKT04Election(String prefix) {
 		}
 		
 		// Gestion de la réception d'un message de type LostLeaderDirection
-				if (event instanceof LostLeaderDirectionMessage) {
+		if (event instanceof WhereIsLeaderMessage) {
 
-					recvLostLeaderDirectionMsg(host, (LostLeaderDirectionMessage) event);
-					return;
-				}
+			recvWhereIsLeaderMsg(host, (WhereIsLeaderMessage) event);
+			return;
+		}
+		
+		if (event instanceof WhereIsLeaderAckMessage) {
+
+			recvWhereIsLeaderAckMsg(host, (WhereIsLeaderAckMessage) event);
+			return;
+		}
 		
 		// Evènement périodique d'élections.		
 		if (event instanceof String) {
