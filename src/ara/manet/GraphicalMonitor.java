@@ -198,9 +198,15 @@ public class GraphicalMonitor extends JPanel implements Control {
 
 							// Ajout de la condition pour les algos de marya.
 							if (ep.getIDLeader() == max 
+<<<<<<< HEAD
 									//|| ep.getIDLeader() == -1 //=> a verifier
 									//|| (component_size == 1 && ep.getIDLeader() == n.getID())
 									) {
+=======
+									|| ep.getIDLeader() == -1 //=> a verifier
+									//|| entry.getValue().size() == 1
+									|| ep.getIDLeader() == n.getID()) {
+>>>>>>> 58494a02b89d1925afaa2da7ec8fb9693e8cf1da
 								good_elections++;
 							}
 
