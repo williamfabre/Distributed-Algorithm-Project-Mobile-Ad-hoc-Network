@@ -27,6 +27,7 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 	private final int periode;
 	private Knowledge knowledge;
 	private long leader;
+	private long id;
 
 	// perseem constructor
 	public GVLElection(String prefix) {
@@ -69,6 +70,7 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 
 		this.knowledge.setView(0, v);
 		this.knowledge.setPosition(node.getID());
+		this.id = node.getID();
 
 	}
 
@@ -84,9 +86,11 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 
 		// create new peer
 		// get neighbors value
-		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolImpl np = (NeighborProtocolImpl) host.getProtocol(neighbor_pid);
-		int neighbors_value = np.getNeighborValue(id_new_neighbor);
+		/*
+		 * int neighbor_pid = Configuration.lookupPid("neighbor"); NeighborProtocolImpl
+		 * np = (NeighborProtocolImpl) host.getProtocol(neighbor_pid);
+		 */
+		int neighbors_value = (int) id_new_neighbor; // np.getNeighborValue(id_new_neighbor);
 
 		Peer j = new Peer(id_new_neighbor, neighbors_value);
 
@@ -116,9 +120,11 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 	public void lostNeighborDetected(Node host, long id_lost_neighbor) {
 
 		// get neighbors value
-		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolImpl np = (NeighborProtocolImpl) host.getProtocol(neighbor_pid);
-		int neighbors_value = np.getNeighborValue(id_lost_neighbor);
+		/*
+		 * int neighbor_pid = Configuration.lookupPid("neighbor"); NeighborProtocolImpl
+		 * np = (NeighborProtocolImpl) host.getProtocol(neighbor_pid);
+		 */
+		int neighbors_value = (int) id_lost_neighbor; // np.getNeighborValue(id_lost_neighbor);
 
 		// Create the edit message
 		// Peer j this is disconnected node here
@@ -132,11 +138,11 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 
 		// Remove j from the knowledge of host and clock++
 		// But its id stays in positions list
-		// if (j.getId() != host.getID()) {
-
 		this.knowledge.updateMyViewRemove(j);
+
 		// System.out.println(host.getID() + " Lost " + id_lost_neighbor +
 		// knowledge.toString());
+
 		// Broadcast edit
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
@@ -149,51 +155,99 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 	public long getIDLeader() {
 
 		// max value in all reachable peer from i
-		int max_val = 0;
+		int max_val = -1;
 		long idLeader = 0;
 
-		Vector<Peer> connexe = new Vector<Peer>();
-		Vector<Peer> visited = new Vector<Peer>();
+		if (!knowledge.getKnowledge().elementAt(0).getNeighbors().isEmpty()) {
 
-		for (Peer p : knowledge.getKnowledge().elementAt(0).getNeighbors()) {
+			Vector<Peer> connexe = new Vector<Peer>();
+			Vector<Peer> visited = new Vector<Peer>();
 
-			connexe.add(p);
+			Vector<Peer> q = knowledge.getKnowledge().elementAt(0).getNeighbors();
 
-		}
+			for (Peer p : q) {
 
-		for (int i = 0; i < connexe.size(); i++) {
-				
+				connexe.add(p);
+
+				if (p.getValue() > max_val) {
+					max_val = p.getValue();
+					idLeader = p.getId();
+				}
+			}
+
+			
+
+			for (int i = 0; i < connexe.size(); i++) {
+
 				Peer p = connexe.elementAt(i);
-				
-				//profondeur
+				visited.add(p);
+
+				// profondeur
+
 				if (knowledge.getPosition().contains(p.getId())) {
-					
+
 					int pos = knowledge.getPosition().indexOf(p.getId());
 
-					Vector<Peer> tmp = knowledge.getKnowledge().elementAt(pos).getNeighbors();
+					if (knowledge.getKnowledge().elementAt(pos) != null) {
 
-					/*for (Peer p1 : tmp) {
+						Vector<Peer> tmp = knowledge.getKnowledge().elementAt(pos).getNeighbors();
 
-						if (!visited.contains(p1))
-							connexe.add((Peer) p1.clone());
-					}*/
-					for (int j = 0; j < tmp.size(); j++) {
-						Peer kn = tmp.elementAt(j);
-						if (!visited.contains(kn))
-							connexe.add(kn);
+						for (int j = 0; j < tmp.size(); j++) {
+
+							Peer kn = tmp.elementAt(j);
+
+							// {if (!visited.contains(kn)) {
+							boolean visit = false;
+							boolean added = false;
+
+							for (Peer per : visited) {
+
+								if (per.getId() == kn.getId()) {
+									visit = true;
+									break;
+								}
+							}
+
+							int k = 0;
+							for (Peer per : connexe) {
+
+								if (k > i && per.getId() == kn.getId()) {
+									added = true;
+									break;
+								}
+								k++;
+							}
+
+							if (!visit && !added) {
+								// System.out.println(my_id + " elt " + kn.getId() + " " + i + " " + j + " " +
+								// tmp.size() + " " + size);
+								connexe.add(kn);
+							}
+
+						}
 					}
-				}
+				} // end profondeur
 
-				if (p.getValue() > max_val)
+				if (p.getValue() > max_val) {
 					idLeader = p.getId();
+					max_val = p.getValue();
+				}
+				connexe.setElementAt(null, i);
+				/*size = 0;
 				
-				visited.add(p);
-				connexe.remove(p);
-				// System.out.println(connexe);
+				for (int k = 0; k < connexe.size(); k++) {
+					if (connexe.elementAt(k) != null)
+						size++;
+				}*/
+				//System.out.println(connexe);
+				//System.out.println(visited);
 
+			}
 		}
-
+		
+		//System.out.println(knowledge.toString() + " LEDER " + idLeader);
 		return idLeader;
+
 	}
 
 	@Override
