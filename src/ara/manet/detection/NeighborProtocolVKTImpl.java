@@ -1,6 +1,7 @@
 package ara.manet.detection;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import ara.manet.algorithm.election.ElectionProtocol;
@@ -96,8 +97,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
      */
 	@Override
 	public List<Long> getNeighbors() {
-		
-		return new ArrayList<Long>(neighbors);
+		return this.neighbors;//gn;
 	}
 
 	
@@ -116,6 +116,7 @@ public class NeighborProtocolVKTImpl implements NeighborProtocol, EDProtocol {
 		
 			long idNeighbor = msg.getIdSrc();
 			neighbors.add(idNeighbor); // Je l'ajoute à mes neighbor
+			//System.out.println(host.getID() + " added " + idNeighbor);
 			
 			Pair<Long, Boolean> pair = new Pair<Long, Boolean>(idNeighbor, false); 
 			neighbors_reply.add(pair);
