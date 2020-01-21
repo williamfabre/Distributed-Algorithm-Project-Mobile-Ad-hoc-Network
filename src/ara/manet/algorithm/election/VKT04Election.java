@@ -71,13 +71,11 @@ public VKT04Election(String prefix) {
 		// Creation de liste privees.
 		this.neighbors = new ArrayList<Long>(); 		// Liste des voisins
 		this.neighbors_ack = new ArrayList<Long>(); 	// liste noeuds qui ont ack
-		this.nb_ack = 0;
 		
 		this.parent = -1;
 		
 		this.id_leader = -1;
 		this.desirability_leader = -1;
-		this.leader_direction = -1;
 		
 		this.potential_leader = -1;
 		this.desirability_potential_leader = -1;
@@ -142,16 +140,7 @@ public VKT04Election(String prefix) {
 	
 	
 	/*****************************Election******************************/	
-	
-	/*
-	private void remove_ack_list(Node host, long id_election) {
-		
-		for (Pair<Long, ArrayList<Long>> p : neighbors_ack) {
-			if (p.getId() == id_election);
-				neighbors_ack.remove
-		}
-	}
-	*/
+
 	/**
 	 * Partie élection statique, va lancer une nouvelle élection
 	 * avec la liste statique des neouds.
@@ -367,6 +356,7 @@ public VKT04Election(String prefix) {
 				// demande d'election alors que j'ai un leader?
 				// TODO
 			}
+		}
 	}
 
 	/********************************** ACK MESSAGE ****************************************/
@@ -649,7 +639,7 @@ public VKT04Election(String prefix) {
 	 */
 	@Override
 	public void newNeighborDetected(Node host, long id_new_neighbor) {
-		
+		/*
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 
@@ -672,33 +662,10 @@ public VKT04Election(String prefix) {
 					this.source_ieme_election);
 			emp.emit(host, em_propagation);
 		}
+		*/
 	}
 
 	/***********************Lost Neighbor Detected ******************************/
-	
-	private void recvLostLeaderDirectionMsg(Node host, LostLeaderDirectionMessage event) {
-		
-		int emitter_pid = Configuration.lookupPid("emit");
-		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-
-		// Recuperation du protocol de Neighbor
-		int neighbor_pid = Configuration.lookupPid("neighbor");
-		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol((neighbor_pid));	
-		
-		
-		if (event.getIdSrc() != host.getID()) {
-				
-				if (this.state == 1) { // 1 : leader_unknown
-					// discard?
-					
-				} else {
-					if (this.leader_direction == event.getLeader_direction()
-							&& !np.getNeighbors().contains(this.leader_direction)) {
-							// je l'ai perdu aussi?
-					}
-				}
-			}
-		}
 	
 	
 	/**
@@ -715,13 +682,6 @@ public VKT04Election(String prefix) {
 		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
 		
 		//System.err.println(np.getNeighbors());
-		
-		
-		if (this.state == 2 || this.state == 0) {
-			if (this.leader_direction == id_lost_neighbor) {
-				
-			}
-		}
 		
 		
 		
