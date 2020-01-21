@@ -21,6 +21,7 @@ protocol.neighbor.listener TRUE
 
 protocol.election VKT04Election
 protocol.election.periode_leader 5000
+protocol.election.neighborprotocol neighbor
 
 initial_position_strategy FullRandom
 initial_position_strategy.positionprotocol position

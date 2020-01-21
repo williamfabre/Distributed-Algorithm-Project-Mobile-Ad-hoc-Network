@@ -45,15 +45,15 @@ public class InitialisationVKT04Election implements Control {
 			// initialise la position pour tous les noeuds
 			position.initialiseCurrentPosition(node);
 	
-		
+			// Evenement permettant le déplacement des noeuds.
+			position.processEvent(node, position_pid, "LOOPEVENT");
+						
 
 			/* ensemble des processevent nécessaire au fonctionnement */
 			
 			// Evenement de detection de voisins
 			np.processEvent(node, neighbor_pid, "HEARTEVENT");
 			
-			// Evenement permettant le déplacement des noeuds.
-			position.processEvent(node, position_pid, "LOOPEVENT");
 			
 
 			// fonction d'initialisation si nécessaire
