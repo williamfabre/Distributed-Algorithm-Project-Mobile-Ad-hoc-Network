@@ -8,7 +8,8 @@ public class LaunchMain {
 	public static void main(String[] args) {
 		//String config_path = System.getProperty("user.dir") + "/src/ara/config";
 		//String config_path = System.getProperty("user.dir") + "/src/ara/configVKT04Statique";
-		String config_path = System.getProperty("user.dir") + "/src/ara/configVKT04";
+		//String config_path = System.getProperty("user.dir") + "/src/ara/configVKT04";
+		String config_path = System.getProperty("user.dir") + "/src/ara/configVKT04Printer";
 		String[] path = {config_path};
 		Simulator.main(path);
 		

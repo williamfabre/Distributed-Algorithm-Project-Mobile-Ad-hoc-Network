@@ -1,4 +1,4 @@
-network.size 300
+network.size 75
 random.seed 200
 simulation.endtime 100000
 
@@ -32,13 +32,13 @@ next_destination_strategy.positionprotocol position
 next_destination_strategy.emitter emit
 next_destination_strategy.random_dest_period 20000
 
-control.monitor GraphicalMonitor
+control.monitor Echantillon
 control.monitor.electionprotocol election
 control.monitor.positionprotocol position
 control.monitor.emitter emit
 control.monitor.neighborprotocol neighbor
 control.monitor.monitorableprotocol election
-control.monitor.time_slow 0.0002
+control.monitor.timer 10
 control.monitor.from 0
 control.monitor.until 50000
 control.monitor.step 1

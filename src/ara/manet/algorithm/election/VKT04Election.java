@@ -141,17 +141,7 @@ public VKT04Election(String prefix) {
 	}
 	
 	
-	/*****************************Election******************************/	
-	
-	/*
-	private void remove_ack_list(Node host, long id_election) {
-		
-		for (Pair<Long, ArrayList<Long>> p : neighbors_ack) {
-			if (p.getId() == id_election);
-				neighbors_ack.remove
-		}
-	}
-	*/
+	/*****************************Election******************************/
 	/**
 	 * Partie élection statique, va lancer une nouvelle élection
 	 * avec la liste statique des neouds.
@@ -171,14 +161,6 @@ public VKT04Election(String prefix) {
 		// List initialisation
 		neighbors = new ArrayList<Long>(np.getNeighbors());
 		neighbors_ack = new ArrayList<Long>(np.getNeighbors());
-		//neighbors_ack = new ArrayList<Pair<Long, ArrayList<Long>>>();
-		
-		// Creation d'une liste de liste de ack (une liste par election).
-		//long id_election = host.getID();
-		//ArrayList<Long> list_ack_by_id = new ArrayList<Long>(np.getNeighbors());
-		//Pair<Long, ArrayList<Long>> p = new Pair<Long, ArrayList<Long>>(id_election, list_ack_by_id);
-		// la premiere paire c'est mon election.
-		//neighbors_ack.add(p);
 
 		// etat
 		this.state = 1;
@@ -291,8 +273,7 @@ public VKT04Election(String prefix) {
 			for (Long neinei : neighbors_ack) {
 				
 				Node dest = Network.get(neinei.intValue());
-				
-				//System.err.println(host.getID() + " " + parent);
+
 				if(dest.getID() == parent) {continue; } // Skip l'id du pere
 	
 				ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), dest.getID(),
@@ -432,8 +413,6 @@ public VKT04Election(String prefix) {
 			
 			if (same_election(host, event)) {
 				
-
-				
 				//trick la feuille envoi un message special avec sa valeur dans le mostvaluednode
 				// je n'ai pas trouve de maniere propre de la faire... faire une variable dans la
 				// class ackMessage /!\
@@ -442,16 +421,6 @@ public VKT04Election(String prefix) {
 					this.potential_leader = event.getMostValuedNode();
 				}
 				this.neighbors_ack.remove(am.getIdSrc()); // remove is empty safe.
-				
-				if (host.getID() == 297 ) {
-					System.err.println("same_elec i'm :" + host.getID()
-					+ " parent " + parent
-					+ " PL " + potential_leader
-					+ " source " + source_election
-					+ " ackmessagevalue " + event.getMostValuedNode()
-					+ " from " + event.getIdSrc()
-					+ " size " + neighbors_ack);
-				}
 				
 			} else {
 				
@@ -476,7 +445,6 @@ public VKT04Election(String prefix) {
 				
 				// reponse a mon pere si j'en ai un (0 inclu)
 				if (this.parent >= 0) {
-					//System.err.println("p>=0 i'm :" + host.getID() + " parent " + parent + " PL " + potential_leader + " source " + source_election);
 					// Envoie d'un ack à mon père, je suis une feuille
 					AckMessage am_to_father = new AckMessage(host.getID(), parent,
 							this.my_pid,
@@ -545,10 +513,7 @@ public VKT04Election(String prefix) {
 	 * @return
 	 */
 	private boolean worthierLeader(Node host, LeaderMessage event){
-	
-		//return this.ieme_election_max > event.getIeme_election()
-			//	|| this.ieme_election_max == event.getIeme_election()
-				return this.desirability_potential_leader >= event.getMostValuedNodeDesirability();		
+		return this.desirability_potential_leader >= event.getMostValuedNodeDesirability();		
 	}
 
 	
@@ -617,9 +582,6 @@ public VKT04Election(String prefix) {
 	 */
 	private void recvLeaderlMsg(Node host, LeaderMessage event) {
 		
-		int emitter_pid = Configuration.lookupPid("emit");
-		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		
 		LeaderMessage lm = (LeaderMessage)event;
 		
 		if (event.getIdSrc() != host.getID()
@@ -629,8 +591,8 @@ public VKT04Election(String prefix) {
 			if (this.state == 1) {
 				patchLeader(host, lm);
 				PropagateLeader(host, lm);
-				
 			} else {
+				// TODO laisser finir les elections
 				//mergeLeader(host, lm);
 			}
 		}
@@ -699,15 +661,14 @@ public VKT04Election(String prefix) {
 	@Override
 	public void lostNeighborDetected(Node host, long id_lost_neighbor) {
 		
+		/*
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
-		
-		//System.err.println(np.getNeighbors());
-		
+
 		// leader connu
 		if (this.state == 2 || this.state == 0) {
 			
@@ -717,17 +678,6 @@ public VKT04Election(String prefix) {
 			if (
 					//this.leader_direction == id_lost_neighbor ||
 					id_lost_neighbor == this.id_leader) {
-				
-				
-				if (host.getID() == 8 || host.getID() == 1) {
-					System.err.println("HOSTID : " + host.getID() +":"+id_lost_neighbor 
-					+ " my_source : " + this.source_election
-					+ " my_PL : " + this.desirability_potential_leader
-					+ " my_ieme : " + this.ieme_election_max
-					//+ " my_lead_dir : " + this.leader_direction
-					+ " id_leader : " + this.id_leader
-							);
-				}
 				
 				LeaderMessage lm = new LeaderMessage(host.getID(), ALL, 
 						this.my_pid,
@@ -745,7 +695,7 @@ public VKT04Election(String prefix) {
 				//emp.emit(host, lm);
 			}
 		} else {
-				/*
+				
 					if (is_electing) {
 						if (id_lost_neighbor == parent) {
 						
@@ -769,8 +719,7 @@ public VKT04Election(String prefix) {
 					}
 
 				}
-				*/
-			}
+			}*/
 	}
 
 	
