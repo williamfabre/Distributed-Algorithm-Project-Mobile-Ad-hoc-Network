@@ -1,4 +1,4 @@
-network.size 75
+network.size 300
 random.seed 200
 simulation.endtime 100000
 
@@ -12,7 +12,7 @@ protocol.position.pause 20
 protocol.emit EmitterProtocolImpl
 protocol.emit.latency 90
 protocol.emit.scope 100
-protocol.emit.variance FALSE
+protocol.emit.variance TRUE
 
 protocol.neighbor NeighborProtocolVKTImpl
 protocol.neighbor.periode 300
@@ -21,12 +21,13 @@ protocol.neighbor.listener TRUE
 
 protocol.election VKT04Election
 protocol.election.periode_leader 5000
+protocol.election.neighborprotocol neighbor
 
 initial_position_strategy FullRandom
 initial_position_strategy.positionprotocol position
 initial_position_strategy.emitter emit
 
-next_destination_strategy FullRandom
+next_destination_strategy NextDestinationImmobility
 next_destination_strategy.positionprotocol position
 next_destination_strategy.emitter emit
 next_destination_strategy.random_dest_period 20000
