@@ -1,12 +1,12 @@
-network.size 300
+network.size 30
 random.seed 200
 simulation.endtime 100000
 
 protocol.position PositionProtocolImpl
 protocol.position.maxspeed 20
 protocol.position.minspeed 5
-protocol.position.width 1200
-protocol.position.height 1200
+protocol.position.width 120
+protocol.position.height 120
 protocol.position.pause 20
 
 protocol.emit EmitterProtocolImpl
@@ -20,7 +20,9 @@ protocol.neighbor.timer 400
 protocol.neighbor.listener TRUE
 
 protocol.election VKT04Election
-protocol.election.periode_leader 6000
+protocol.election.periode_leader 2000
+protocol.election.periode_beacon 1000
+protocol.election.periode_timer_beacon 90
 protocol.election.neighborprotocol neighbor
 
 initial_position_strategy FullRandom
