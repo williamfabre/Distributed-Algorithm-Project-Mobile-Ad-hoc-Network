@@ -19,6 +19,23 @@ public class EditMessage extends Message {
 		new_clock = new Vector<Integer>();
 	}
 	
+	public String toString() {
+		String s = new String();
+		int i = 0;
+	
+		for (Long a : autors) {
+			s = s + "(" + a + ")";
+			
+			if (!added.isEmpty())
+				s = s + " Added = {"+ added.elementAt(i) + "}";
+			if (!removed.isEmpty())
+				s = s + " Removed = {" + removed.elementAt(i) + "}";
+			
+			s = s + " t(i) = " + old_clock.elementAt(i) + ", t(i+1) = " + new_clock.elementAt(i) + ";" + "\n";
+		}
+		return s;
+	}
+	
 	public void setClock(int old_clock, int new_clock) {
 		this.old_clock.add(old_clock);
 		this.new_clock.add(new_clock);
@@ -76,15 +93,24 @@ public class EditMessage extends Message {
 	}
 	
 	public boolean addedIsEmpty(int pos) {
-			return added.size() <= pos || added.elementAt(pos).isEmpty();
+			return added.size() <= pos || added.elementAt(pos).size() == 0;
 	}
 	
 	public boolean removedIsEmpty(int pos) {
-			return removed.size() <= pos || removed.elementAt(pos).isEmpty();
+			return removed.size() <= pos || removed.elementAt(pos).size() == 0;
 	}
 	
 	public boolean empty() {
-		return (added.isEmpty() && removed.isEmpty());
+		boolean empty = true;
+		for (Vector<Peer> vp : added) {
+			if (vp.size() != 0)
+				return false;
+		}
+		for (Vector<Peer> vp : removed) {
+			if (vp.size() != 0)
+				return false;
+		}
+		return empty;
 	}
 
 }

@@ -11,6 +11,7 @@ public class View implements Cloneable {
 	public View(/*Peer neighbor, int clock*/) {
 
 		this.neighbors = new Vector<Peer>();
+		this.clock = 0;
 		//updateViewAdd((Peer)neighbor.clone());
 		//setClock(clock);
 	};
@@ -79,14 +80,17 @@ public class View implements Cloneable {
 	public void updateViewAddMult(Vector<Peer> neighbors_to_add) { // copy ?
 
 		for (Peer n : neighbors_to_add) {
-
+			boolean toadd = true;
+			
 			for (Peer n1 : this.neighbors) {
 
 				if (n.getId() == n1.getId()) {
+					toadd = false;
 					break;
 				}
 			}
-			this.neighbors.add((Peer) n.clone());
+			if (toadd)
+				this.neighbors.add((Peer) n.clone());
 		}
 	}
 

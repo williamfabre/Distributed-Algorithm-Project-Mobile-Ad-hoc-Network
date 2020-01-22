@@ -21,9 +21,9 @@ public class Knowledge implements Cloneable {
 		Knowledge k = null;
 		try {
 			k = (Knowledge) super.clone();
-			
-			k.knowledge = new Vector<View>();//(Vector<View>) knowledge.clone();
-			k.position = new Vector<Long>();//(Vector<Long>) position.clone();
+
+			k.knowledge = new Vector<View>();// (Vector<View>) knowledge.clone();
+			k.position = new Vector<Long>();// (Vector<Long>) position.clone();
 			Iterator<View> iterator = this.knowledge.iterator();
 			while (iterator.hasNext()) {
 				k.knowledge.add((View) iterator.next().clone());
@@ -42,7 +42,7 @@ public class Knowledge implements Cloneable {
 		String s = new String();
 		int i = 0;
 		for (View v : knowledge) {
-			s = s + "\n pos["+ i + "] = " + position.elementAt(i) + ",";
+			s = s + "\n pos[" + i + "] = " + position.elementAt(i) + ",";
 			s = s + v.toString();
 			i++;
 		}
@@ -116,12 +116,18 @@ public class Knowledge implements Cloneable {
 		}
 
 		// view of src is vide in the knowledge of host
-		if (knowledge.elementAt(pos) == null || knowledge.elementAt(pos).getNeighbors() == null) {
-
+		if (knowledge.elementAt(pos) == null || knowledge.elementAt(pos).getNeighbors().size() == 0) {
+			View v = null;
 			// create and insert new view
-			View v = new View(/*(Vector<Peer>) neighbors.clone(), clock*/);
-			v.updateViewAddMult((Vector<Peer>) neighbors.clone());
-			v.setClock(clock);
+			if (knowledge.elementAt(pos) == null) {
+				v = new View();
+
+				// v.setClock(clock);
+			} else {
+				v = knowledge.elementAt(pos);
+				// v.updateViewAddMult((Vector<Peer>) neighbors.clone());
+			}
+			v.updateViewAddMult(neighbors);
 			knowledge.set(pos, v);
 
 		} else { // view of src has some elts in the knowledge of host
@@ -129,9 +135,9 @@ public class Knowledge implements Cloneable {
 			for (Peer p : neighbors) {
 
 				if (p != null) {
-					View v = new View(/*(Vector<Peer>) neighbors.clone(), clock*/);
+					View v = knowledge.elementAt(pos);
 					v.updateViewAddMult((Vector<Peer>) neighbors.clone());
-					v.setClock(clock);
+					// v.setClock(clock);
 					knowledge.set(pos, v);
 				}
 			}
@@ -155,7 +161,7 @@ public class Knowledge implements Cloneable {
 			for (Peer n : neighbors) {
 
 				if (n != null) {
-					
+
 					Vector<Peer> myneighbors = knowledge.elementAt(pos).getNeighbors();
 					for (Peer p : myneighbors) {
 
@@ -173,6 +179,8 @@ public class Knowledge implements Cloneable {
 	public void updateOneClock(Long source, int clock) {
 		int pos = position.indexOf(source);
 		knowledge.get(pos).setClock(clock);
+		//if (source == 67)
+			//System.out.println(source + " Clock changed : " + knowledge.get(pos).getClock());
 	}
 
 }
