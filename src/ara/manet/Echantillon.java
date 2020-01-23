@@ -2,6 +2,8 @@ package ara.manet;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,10 +45,11 @@ public class Echantillon implements Control {
 	private float average_connexity;
 	private List<Long> mesures_connexity;
 	
-	private Thread t1, t2;
-	
-	private File file;
-	private PrintWriter p= null;
+	private FileWriter AverageConByScope_file;
+	private FileWriter VarianceByScope_file;
+	private PrintWriter AverageConByScope_printer= null;
+	private PrintWriter VarianceByScope_printer= null;
+	private long scope;
 
 	
 	public Echantillon(String prefix) {
@@ -57,15 +60,22 @@ public class Echantillon implements Control {
 		emitter_pid=Configuration.getPid(prefix+"."+PAR_EMITTER,-1);
 		monitorable_pid=Configuration.getPid(prefix+"."+PAR_MONITORABLEPID,-1);
 		timer=Configuration.getDouble(prefix+"."+PAR_TIMER);
+		
+		
+		
 		average_connexity = 0;
 		average_connexity_acu_sample = 0;
 		mesures_connexity = new ArrayList<Long>();
 		
-		file = new File("Echantillon.txt");
+		Emitter em = (Emitter) Network.get(0).getProtocol(emitter_pid);
+		scope = em.getScope();
+		
 		try {
-			p = new PrintWriter(file);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			AverageConByScope_file = new FileWriter("AverageConByScope.txt", true); // true poour append
+			AverageConByScope_printer = new PrintWriter(AverageConByScope_file);
+			VarianceByScope_file = new FileWriter("VarianceByScope.txt", true);
+			VarianceByScope_printer = new PrintWriter(VarianceByScope_file);		
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
@@ -188,7 +198,12 @@ public class Echantillon implements Control {
 		GetSamples();
 		averageConnexity();
 		//System.err.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
-		p.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
+		//p.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
+		//p.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
+		
+
+		AverageConByScope_printer.println(average_connexity );
+		VarianceByScope_printer.println(variance());
 
 		return false;
     }
