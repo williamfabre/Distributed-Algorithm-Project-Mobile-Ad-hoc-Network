@@ -245,6 +245,9 @@ public VKT04Election(String prefix) {
 		this.parent = edm.getIdSrc();
 		this.ack_2_parent = false;
 		
+		this.id_leader = -1;
+		this.desirability_leader = -1;
+		
 		// List initialisation
 		this.neighbors = new ArrayList<Long>(np.getNeighbors());
 		this.neighbors_ack = new ArrayList<Long>(np.getNeighbors());
@@ -253,10 +256,8 @@ public VKT04Election(String prefix) {
 		this.is_electing = true;
 
 		// valeur potentielles
-		if (edm.getMostValuedNode() > this.potential_leader) {
-			this.potential_leader = edm.getMostValuedNode();
-			this.desirability_potential_leader = edm.getMostValuedNodeDesirability();
-		}
+		this.potential_leader = Integer.max((int) potential_leader, Integer.max((int)edm.getMostValuedNode(), (int) host.getID()));
+		this.desirability_potential_leader = Integer.max((int) desirability_potential_leader, Integer.max((int)edm.getMostValuedNodeDesirability(), (int) host.getID()));
 		
 		// patch les variables d'election
 		this.source_election = edm.getSource_election();
@@ -336,7 +337,7 @@ public VKT04Election(String prefix) {
 	 * @param edm message d'éléction dynamique
 	 */
 	private void recvElectionDynamicMsg(Node host, ElectionDynamicMessage event) {
-
+		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 
@@ -378,19 +379,14 @@ public VKT04Election(String prefix) {
 					// + pas de leader => bug
 				}
 			} else {
-				if (host.getID() == 297) {
-					System.err.println(host.getID() + " : "
-							+ " ieme_elec " +  this.ieme_election
-							+ " from " + event.getMostValuedNode()
-							+ " his_ieme_elec " + event.getIeme_election());
-				}
+				
 				// demande d'election alors que j'ai un leader?
 				// Optimisation :
 				// Dans le cas ou je recois un leader message pour le meme leader que je suis en train
 				// d'elire, alors je ne fais rien.
 				// Pour se faire on met la valeur du leader perdu dans MostValuedNode.
-				if (event.getMostValuedNode() == this.desirability_potential_leader) {
-					
+				if (event.getMostValuedNode() == this.desirability_potential_leader
+						&& ieme_election_max == event.getIeme_election()) {
 					// C'est le meme, ne rien faire.
 					
 				} else {
@@ -424,22 +420,8 @@ public VKT04Election(String prefix) {
 	private void patchAfterAckMessage(Node host, AckMessage am) {
 
 		// mise a jour apres reception d'un ack
-		this.potential_leader = am.getMostValuedNode();
-		this.desirability_potential_leader = am.getMostValuedNodeDesirability();
-	}
-	
-	
-	/**
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
-	 * @return Vrai si je suis plus worthy
-	 */
-	private boolean worthierElection(Node host, AckMessage am) {
-		
-		// l'egalite pour ne pas changer de pere tout le temps, superieur pour trouver le meilleur.
-		return this.ieme_election_max > am.getIeme_election()
-				|| (this.ieme_election_max == am.getIeme_election() &&
-				this.source_election > am.getSource_election());
+		this.potential_leader = Integer.max((int) potential_leader, Integer.max((int)am.getMostValuedNode(), (int) host.getID()));
+		this.desirability_potential_leader = Integer.max((int) desirability_potential_leader, Integer.max((int)am.getMostValuedNodeDesirability(), (int) host.getID()));
 	}
 	
 	/**
@@ -449,7 +431,7 @@ public VKT04Election(String prefix) {
 	 * @param event
 	 */
 	private void recvAckMsg(Node host, AckMessage event) {
-		
+	
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
@@ -459,8 +441,11 @@ public VKT04Election(String prefix) {
 			
 			// etat inconnu
 			if (state == 1) {
+				
+				//System.err.println(host.getID() + " elecnum " + event.getIeme_election() + " leader " + event.getMostValuedNodeDesirability());
 			
-				if (same_election(host, event)) {
+				if (same_election(host, event)
+						|| event.getMostValuedNode() > this.desirability_potential_leader) {
 					
 					//trick la feuille envoi un message special avec sa valeur dans le mostvaluednode
 					// je n'ai pas trouve de maniere propre de la faire... faire une variable dans la
@@ -475,15 +460,15 @@ public VKT04Election(String prefix) {
 					this.neighbors_ack.remove(am.getIdSrc()); // remove is empty safe.
 					
 				} else {
-					
-					// J'ai une moins bonne valeur
-					if (!worthierElection(host, am)) {
-						// sa valeur est mieux
-						patchAfterAckMessage(host, am);
-	
-					} else {
-						// ma valeur est nieux on ne fait rien
-					}
+					// une election differente mais je recupere quand meme sa valeur
+					patchAfterAckMessage(host, am);
+					AckMessage am_to_father = new AckMessage(host.getID(), event.getIdSrc(),
+							this.my_pid,
+							this.potential_leader,
+							this.desirability_potential_leader,
+							this.source_election,
+							this.source_ieme_election);
+					emp.emit(host, am_to_father);
 				}
 				
 				if (this.neighbors_ack.size() == 1 // Je suis une feuille ou il n'y avait qu'un pere à attendre
@@ -524,25 +509,28 @@ public VKT04Election(String prefix) {
 								this.ieme_election);
 						emp.emit(host, lm_broadcast);
 						
-						// ICI TODO, ajouter un evenement de heartbeat vers tous les nodes pour signaler que
-						// en tant que leader je suis vivant.
-						// periode leader, tous les combien de temps j'envoie le beacon
-						//EDSimulator.add(periode_leader, periode_beacon, host, my_pid);
-						/*
-						BeaconMessage bm_bcast = new BeaconMessage(host.getID(), host.getID(),
-								this.my_pid,
-								this.id_leader,
-								this.desirability_leader,
-								this.source_election,
-								this.ieme_election);
-						emp.emit(host, bm_bcast);
-						*/
-						//this.leader_is_present  = true; // TODO?
 						EDSimulator.add(periode_beacon, beacon_event, host, my_pid);
 					}
 				}
 			} else {
 				// j'ai deja un leader
+				if (state == 2) {
+					/*
+					System.err.println(host.getID() + " : "
+							+ " ieme_elec " +  this.ieme_election
+							+ " from " + event.getMostValuedNode()
+							+ " his_ieme_elec " + event.getIeme_election());
+							*/
+				}
+				
+				if (state == 0) {
+					/*
+					System.err.println(host.getID() + " : "
+							+ " ieme_elec " +  this.ieme_election
+							+ " from " + event.getMostValuedNode()
+							+ " his_ieme_elec " + event.getIeme_election());
+					*/
+				}
 			}
 		}
 	}
@@ -585,7 +573,10 @@ public VKT04Election(String prefix) {
 	 * @return
 	 */
 	private boolean worthierLeader(Node host, LeaderMessage event){
-		return this.desirability_potential_leader >= event.getMostValuedNodeDesirability();		
+		
+		return this.ieme_election_max > event.getIeme_election()
+				|| (this.ieme_election_max == event.getIeme_election() &&
+				this.source_election > event.getSource_election());	
 	}
 
 	
@@ -657,8 +648,8 @@ public VKT04Election(String prefix) {
 	 */
 	private void recvLeaderlMsg(Node host, LeaderMessage event) {
 		
-		if (event.getIdSrc() != host.getID()
-				&& id_leader != event.getMostValuedNode()) { // deja patch
+		if (event.getIdSrc() != host.getID()) {
+				//&& id_leader != event.getMostValuedNode()) { // deja patch
 			
 			 // 1 : leader_unknown
 			if (this.state == 1) {
@@ -672,10 +663,10 @@ public VKT04Election(String prefix) {
 					if (event.getMostValuedNode() == this.desirability_potential_leader) {
 						// On essaye d'elire le meme, ne rien faire?
 					} else {
-						
+
 					}
 				} else {
-					mergeLeader(host, event);
+					//mergeLeader(host, event);
 				}
 			}
 		}
@@ -715,6 +706,8 @@ public VKT04Election(String prefix) {
 		}
 	}
 
+	
+	
 	private boolean sameLeader(Node host, BeaconMessage bm) {
 		
 		return this.source_election == bm.getSource_election()
@@ -729,7 +722,8 @@ public VKT04Election(String prefix) {
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
 		if (event.getIdSrc() != host.getID()
-				&& !ok_quantum){
+				&& !ok_quantum
+				&& state != 1){
 			
 			if (state == 1) {
 				// je n'ai pas de leader et je recois un beacon
@@ -740,8 +734,6 @@ public VKT04Election(String prefix) {
 				if (sameLeader(host, event)){
 
 					// re-armement du timout, le leader est en vie.
-					if (host.getID() == 297)
-						System.err.println(host.getID() + "beacon received ");
 					this.timeout_leader = 6;
 					ok_quantum = true;
 					PropagateBeacon(host, event);
@@ -954,10 +946,7 @@ public VKT04Election(String prefix) {
 					first = true;
 					EDSimulator.add(periode_leader, leader_event, host, my_pid);
 				}
-				/*System.err.println("EDM : " + election_dynamic_message + "\n"
-						+ "LM : " + leader_message + "\n"
-						+ "AM : " + ack_message + "\n");
-						*/
+
 				return;
 			}
 			
@@ -965,7 +954,7 @@ public VKT04Election(String prefix) {
 			if (ev.equals(beacon_event)) {
 				if (state == 2) {
 				
-					System.err.println("BEACON" + host.getID() + "TO all");
+					//System.err.println("BEACON" + host.getID() + "TO all");
 					int emitter_pid = Configuration.lookupPid("emit");
 					EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 					
@@ -986,24 +975,19 @@ public VKT04Election(String prefix) {
 			// faut declencher une nouvelle election.
 			if (ev.equals(timer_beacon_event)){ 
 					
-				if ((state == 0)) {
+				//if ((state == 0)) {
 					
 					if (timeout_leader > 0) {
-						
-						if (host.getID() == 297)
-							System.err.println(host.getID() + " timeout : " + timeout_leader + "      id_leader = " + id_leader);
 						
 						timeout_leader--;	 // j'ai timeout * periode_timer_beacon, apres il est considere comme deco.
 						ok_quantum = false;
 						EDSimulator.add(periode_timer_beacon, timer_beacon_event, host, my_pid);
 					} else {
-						if (host.getID() == 297)
-							System.err.println("ELEEECTION PERTE DU LEADER");
-
+						
 						VKT04ElectionTrigger(host);
 					}
 
-				}
+				//}
 				return;
 			}
 		}
