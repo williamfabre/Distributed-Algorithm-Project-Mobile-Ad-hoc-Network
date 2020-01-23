@@ -11,7 +11,7 @@ protocol.position.pause 20
 
 protocol.emit EmitterProtocolImpl
 protocol.emit.latency 90
-protocol.emit.scope 100
+protocol.emit.scope 140
 protocol.emit.variance FALSE
 
 protocol.neighbor NeighborProtocolVKTImpl
@@ -27,7 +27,7 @@ initial_position_strategy FullRandom
 initial_position_strategy.positionprotocol position
 initial_position_strategy.emitter emit
 
-next_destination_strategy NextDestinationImmobility
+next_destination_strategy FullRandom
 next_destination_strategy.positionprotocol position
 next_destination_strategy.emitter emit
 next_destination_strategy.random_dest_period 20000
@@ -39,8 +39,8 @@ control.monitor.emitter emit
 control.monitor.neighborprotocol neighbor
 control.monitor.monitorableprotocol election
 control.monitor.timer 10
-control.monitor.from 0
-control.monitor.until 50000
-control.monitor.step 1
+control.monitor.from 6000
+control.monitor.until 500000
+control.monitor.step 100
 
 init.i InitialisationVKT04Election

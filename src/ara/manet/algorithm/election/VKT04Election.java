@@ -72,6 +72,8 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	boolean first = false;					// SI c'est la premiere execution ALORS il faut attendre
 
 	private int timeout_leader;
+
+	private boolean timeout_need_2b_check;
 											// que toutes les listes soient initialisees.
 
 
@@ -96,6 +98,7 @@ public VKT04Election(String prefix) {
 	this.desirability_leader = -1;
 	this.ok_quantum = false;
 	this.timeout_leader = 6;
+	this.timeout_need_2b_check = false;
 	
 	this.potential_leader = -1;
 	this.desirability_potential_leader = -1;
@@ -127,6 +130,7 @@ public VKT04Election(String prefix) {
 			vkt.id_leader = -1;
 			vkt.desirability_leader = -1;
 			vkt.ok_quantum = false;
+			vkt.timeout_need_2b_check = false;
 			vkt.timeout_leader = 6;
 			
 			vkt.potential_leader = -1;
@@ -169,7 +173,7 @@ public VKT04Election(String prefix) {
 	 * @param host
 	 */
 	private void VKT04ElectionTrigger(Node host) {
-
+		
 		// Récupération du protocol de communication
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
@@ -193,6 +197,7 @@ public VKT04Election(String prefix) {
 		this.desirability_leader = -1;
 		this.ok_quantum = false;
 		this.timeout_leader = 6;
+		this.timeout_need_2b_check = false;
 		
 		// valeur
 		this.desirability_potential_leader = host.getID(); 		// ma valeur par defaut
@@ -221,6 +226,8 @@ public VKT04Election(String prefix) {
 		
 		emp.emit(host, edm);
 		
+		//System.err.println(host.getID() + " elecnum " + this.ieme_election + " leader " + this.desirability_potential_leader);
+		
 		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
 		// exactement en même temps.
 		//EDSimulator.add(periode_leader, leader_event, host, my_pid);
@@ -247,6 +254,8 @@ public VKT04Election(String prefix) {
 		
 		this.id_leader = -1;
 		this.desirability_leader = -1;
+		this.timeout_leader = 6;
+		this.timeout_need_2b_check = false;
 		
 		// List initialisation
 		this.neighbors = new ArrayList<Long>(np.getNeighbors());
@@ -279,7 +288,7 @@ public VKT04Election(String prefix) {
 		
 		return this.ieme_election_max > edm.getIeme_election()
 				|| (this.ieme_election_max == edm.getIeme_election()
-				&& this.source_election > edm.getSource_election());
+				&& this.source_election >= edm.getSource_election());
 	}
 
 	
@@ -294,8 +303,8 @@ public VKT04Election(String prefix) {
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
 		// J'ai des fils
-		if (neighbors_ack.size() != 1) {
-			for (Long neinei : neighbors_ack) {
+		if (neighbors.size() > 1) {
+			for (Long neinei : neighbors) {
 				
 				Node dest = Network.get(neinei.intValue());
 
@@ -361,8 +370,18 @@ public VKT04Election(String prefix) {
 							PropagateElection2children(host, event);
 
 						} else {
-							// son election est moins bonne que la mienne
-							// ignorer
+							/*
+							ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), event.getIdSrc(),
+									this.my_pid,
+									this.potential_leader,
+									this.desirability_potential_leader,
+									this.source_election,
+									this.source_ieme_election);
+							emp.emit(host, em_propagation);
+							*/
+							// mon election est meilleur
+							//System.err.println("ELEC : " + host.getID() + " elecnum " + event.getIeme_election() + " leader " + event.getMostValuedNodeDesirability());
+
 						}
 					} else {
 						// c'est la meme election, ne rien faire?
@@ -375,6 +394,8 @@ public VKT04Election(String prefix) {
 						emp.emit(host, am);
 					}
 				} else {
+					//patchAfterElectionMessage(host, event);
+					//PropagateElection2children(host, event);
 					// Je ne suis pas en cours d'election
 					// + pas de leader => bug
 				}
@@ -393,7 +414,35 @@ public VKT04Election(String prefix) {
 					
 					// C'est une nouvelle election
 					if (this.ieme_election_max < event.getIeme_election()) {
+						System.err.println("ELEC meilleur que moi : " + host.getID() 
+							+ " potentiel " + this.desirability_potential_leader 
+							+ " elecnum " + event.getIeme_election()
+							+ " from " + event.getIdSrc()
+							+ " leader " + event.getMostValuedNodeDesirability()
+							+ " source " + event.getSource_election());
+
+						/*
+						ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), event.getIdSrc(),
+								this.my_pid,
+								this.potential_leader,
+								this.desirability_potential_leader,
+								this.source_election,
+								this.source_ieme_election);
+						emp.emit(host, em_propagation);
+						*/
+							
+							patchAfterElectionMessage(host, event);
 						
+						AckMessage am = new AckMessage(host.getID(), event.getIdSrc(),
+								this.my_pid,
+								this.potential_leader,
+								event.getMostValuedNodeDesirability(),
+								event.getSource_election(),
+								event.getIeme_election());
+						emp.emit(host, am);
+						
+						
+						//System.err.println();
 						patchAfterElectionMessage(host, event);
 						PropagateElection2children(host, event);
 					}
@@ -509,7 +558,7 @@ public VKT04Election(String prefix) {
 								this.ieme_election);
 						emp.emit(host, lm_broadcast);
 						
-						EDSimulator.add(periode_beacon, beacon_event, host, my_pid);
+						//EDSimulator.add(periode_beacon, beacon_event, host, my_pid);
 					}
 				}
 			} else {
@@ -561,6 +610,7 @@ public VKT04Election(String prefix) {
 		this.ieme_election_max = lm.getIeme_election();
 		this.desirability_leader = lm.getMostValuedNodeDesirability();
 		this.ok_quantum = false; // TODO il commence a faux car je n'ai pas encore recu de beacon
+		this.timeout_need_2b_check = true;
 		
 		// etat
 		this.state = lm.getMostValuedNode() == host.getID() ? 2 : 0;
@@ -655,7 +705,7 @@ public VKT04Election(String prefix) {
 			if (this.state == 1) {
 				patchLeader(host, event);
 				PropagateLeader(host, event);
-				EDSimulator.add(periode_timer_beacon, timer_beacon_event, host, my_pid);
+				//EDSimulator.add(periode_timer_beacon, timer_beacon_event, host, my_pid);
 				
 			} else {
 				
@@ -722,16 +772,18 @@ public VKT04Election(String prefix) {
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
 		
 		if (event.getIdSrc() != host.getID()
-				&& !ok_quantum
-				&& state != 1){
+				&& !ok_quantum){
 			
 			if (state == 1) {
+				timeout_need_2b_check = false;
+				this.timeout_leader = 6;
+				ok_quantum = false;
 				// je n'ai pas de leader et je recois un beacon
 				
 			} else {
 				
 				// j'ai un leader, est-ce un beacon pour le meme
-				if (sameLeader(host, event)){
+				if (sameLeader(host, event) && timeout_need_2b_check){
 
 					// re-armement du timout, le leader est en vie.
 					this.timeout_leader = 6;
@@ -977,14 +1029,16 @@ public VKT04Election(String prefix) {
 					
 				//if ((state == 0)) {
 					
-					if (timeout_leader > 0) {
+					if (timeout_leader > 0 && timeout_need_2b_check) {
 						
 						timeout_leader--;	 // j'ai timeout * periode_timer_beacon, apres il est considere comme deco.
 						ok_quantum = false;
 						EDSimulator.add(periode_timer_beacon, timer_beacon_event, host, my_pid);
 					} else {
-						
-						VKT04ElectionTrigger(host);
+						if (state == 0) {
+							System.err.println(host.getID() + "perte complete du leader");
+							VKT04ElectionTrigger(host);
+						}
 					}
 
 				//}
