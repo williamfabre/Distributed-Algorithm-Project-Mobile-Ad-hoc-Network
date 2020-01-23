@@ -9,7 +9,7 @@ import peersim.edsim.EDProtocol;
  *
  */
 
-public interface Emitter extends EDProtocol {
+public interface Emitter extends EDProtocol, WrapperInterfaceEmitter {
 
 	/* désigne tous les voisins accessibles */
 	public static final int ALL = -2;

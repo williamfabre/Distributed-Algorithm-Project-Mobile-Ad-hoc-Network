@@ -5,6 +5,8 @@ import java.util.List;
 
 import ara.manet.Monitorable;
 import ara.manet.communication.EmitterProtocolImpl;
+import ara.manet.communication.WrapperEmitter;
+import ara.manet.communication.WrapperInterfaceEmitter;
 import ara.manet.detection.NeighborProtocolVKTImpl;
 import ara.manet.detection.NeighborhoodListener;
 import ara.util.AckMessage;
@@ -177,6 +179,8 @@ public VKT04Election(String prefix) {
 		// Récupération du protocol de communication
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+
 
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
@@ -224,7 +228,7 @@ public VKT04Election(String prefix) {
 				this.source_election,
 				this.ieme_election);
 		
-		emp.emit(host, edm);
+		wm.emit(host, edm);
 		
 		//System.err.println(host.getID() + " elecnum " + this.ieme_election + " leader " + this.desirability_potential_leader);
 		
@@ -301,6 +305,7 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
 		
 		// J'ai des fils
 		if (neighbors.size() > 1) {
@@ -316,7 +321,7 @@ public VKT04Election(String prefix) {
 						edm.getMostValuedNodeDesirability(),
 						edm.getSource_election(),
 						edm.getIeme_election());
-				emp.emit(host, em_propagation);
+				wm.emit(host, em_propagation);
 			}
 		} else {
 			// je n'ai pas de fils je dois repondre a mon pere.
@@ -326,7 +331,7 @@ public VKT04Election(String prefix) {
 					edm.getMostValuedNodeDesirability(),
 					edm.getSource_election(),
 					edm.getIeme_election());
-			emp.emit(host, am);
+			wm.emit(host, am);
 		}
 	}
 
@@ -349,6 +354,7 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
 
 		// Ce n'est pas mon propre message et c'est une election qui vaut le coup
 		if (host.getID() != event.getIdSrc()){
@@ -391,7 +397,7 @@ public VKT04Election(String prefix) {
 								this.desirability_potential_leader,
 								this.source_election,
 								this.source_ieme_election);
-						emp.emit(host, am);
+						wm.emit(host, am);
 					}
 				} else {
 					//patchAfterElectionMessage(host, event);
@@ -439,7 +445,7 @@ public VKT04Election(String prefix) {
 								event.getMostValuedNodeDesirability(),
 								event.getSource_election(),
 								event.getIeme_election());
-						emp.emit(host, am);
+						wm.emit(host, am);
 						
 						
 						//System.err.println();
@@ -483,7 +489,8 @@ public VKT04Election(String prefix) {
 	
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+
 		AckMessage am = (AckMessage)event;
 		
 		if (host.getID() != event.getIdSrc()) {
@@ -517,7 +524,7 @@ public VKT04Election(String prefix) {
 							this.desirability_potential_leader,
 							this.source_election,
 							this.source_ieme_election);
-					emp.emit(host, am_to_father);
+					wm.emit(host, am_to_father);
 				}
 				
 				if (this.neighbors_ack.size() == 1 // Je suis une feuille ou il n'y avait qu'un pere à attendre
@@ -538,7 +545,7 @@ public VKT04Election(String prefix) {
 								this.desirability_potential_leader,
 								this.source_election,
 								this.source_ieme_election);
-						emp.emit(host, am_to_father);
+						wm.emit(host, am_to_father);
 						
 					} else {
 						// on sort de l'election
@@ -556,7 +563,7 @@ public VKT04Election(String prefix) {
 								this.desirability_leader,
 								this.source_election,
 								this.ieme_election);
-						emp.emit(host, lm_broadcast);
+						wm.emit(host, lm_broadcast);
 						
 						//EDSimulator.add(periode_beacon, beacon_event, host, my_pid);
 					}
@@ -639,7 +646,8 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) host.getProtocol(neighbor_pid);
@@ -659,7 +667,7 @@ public VKT04Election(String prefix) {
 					lm.getSource_election(),
 					lm.getIeme_election());
 			
-			emp.emit(host, em_propagation);
+			wm.emit(host, em_propagation);
 		}
 	}
 	
@@ -671,6 +679,7 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
 		
 		if (worthierLeader(host, event)) {
 			// propager  mon leader au monsieur
@@ -680,7 +689,7 @@ public VKT04Election(String prefix) {
 					this.desirability_leader,
 					this.source_election,
 					this.source_ieme_election);
-			emp.emit(host, lm_local);	
+			wm.emit(host, lm_local);	
 		}
 		else {
 			
@@ -733,6 +742,7 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
 		
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
@@ -752,7 +762,7 @@ public VKT04Election(String prefix) {
 					bm.getSource_election(),
 					bm.getIeme_election());
 			
-			emp.emit(host, em_propagation);
+			wm.emit(host, em_propagation);
 		}
 	}
 
@@ -770,6 +780,7 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
 		
 		if (event.getIdSrc() != host.getID()
 				&& !ok_quantum){
@@ -820,6 +831,7 @@ public VKT04Election(String prefix) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
 
 		if (state == 0 || state == 2) {
 			// Echange de leader
@@ -829,7 +841,7 @@ public VKT04Election(String prefix) {
 					this.desirability_leader,
 					this.source_election,
 					this.source_ieme_election);
-			emp.emit(host, lm_cible);
+			wm.emit(host, lm_cible);
 		} else {
 			// Propagation d'election
 			ElectionDynamicMessage em_propagation = new ElectionDynamicMessage(host.getID(), id_new_neighbor,
@@ -838,7 +850,7 @@ public VKT04Election(String prefix) {
 					this.desirability_potential_leader,
 					this.source_election,
 					this.source_ieme_election);
-			emp.emit(host, em_propagation);
+			wm.emit(host, em_propagation);
 		}
 		
 	}
@@ -1009,6 +1021,7 @@ public VKT04Election(String prefix) {
 					//System.err.println("BEACON" + host.getID() + "TO all");
 					int emitter_pid = Configuration.lookupPid("emit");
 					EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+					WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
 					
 					BeaconMessage bm_bcast = new BeaconMessage(host.getID(), ALL,
 							this.my_pid,
@@ -1016,7 +1029,7 @@ public VKT04Election(String prefix) {
 							this.desirability_leader,
 							this.source_election,
 							this.ieme_election);
-					emp.emit(host, bm_bcast);
+					wm.emit(host, bm_bcast);
 					
 					EDSimulator.add(periode_beacon, beacon_event, host, my_pid);
 				}
