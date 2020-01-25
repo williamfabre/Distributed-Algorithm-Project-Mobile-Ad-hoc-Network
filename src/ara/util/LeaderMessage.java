@@ -43,4 +43,9 @@ public class LeaderMessage extends Message{
 	public long getIeme_election() {
 		return ieme_election;
 	}
+	
+	@Override
+	public String toString() {
+		return " "+ this.most_valued_node + " ";
+	}
 }

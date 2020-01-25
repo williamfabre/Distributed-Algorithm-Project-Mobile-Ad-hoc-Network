@@ -1,4 +1,4 @@
-network.size 70
+network.size 40
 random.seed 200
 simulation.endtime 100000
 
@@ -21,8 +21,8 @@ protocol.neighbor.listener TRUE
 
 protocol.election VKT04ElectionNextGeneration
 protocol.election.periode_leader 2000
-protocol.election.periode_beacon 40
-protocol.election.periode_timer_beacon 20
+protocol.election.periode_beacon 50
+protocol.election.periode_timer_beacon 500
 protocol.election.neighborprotocol neighbor
 
 initial_position_strategy FullRandom
