@@ -18,11 +18,11 @@ public class EmitterProtocolImpl implements Emitter {
 
 	private final int my_pid; // protocol du node
 	private final int latency; // Latence parametrique
-	private final int scope; // visibilitï¿½ d'un node
+	private final int scope; // visibilite½ d'un node
 	private final boolean variance; // variance sur la latence avec une loi de Poisson
 
 	/**
-	 * Constructeur permettant de rï¿½cupï¿½rer les paramï¿½tres de config.
+	 * Constructeur permettant de recuperer les parametres de config.
 	 * 
 	 * @param prefix prefix
 	 */
@@ -48,11 +48,11 @@ public class EmitterProtocolImpl implements Emitter {
 	}
 
 	/**
-	 * Cette mï¿½thode rï¿½cupï¿½re le bon protocole et fait une dï¿½livrance ï¿½ partir du
+	 * Cette methode recupere le bon protocole et fait une delivrance de partir du
 	 * host, du pid du message et du message
 	 * 
 	 * @param host Noeud host
-	 * @param msg  Message ï¿½ dï¿½livrer
+	 * @param msg  Message a dlivrer
 	 */
 	public void deliver(Node host, Message msg) {
 
@@ -62,17 +62,17 @@ public class EmitterProtocolImpl implements Emitter {
 	}
 
 	/**
-	 * Cette mï¿½thode gï¿½re la rï¿½ception d'un message. Le message est reï¿½u sur phost
+	 * Cette methode gere la reception d'un message. Le message est recu sur phost
 	 * si pemitter est non null et dans le scope.
 	 * 
-	 * @param host Noeud qui reï¿½oit le message
-	 * @param msg  Message reï¿½u
+	 * @param host Noeud qui recoit le message
+	 * @param msg  Message recu
 	 */
 	public void recvMsg(Node host, Message msg) {
 
 		Node emitter = null;
 
-		// Recherche dans tout le network ï¿½ qui appartient ce message, c'est l'emitter.
+		// Recherche dans tout le network a qui appartient ce message, c'est l'emitter.
 		for (int i = 0; i < Network.size(); i++) {
 			if (Network.get(i).getID() == msg.getIdSrc()) {
 				emitter = Network.get(i);
@@ -85,15 +85,15 @@ public class EmitterProtocolImpl implements Emitter {
 			return;
 		}
 
-		// Si c'est moi mï¿½me alors je dï¿½lire.
+		// Si c'est moi meme alors je delivre.
 		if (emitter.getID() == host.getID()) {
 			deliver(host, msg);
 			return;
 		}
 
-		// Rï¿½cupï¿½ration de la position pour savoir si je peux dï¿½livrer le message
-		// La distance entre pemitter doit ï¿½tre dans le scope de phost poour la
-		// dï¿½livrance.
+		// Recuperation de la position pour savoir si je peux delivrer le message
+		// La distance entre pemitter doit etre dans le scope de phost poour la
+		// delivrance.
 
 		
 		int position_pid = Configuration.lookupPid("position");
@@ -109,11 +109,11 @@ public class EmitterProtocolImpl implements Emitter {
 	}
 
 	/**
-	 * Cette mï¿½thode gï¿½re l'ï¿½mission d'un message. Le message est reï¿½u sur phost si
+	 * Cette methode gere l'emission d'un message. Le message est recu sur phost si
 	 * pemitter est non null et dans le scope.
 	 * 
-	 * @param host Noeud qui reï¿½oit le message
-	 * @param msg  Message reï¿½u
+	 * @param host Noeud qui recoit le message
+	 * @param msg  Message recu
 	 */
 	@Override
 	public void emit(Node host, Message msg) {
