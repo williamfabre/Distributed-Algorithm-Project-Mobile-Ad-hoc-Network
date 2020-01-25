@@ -1,26 +1,21 @@
 package ara.manet;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import ara.manet.algorithm.election.ElectionProtocol;
 import ara.manet.communication.Emitter;
-import ara.manet.detection.NeighborProtocol;
 import ara.manet.positioning.Position;
 import ara.manet.positioning.PositionProtocol;
-import peersim.Simulator;
 import peersim.config.Configuration;
 import peersim.core.Control;
 import peersim.core.Network;
 import peersim.core.Node;
+import peersim.edsim.EDSimulator;
+import peersim.util.IncrementalStats;
 
 public class Echantillon implements Control {
 
@@ -33,6 +28,11 @@ public class Echantillon implements Control {
 	private static final String PAR_MONITORABLEPID = "monitorableprotocol";
 	private static final String PAR_TIMER= "timer";
 	
+
+	private double finaltime;
+	private int time;
+	
+	private long scope;
 	private double timer;
 	private final int election_pid;
 	private final int position_pid;
@@ -40,20 +40,19 @@ public class Echantillon implements Control {
 	private final int emitter_pid;
 	private final int monitorable_pid;
 	
-	private float average_connexity_acu_sample;
-	private float average_connexity_acu;
-	private float average_connexity;
-	private List<Long> mesures_connexity;
 	
 	private FileWriter AverageConByScope_file;
 	private FileWriter VarianceByScope_file;
 	private PrintWriter AverageConByScope_printer= null;
 	private PrintWriter VarianceByScope_printer= null;
-	private long scope;
+
+	private IncrementalStats is;
+	private IncrementalStats successful;
 
 	
 	public Echantillon(String prefix) {
-		
+
+		this.time = 0;
 		election_pid = Configuration.getPid(prefix + "." + PAR_ELECTIONPID, -1);
 		neighbor_pid= Configuration.getPid(prefix+"."+PAR_NEIGHBORPID,-1);
 		position_pid=Configuration.getPid(prefix+"."+PAR_POSITIONPID);
@@ -62,10 +61,10 @@ public class Echantillon implements Control {
 		timer=Configuration.getDouble(prefix+"."+PAR_TIMER);
 		
 		
+		finaltime =Configuration.getDouble(EDSimulator.PAR_ENDTIME); 
 		
-		average_connexity = 0;
-		average_connexity_acu_sample = 0;
-		mesures_connexity = new ArrayList<Long>();
+		is = new IncrementalStats();
+		successful = new IncrementalStats();
 		
 		Emitter em = (Emitter) Network.get(0).getProtocol(emitter_pid);
 		scope = em.getScope();
@@ -73,31 +72,21 @@ public class Echantillon implements Control {
 		try {
 			AverageConByScope_file = new FileWriter("AverageConByScope.txt", true); // true poour append
 			AverageConByScope_printer = new PrintWriter(AverageConByScope_file);
+			
 			VarianceByScope_file = new FileWriter("VarianceByScope.txt", true);
-			VarianceByScope_printer = new PrintWriter(VarianceByScope_file);		
+			VarianceByScope_printer = new PrintWriter(VarianceByScope_file);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-	}
-
-	private static final Monitorable defaultmonitorable = new Monitorable() {
-		@Override
-		public Object clone()  {
-			Monitorable res=null;
-			try {
-				res=(Monitorable)super.clone();
-			} catch (CloneNotSupportedException e) {}
-			return res;
-		}
-	};
-	
+	}	
 	
 	/**
 	 * Calcule du nombre de composantes connexes
 	 * @return le bomnbre de composantes connexes
 	 */
-	private int nbConnexeComponents() {
+	private long nbConnexeComponents() {
 		
 		Map<Long, Position> positions = PositionProtocol.getPositions(position_pid);
 		Emitter em = (Emitter) Network.get(0).getProtocol(emitter_pid);
@@ -107,76 +96,72 @@ public class Echantillon implements Control {
 	}
 	
 	
+
 	/**
-	 * Recuperation de donnees
+	 * @param i
 	 */
-	private void GetSamples() {
-		average_connexity_acu_sample++;
-		average_connexity_acu += nbConnexeComponents();
-		mesures_connexity.add((long) nbConnexeComponents());
+	private void getSamples(double i) {
+		is.add(i);
 	}
 	
-	private void averageConnexity() {
-		average_connexity = (average_connexity_acu / average_connexity_acu_sample);
+
+	private void getSamplesSuccessfulness(float successfulness) {
+		successful.add(successfulness);
+	}
+	
+	/**
+	 * @return
+	 */
+	private double averageConnexity() {
+		return (is.getSum() / is.getN());
 	}
 	
 	
 	/**
-	 *  [somme de l'écart a la moyenne au carré] ÷ nombre d'observations = variance
+	 * @return
 	 */
-	private float variance() {
-		
-		float acu = 0;
-		for (Long l : mesures_connexity) {
-				acu += Math.pow((average_connexity - l), 2);
-				
+	private double averageSuccessfulness() {
+		return (successful.getSum() / successful.getN());
+	}
+	
+
+	/**
+	 * [somme de l'écart a la moyenne au carré] ÷ nombre d'observations = variance
+	 * @return
+	 */
+	private double variance() {
+		return is.getVar();
 		}
-		return (acu / average_connexity_acu_sample);
-		
-	}
 	
 	
 	/**
 	 * @param f float
 	 * @return la racine de la variance
 	 */
-	private float stdDeviation(float f) {
-
-		return (float) Math.sqrt(f);
-		
+	private double stdDeviation() {
+		return is.getStD();
 	}
 	
 	
 	/**
 	 * Calcule de la connexite 
 	 */
-	private String Successfulness(){
+	private float Successfulness(){
 		
 		long good_elections = 0;
-		long size = 0;
+		float percentage = 0;
 		
 		Map<Long, Position> positions = PositionProtocol.getPositions(position_pid);
-		
-		// Tout le monde possede le meme scope
 		Emitter em = (Emitter) Network.get(0).getProtocol(emitter_pid);
-		
-		// recuperation de toutes les composantes connexes.
 		Map<Integer, Set<Node>> connected_components = PositionProtocol.getConnectedComponents(positions, em.getScope());
-		
-		float percentage = 0;
 
-		// calcule du pourcentage de bon leader.
 		for (Map.Entry<Integer, Set<Node> > entry : connected_components.entrySet()) {
-
 			long max = -1;
-			
 			for (Node n : entry.getValue()) {
-				// On joue sur le fait que les id sont la valeur de desirability
 				max = Math.max(max, n.getID());
 			}
 			for (Node n : entry.getValue()) {
 				ElectionProtocol ep = (ElectionProtocol) n.getProtocol(election_pid);
-				// Ajout de la condition pour les algos de marya.
 				if (ep.getIDLeader() == max 
 						//|| (ep.getIDLeader() == -1 
 						//&& connected_components.size() == 1)
@@ -187,24 +172,22 @@ public class Echantillon implements Control {
 			}
 			percentage = (float) good_elections / Network.size();
 		}
-		return ""+percentage;
+		return percentage;
 	}
 	
 
 	
 	@Override
 	public boolean execute() {
-
-		GetSamples();
-		averageConnexity();
-		//System.err.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
-		//p.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
-		//p.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
-		
-
-		AverageConByScope_printer.println(average_connexity );
-		VarianceByScope_printer.println(variance());
-
+		time++;
+		getSamples(nbConnexeComponents());
+		getSamplesSuccessfulness(Successfulness());
+		//if ( time == finaltime -1) {
+			//System.err.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
+			AverageConByScope_printer.println("[" + averageSuccessfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + averageConnexity()+ "] stdDev[" + stdDeviation() + "]");
+			//p.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
+		//}
 		return false;
     }
+
 }
