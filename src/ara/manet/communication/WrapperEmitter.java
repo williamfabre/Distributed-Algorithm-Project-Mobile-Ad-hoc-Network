@@ -33,7 +33,7 @@ public class WrapperEmitter implements WrapperInterfaceEmitter{
 
 	public void emit(Node host, Message msg) {
 
-		System.err.println("toto");
+		//System.err.println("Wrapping");
 		wie.emit(host, msg);
 		
 	}
