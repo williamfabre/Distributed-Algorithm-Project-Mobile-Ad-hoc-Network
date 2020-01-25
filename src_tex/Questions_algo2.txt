@@ -1,0 +1,29 @@
+﻿Question 5
+Ad hoc est un système réparti, alors on ne possède pas de temps globale. Voilà pourquoi on utilise des horloges logiques pour avoir des relations de causalité entre événements. Dans un algorithme donné, des horloges logiques permettent de construire un vue globale du système pour chaque noeud. A l’arrivé des messages contenants des informations sur les voisins on vérifie si on possede la derniere vision de l’état des voisins. Si ce n’est pas le cas, on le modifie. De plus, un algorithm donné se base sur le nombre importants de broadcasts parallels et transits, donc il faut bien définir des changements parallèles et la causalité. Voilà pourquoi on utilise des vecteurs, qui garde l’état de chaque noeud.
+
+Une horloge locale d’un noeud permet de définir des événements locaux liés avec un état de ce noeud, notamment la connexion et la déconnexion de voisin dans un contexte de cet algorithme. Supposons que chaque node possède qu’une horloge logique associée à sa connaissance du système à chaque instant. Dans ce cas là, à l’arrivé d’une nouvelle information à propos des voisins, on ne soit pas capable de définir si cette information est toujours actuelle, ou on possède déjà un vue du systèmes le plus récent. Par exemple, un noeude se connecte à une composante connexe, et ce noeud a une horloge plus grande que les autres, alors il remplacera les tables actuels de noeuds. Un autre exemple :  si un noeud se connecte à un groupe de noeuds et sa propre horloge est le plus petit, le groupe apprendra jamais qu’il a un nouveau voisin.
+
+Question 6
+Le knowledge est émis dans sa totalité à un nouveau voisin pour le faire connaître les membres de la composante connexe auquelle il viens de connecter. Cela lui permettra à déduire qui est le leader de la composante.
+
+Question 7
+Envoie du message de type Edit lors de la déconnection d’un noeud ou de la réception d’un knowledge permet de diminuer la taille du message. De plus cela permet d’éviter des comparaisons inutiles de knowledges tables, car des noeuds d’une composante connexes possèdent déjà la même information grâce à l'échange de knowledge pendant la connexion.
+
+Question 8
+Message de type Edit <Source[], Added[], Removed[], old_clock[], new_clock[]> contient 5 tableaux : 
+* l’ensemble des identifiants des noeuds “source” qui ont eu des changements
+* les identifiant des noeuds à ajouter pour chaque noeud de l’ensemble  “source”
+* les identifiant des noeuds à supprimer pour chaque noeud de l’ensemble  “source”
+* la dernière valeur de l’horloge logique annoncé par un noeud de “source” au système avant les modifications
+* la nouvelle valeur de l’horloge qui correspond à une horloge locale du noeud de l’ensemble  “source” après les modifications
+
+Question 9
+Le mot “reachable” dans un contexte de l’appel d'élection du leader implique qu’on doit consulter les voisins de nos voisins etc., en parcourant knowledge table, pour analyser tous les membres de la composante connexe.
+
+Question 10 <Algo code>
+
+Question 11
+
+1. Une fois on suppose que des pertes de messages peuvent avoir lieu, les modifications effectués lors de la réception du message Edit ne sont plus possible. Ca provient du fait que dans l’algorithme du base on vérifie si notre connaissance sur l'état du voisin correspond à l'état de ces dernières modifications annoncées, donc on teste une égalité des valeurs d’horloges. Si le message est perdu, l'égalité n'apparaîtra jamais et l'état du voisin reste échangeable pour ce noeud.
+
+2. La solution peut être de stocker des messages qui ont la valeur d’horloge supérieure à la valeur actuel de connaissance de noeud-host. Après, un noeud host effectue le broadcast pour demander un état complet connu par des voisins, associé à ce noeud, duquel le noeud host n’a pas reçu un message de l’horloge attendu, mais supérieure. Si la valeur de l’horloge de l’information reçue est supérieure ou égale au valeur de l’horloge du message stocké, on modifie la connaissance du noeud. Si la valeur correspond à la valeur du message perdu, on modifie la connaissance du noeud et applique des changements annoncées dans un message stocké. S’il y a la perte de messages consécutifs, on répète la demande jusqu'à ce qu’on n’a plus de messages en stockage.

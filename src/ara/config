@@ -1,6 +1,6 @@
 network.size 75
 random.seed 10
-simulation.endtime 100000
+simulation.endtime 50000
 
 protocol.position PositionProtocolImpl
 protocol.position.maxspeed 20
@@ -37,7 +37,7 @@ control.monitor.positionprotocol position
 control.monitor.emitter emit
 control.monitor.neighborprotocol neighbor
 control.monitor.monitorableprotocol election
-control.monitor.time_slow 0.0002
+control.monitor.time_slow 0.02
 control.monitor.from 0
 control.monitor.until 50000
 control.monitor.step 1

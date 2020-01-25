@@ -21,6 +21,7 @@ public class InitialisationGVLElection implements Control {
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		int elect_pid = Configuration.lookupPid("election");
 		PositionProtocolImpl position;
+		
 
 		for (int i = 0; i < Network.size(); i++) {
 
@@ -28,12 +29,17 @@ public class InitialisationGVLElection implements Control {
 			
 			position = (PositionProtocolImpl) node.getProtocol(position_pid);
 			NeighborProtocolImpl np = (NeighborProtocolImpl) node.getProtocol(neighbor_pid);
-			GVLElection gvl = (GVLElection) node.getProtocol(elect_pid);
 			
 			position.initialiseCurrentPosition(node);
 			position.processEvent(node, position_pid, "LOOPEVENT");
+			
 			np.processEvent(node, neighbor_pid, "HEARTEVENT");
-			gvl.initialisation(node);
+		}
+			for (int i = 0; i < Network.size(); i++) {
+
+				Node node = Network.get(i);
+				GVLElection gvl = (GVLElection) node.getProtocol(elect_pid);
+				gvl.initialisation(node);
 		}
 		return false;
 	}
