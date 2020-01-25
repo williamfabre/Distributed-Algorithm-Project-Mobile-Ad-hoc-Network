@@ -133,18 +133,12 @@ public class EmitterProtocolImplNextGeneration implements Emitter {
 
 			dest = Network.get(i);
 			
-			if (dest.getID() == host.getID()) { continue; }
+			//if (dest.getID() == host.getID()) { continue; }
 
 			if (dest.getID() == msg.getIdDest() || broadcast) {
-
-				PositionProtocol pdest = (PositionProtocol) dest.getProtocol(position_pid);
-
 				
-				if (distance <= getScope()) {
-
-					EDSimulator.add(getLatency(), msg, dest, my_pid);
-				}
-
+				PositionProtocol pdest = (PositionProtocol) dest.getProtocol(position_pid);
+				EDSimulator.add(getLatency(), msg, dest, my_pid);
 				if (!broadcast)
 					return;
 			}

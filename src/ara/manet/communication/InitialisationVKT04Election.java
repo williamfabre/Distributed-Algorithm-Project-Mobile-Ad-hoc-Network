@@ -1,6 +1,7 @@
 package ara.manet.communication;
 
 import ara.manet.algorithm.election.VKT04Election;
+import ara.manet.algorithm.election.VKT04ElectionNextGeneration;
 import ara.manet.detection.NeighborProtocolVKTImpl;
 import ara.manet.positioning.PositionProtocolImpl;
 import peersim.config.Configuration;
@@ -39,7 +40,8 @@ public class InitialisationVKT04Election implements Control {
 			
 			
 			// récupération du protocol d'élection
-			VKT04Election vkt04 = (VKT04Election) node.getProtocol(elect_pid);
+			//VKT04Election vkt04 = (VKT04Election) node.getProtocol(elect_pid);
+			VKT04ElectionNextGeneration vkt04 = (VKT04ElectionNextGeneration) node.getProtocol(elect_pid);
 			
 			
 			// initialise la position pour tous les noeuds
