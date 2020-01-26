@@ -1,8 +1,7 @@
 package ara.manet.communication;
 
 import ara.manet.algorithm.election.VKT04Election;
-import ara.manet.algorithm.election.VKT04ElectionNextGeneration;
-import ara.manet.detection.NeighborProtocolVKTImpl;
+import ara.manet.detection.NeighborProtocolImpl;
 import ara.manet.positioning.PositionProtocolImpl;
 import peersim.config.Configuration;
 import peersim.core.Control;
@@ -14,14 +13,14 @@ public class InitialisationVKT04Election implements Control {
 	public  InitialisationVKT04Election(String prefix) {}
 	
 	/**
-	 * Provient du protocol de contrôle et permet de créer un état
-	 * initial cohérent pour les noeuds et de lancer l'algorithme
-	 * d'élection VKT04Statique.
+	 * Provient du protocol de contrï¿½le et permet de crï¿½er un ï¿½tat
+	 * initial cohï¿½rent pour les noeuds et de lancer l'algorithme
+	 * d'ï¿½lection VKT04Statique.
 	 */
 	@Override
 	public boolean execute() {
 		
-		 //Réupère les informations nécessaires dans le protocol 
+		 //Rï¿½upï¿½re les informations nï¿½cessaires dans le protocol 
 		int position_pid = Configuration.lookupPid("position");
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		int elect_pid = Configuration.lookupPid("election");
@@ -36,33 +35,33 @@ public class InitialisationVKT04Election implements Control {
 			PositionProtocolImpl position = (PositionProtocolImpl) node.getProtocol(position_pid);
 	
 			// Protocol de detection de neighbors
-			NeighborProtocolVKTImpl np = (NeighborProtocolVKTImpl) node.getProtocol(neighbor_pid);
+			NeighborProtocolImpl np = (NeighborProtocolImpl) node.getProtocol(neighbor_pid);
 			
 			
-			// récupération du protocol d'élection
+			// rï¿½cupï¿½ration du protocol d'ï¿½lection
 			//VKT04Election vkt04 = (VKT04Election) node.getProtocol(elect_pid);
-			VKT04ElectionNextGeneration vkt04 = (VKT04ElectionNextGeneration) node.getProtocol(elect_pid);
+			VKT04Election vkt04 = (VKT04Election) node.getProtocol(elect_pid);
 			
 			
 			// initialise la position pour tous les noeuds
 			position.initialiseCurrentPosition(node);
 	
-			// Evenement permettant le déplacement des noeuds.
+			// Evenement permettant le dï¿½placement des noeuds.
 			position.processEvent(node, position_pid, "LOOPEVENT");
 						
 
-			/* ensemble des processevent nécessaire au fonctionnement */
+			/* ensemble des processevent nï¿½cessaire au fonctionnement */
 			
 			// Evenement de detection de voisins
 			np.processEvent(node, neighbor_pid, "HEARTEVENT");
 			
 			
 
-			// fonction d'initialisation si nécessaire
+			// fonction d'initialisation si nï¿½cessaire
 			vkt04.initialisation(node);
 			
 			
-			// Evenement permettant l'affichage des résultats des élections périodiquement.
+			// Evenement permettant l'affichage des rï¿½sultats des ï¿½lections pï¿½riodiquement.
 			vkt04.processEvent(node, elect_pid, "LEADEREVENT");
 		} 
 		

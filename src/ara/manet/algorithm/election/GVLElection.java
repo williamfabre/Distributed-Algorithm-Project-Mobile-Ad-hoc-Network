@@ -6,7 +6,6 @@ import java.util.Vector;
 
 import ara.manet.Monitorable;
 import ara.manet.communication.EmitterProtocolImpl;
-import ara.manet.communication.EmitterProtocolImplNextGeneration;
 import ara.manet.communication.WrapperEmitter;
 import ara.manet.detection.NeighborProtocolImpl;
 import ara.manet.detection.NeighborhoodListener;

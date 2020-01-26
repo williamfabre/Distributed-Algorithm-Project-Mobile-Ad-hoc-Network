@@ -9,7 +9,6 @@ import java.util.Set;
 import ara.manet.algorithm.election.ElectionProtocol;
 import ara.manet.communication.Emitter;
 import ara.manet.communication.EmitterProtocolImpl;
-import ara.manet.communication.EmitterProtocolImplNextGeneration;
 import ara.manet.communication.WrapperEmitter;
 import ara.manet.positioning.Position;
 import ara.manet.positioning.PositionProtocol;
@@ -203,11 +202,8 @@ public class Echantillon implements Control {
 			int emitter_pid = Configuration.lookupPid("emit");
 					
 			//TODO change emitter and neighbor in algo1 (the same classes of algo2)
-			/*		
-			EmitterProtocolImplNextGeneration emp = (EmitterProtocolImplNextGeneration) node.getProtocol((emitter_pid));
-			WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImplNextGeneration) emp);
-			*/
-			
+
+					
 			EmitterProtocolImpl emp = (EmitterProtocolImpl) node.getProtocol((emitter_pid));
 			WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 					
