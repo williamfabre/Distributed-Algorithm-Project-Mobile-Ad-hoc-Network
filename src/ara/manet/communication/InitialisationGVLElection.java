@@ -17,7 +17,7 @@ public class InitialisationGVLElection implements Control {
 	public boolean execute() {
 
 		int position_pid = Configuration.lookupPid("position");
-		// int emitter_pid = Configuration.lookupPid("emit");
+		//int emitter_pid = Configuration.lookupPid("emit");
 		int neighbor_pid = Configuration.lookupPid("neighbor");
 		int elect_pid = Configuration.lookupPid("election");
 		PositionProtocolImpl position;
