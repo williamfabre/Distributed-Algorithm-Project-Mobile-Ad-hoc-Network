@@ -1,3 +1,9 @@
+NB CREER FICHIER README qui indique comment lancer… 
+(+ passer en param le config desiré)
+
+INTRODUCTION
+L’élection du leader est un de problèms fondamentaux de l'algorithmique répartie. Dans les réseaux mobiles, où la topology se changes tout le temps, ce problème de l’élection devient beaucoup plus compliqué. Les buts principaux de ce projet sont d'implémenter et de comparer deux algorithmes d’élection du leader différents, ainsi qu’étudier leurs comportement dans un réseau MANET. Ensuite, comparer les performances des algorithmes, notamment le nombre de messages échangés et un taux d’instabilité, en fonction de rayon d'émission du node. 
+
 ﻿Question 5
 Ad hoc est un système réparti, alors on ne possède pas de temps globale. Voilà pourquoi on utilise des horloges logiques pour avoir des relations de causalité entre événements. Dans un algorithme donné, des horloges logiques permettent de construire un vue globale du système pour chaque noeud. A l’arrivé des messages contenants des informations sur les voisins on vérifie si on possede la derniere vision de l’état des voisins. Si ce n’est pas le cas, on le modifie. De plus, un algorithm donné se base sur le nombre importants de broadcasts parallels et transits, donc il faut bien définir des changements parallèles et la causalité. Voilà pourquoi on utilise des vecteurs, qui garde l’état de chaque noeud.
 
