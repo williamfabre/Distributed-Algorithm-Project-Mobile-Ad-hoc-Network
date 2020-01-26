@@ -1,6 +1,5 @@
 ./src/ara/manet/communication/InitialisationVKT04StatiqueElection.java
 ./src/ara/manet/communication/WrapperEmitter.java
-./src/ara/manet/communication/EmitterProtocolImplNextGeneration.java
 ./src/ara/manet/communication/EmitterProtocolImpl.java
 ./src/ara/manet/communication/WrapperInterfaceEmitter.java
 ./src/ara/manet/communication/Emitter.java
@@ -10,13 +9,11 @@
 ./src/ara/manet/Echantillon.java
 ./src/ara/manet/MANETGraph.java
 ./src/ara/manet/algorithm/election/ElectionProtocol.java
-./src/ara/manet/algorithm/election/VKT04ElectionNextGeneration.java
 ./src/ara/manet/algorithm/election/GVLElection.java
 ./src/ara/manet/algorithm/election/VKT04Election.java
 ./src/ara/manet/algorithm/election/VKT04StatiqueElection.java
 ./src/ara/manet/detection/NeighborhoodListener.java
 ./src/ara/manet/detection/NeighborProtocolImpl.java
-./src/ara/manet/detection/NeighborProtocolVKTImpl.java
 ./src/ara/manet/detection/NeighborProtocol.java
 ./src/ara/manet/GraphicalMonitor.java
 ./src/ara/manet/positioning/strategies/NextDestinationConnectedOneMove.java
