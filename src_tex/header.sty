@@ -31,7 +31,7 @@
 \definecolor{violet-logo}{RGB}{23,63,28}
 %%% HEADERS & FOOTERS
 \usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
-\pagestyle{plain} % options: empty , plain , fancy
+%\pagestyle{plain} % options: empty , plain , fancy
 \renewcommand{\headrulewidth}{1pt} % customise the layout...
 \lfoot{}\cfoot{\thepage}\rfoot{}
 %%% SECTION TITLE APPEARANCE
@@ -39,15 +39,13 @@
 \allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
 % (This matches ConTeXt defaults)
 %%% ToC (table of contents) APPEARANCE
-\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
-\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+%\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+%\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
 \renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
 \renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
 \usepackage{geometry} % to change the page dimensions
 \geometry{left=2cm, right=2cm, bottom= 1cm}
 \geometry{a4paper} % or letterpaper (US) or a5paper or....
-\geometry{a4paper} % or letterpaper (US) or a5paper or....
-\pagestyle{fancyplain}
 \fancyhead{}
 %%% END Article customizations
 
@@ -112,3 +110,4 @@
 	\lstinputlisting[caption={\texttt{\detokenize{#2}}},#1]{#2}%
 }
 
+\pagenumbering

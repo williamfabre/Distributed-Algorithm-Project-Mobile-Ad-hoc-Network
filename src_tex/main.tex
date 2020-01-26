@@ -29,7 +29,7 @@
 		\begin{flushleft} \large
 			\emph{Auteurs:}\\
 			% Ordre alphabetique sur les noms
-			\textsc{Maria Popova, William Fabre} 
+			\textsc{Mariia Popova, William Fabre} 
 		\end{flushleft}
 	\end{minipage}
 	~
@@ -111,10 +111,15 @@
 	\newpage
 	\section{Question 3}
 	\textit{Codez une classe implémentant l’interface Emitter. Testez de nouveau avec le moniteur graphique et assurez-vous que les portées sont représentées (cercle en bleu).}
-	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=14, lastline=124]{../src/ara/manet/communication/EmitterProtocolImpl.java}
+
+	Ceci est visible dans la classe Emitter.java
+	%\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=14, lastline=124]{../src/ara/manet/communication/EmitterProtocolImpl.java}
 
 
 	\section{Question 4}
+	\textit{Codez une classe implantant l’interface NeighborProtocol.}
+
+	Ceci est visible dans la classe NeighborProtocol.java
 
 	\section{Question 5}
 	\par\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.}
@@ -326,10 +331,10 @@
 	Ceci correspond à la classe : VKT04Statique.java
 
 	\section{Question 3}
-	Ceci correspond à la classe : VKT04NextGeneration.java
+	Ceci correspond à la classe : VKT04.java
 
 	\section{Question 4}
-	Ceci correspond à la classe : VKT04NextGeneration.java
+	Ceci correspond à la classe : VKT04.java
 
 	\section*{Deuxieme algorithme}
 
@@ -353,13 +358,13 @@
 
 	\section{Question 8}
 	\textit{Quel est le contenu d’un edit ?}
-	Message de type Edit <Source[], Added[], Removed[], old_clock[], new_clock[]> contient 5 tableaux : 
+	Message de type Edit (Source, Added, Removed, old\_clock, new\_clock) contient 5 tableaux : 
 	\begin{itemize}
-		\item l’ensemble des identifiants des noeuds “source” qui ont eu des changements
-		\item les identifiant des noeuds à ajouter pour chaque noeud de l’ensemble  “source”
-		\item les identifiant des noeuds à supprimer pour chaque noeud de l’ensemble  “source”
-		\item la dernière valeur de l’horloge logique annoncé par un noeud de “source” au système avant les modifications
-		\item la nouvelle valeur de l’horloge qui correspond à une horloge locale du noeud de l’ensemble  “source” après les modifications
+		\item * l’ensemble des identifiants des noeuds “source” qui ont eu des changements
+		\item * les identifiant des noeuds à ajouter pour chaque noeud de l’ensemble  “source”
+		\item * les identifiant des noeuds à supprimer pour chaque noeud de l’ensemble  “source”
+		\item * la dernière valeur de l’horloge logique annoncé par un noeud de “source” au système avant les modifications
+		\item * la nouvelle valeur de l’horloge qui correspond à une horloge locale du noeud de l’ensemble  “source” après les modifications
 	\end{itemize}
 
 	\section{Question 9}
@@ -369,9 +374,11 @@
 
 	\section{Question 10}
 	\textit{Implémentez l’algorithme dans PeerSim et vérifiez qu’il fonctionne avec le moniteur graphique.}
+
+	Ceci est visible dans la classe GVLElection.java
+
 	\section{Question 11}
 	\textit{Considérons maintenant qu’il puisse y avoir des pertes de messages suite aux collisions des ondes radio (on ne vous demande pas de les implémenter).}
-	\par Ceci est trouvalbe dans le fichier GVLElection.java
 
 	\textit{Quel impact ceci aurait sur les valeurs des horloges (old\_clock et knowledge[source].clock) lors des réceptions de edit ?}
 	\par Une fois on suppose que des pertes de messages peuvent avoir lieu, les modifications effectués lors de la réception du message Edit ne sont plus possible. Ca provient du fait que dans l’algorithme du base on vérifie si notre connaissance sur l'état du voisin correspond à l'état de ces dernières modifications annoncées, donc on teste une égalité des valeurs d’horloges. Si le message est perdu, l'égalité n'apparaîtra jamais et l'état du voisin reste échangeable pour ce noeud.
@@ -468,7 +475,7 @@
 
 	\par Voici le code du calcule du taux d'instabilité :
 
-	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=221, lastline=253253]{../src/ara/manet/Echantillon.java}
+	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=217, lastline=249]{../src/ara/manet/Echantillon.java}
 
 	\section{Question 7}
 	\textit{Faites une étude comparative des deux algorithmes selon les deux métriques pour plusieurs valeurs de connexité. Vous ne vous intéresserez qu’aux valeurs des deux métriques à l’instant t end de l’expérience. Des courbes commentées et justifiées sont attendues.}
@@ -482,7 +489,14 @@
 
 	\par Le problème se situe actuellement sur un état de noeud qui tente une nouvelle éléction après la perte de son leader et qui reste sans acquittement des ses voisins. Il est en cours d'éléction donc il refuse tout message de type leader et les enfiles dans sa liste de leader à fusionner. 
 
+	\newpage
 	\textsc{\large ALGO 2 taux d'instabilite et nombre de messages en fonction du scope}
+
+	\begin{figure}[H]
+		\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=1, lastline=31]{../src/ara/config} %with frame
+		\caption{Configuration pour le teste ALGO2}
+	\end{figure}
+
 	\begin{figure}[H]
 		\centering
 		\begin{tabular}{lllll}
@@ -512,42 +526,28 @@
 	\end{figure}
 
 
-	\subsection{ Le taux d'instabilite en fonction du scope croissant}
+	\subsection{Le taux d'instabilite en fonction du scope croissant}
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=0.8\textwidth, frame]{instabi}
-		\caption{ % TODO
+		\includegraphics[width=0.6\textwidth, frame]{instabi}
+		\caption{ Lorsque le scope est petit on ne connait personne. On est donc automatiquement son propre leader, la situation est stable. Lorsque le scope est grand tout le monde est connecté, le nombre de message de type EDIT diminue et il y a beaucoup moins d'intéractions, la situation est aussi stable. L'instabilité survient lorsque le nombre de connexion et déconnexion est maximum, en effet le choix du leader dépend pour chaque node de sa connaissance de sa composante connexe. De plus les temps de latence peuvent jouer un rôle sur l'instabilité en réduisant la précision de la construction des tables de connaissances du réseau.
 		}
 	\end{figure}
 
 
-	\subsection{ Le nombre de message en fonction du scope croissant}
+	\subsection{Le nombre de message en fonction du scope croissant}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.8\textwidth, frame]{messages}
-		\caption{ % TODO
+		\caption{Plus le scope est grand plus on connaît de monde, plus le nombre d'échanges de messages est grand. Alors pour maintenir l'information sur la connexité du système on a un grand nombre de message de type EDIT en transite. 
 		}
 		%\label{fig:simu}
 	\end{figure}
+	
+	\newpage
+	\chapter{Conclusion}
+	Ce projet nous a permis de mieux comprendre la difficulté à implémenter depuis un papier de recherche (qui ne donne pas de pseudo-code) un algorithme répartie dans le contexte de réseaux mobiles ou simplement avec du pseudo-code. Il nous a aussi permis d'apprendre à rester critique vis à vis des sources que nous prenons pour commencer à implémenter un algorithme. 
+	L'implémentation d'algorithme repose énormément sur le teste et l'importance d'un simulateur adapté enrichi de fonctions permettant de maîtriser chaque aspect de l'algorithme fut capitale dans notre projet.  
 
-
-
-		%\newpage
-		%\bibliographystyle{IEEEtran}
-		%\bibliography{biblio}
-
-		%\newpage
-		% \phantomsection
-		%\addcontentsline{toc}{chapter}{\listfigurename}
-		%\listoffigures
-
-
-
-		\newpage
-		\chapter{Annexe}
-
-
-
-
-	\end{document}
+\end{document}
 
