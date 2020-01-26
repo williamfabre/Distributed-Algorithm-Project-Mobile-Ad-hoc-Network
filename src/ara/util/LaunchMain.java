@@ -25,7 +25,7 @@ public class LaunchMain {
 		switch(s2) {
 			case "2": config_path = System.getProperty("user.dir") + "/src/ara/config" ;
 				break;
-			case "1": config_path = System.getProperty("user.dir") + "/src/ara/configVKT04Statique" ;
+			case "1": config_path = System.getProperty("user.dir") + "/src/ara/configVKT04" ;
 				break;
 			case "4": config_path = System.getProperty("user.dir") + "/src/ara/configPrinter" ;
 				break;

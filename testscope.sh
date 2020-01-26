@@ -10,9 +10,9 @@
 val=0
 val0=$val
 
-val2=30
+val2=40
 
-step=30
+step=10
 n=6
 
 config="mode : 3 - algo1_stat, 4 - algo2_stat"
