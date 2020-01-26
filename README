@@ -1,0 +1,48 @@
+
+This archive is composed of:
+- the src/ directory containing the code source
+- the launch.sh script to compile and run the programm
+- the testscope.sh script to get the perfs
+- the final rapport
+
+To compile run the programm, you need java 5 installed and peersim.
+-------------------------------------------------------------------
+
+[1] Compile and run:
+
+$ ./launch.sh -p path_of_parent_directory_of_peersim -m mode_of_config
+
+[2] Example: 
+$ ./launch.sh -p /home/user/ara -m 2
+
+--------------------------------------------------------------------
+
+[3] Graphical Monitoring
+
+To get the Graphical Monitoring of algorithme 1 do :
+$ ./launch.sh -p path_of_parent_directory_of_peersim -m 1
+
+To get the Graphical Monitoring of algorithme 2 do :
+$ ./launch.sh -p path_of_parent_directory_of_peersim -m 2
+
+(for more: ./launch.sh -h)
+
+----------------------------------------------------------------------
+[4] Get perfs
+testscope.sh script will create a directory 'test' with results,
+the number of launches N and the step of scope augmentation you can set in params 
+(for more: ./testscope.sh -h)
+
+To get the Number of messages and instability
+monitoring of algorithme 1 do :
+$ ./testscope.sh -p path_of_parent_directory_of_peersim -m 3
+
+To get the Number of messages and instability
+monitoring of algorithme 1 do :
+$ ./testscope.sh -p path_of_parent_directory_of_peersim -m 4
+
+
+-----------------------------
+Best regards,
+Mariia and William
+26/01/2020
