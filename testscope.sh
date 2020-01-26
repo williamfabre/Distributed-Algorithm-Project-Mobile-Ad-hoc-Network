@@ -10,10 +10,10 @@
 val=0
 val0=$val
 
-val2=100
+val2=30
 
-step=100
-n=3
+step=30
+n=6
 
 config="mode : 3 - algo1_stat, 4 - algo2_stat"
 usage="$0 -p path_to_peersim_lib -m mode_config [-s step] [-N times]"
