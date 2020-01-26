@@ -9,17 +9,17 @@ protocol.position.width 1200
 protocol.position.height 1200
 protocol.position.pause 20
 
-protocol.emit EmitterProtocolImplNextGeneration
+protocol.emit EmitterProtocolImpl
 protocol.emit.latency 90
 protocol.emit.scope 100
 protocol.emit.variance FALSE
 
-protocol.neighbor NeighborProtocolVKTImpl
+protocol.neighbor NeighborProtocolImpl
 protocol.neighbor.periode 300
 protocol.neighbor.timer 400
 protocol.neighbor.listener TRUE
 
-protocol.election VKT04ElectionNextGeneration
+protocol.election VKT04Election
 protocol.election.periode_leader 2000
 protocol.election.periode_beacon 50
 protocol.election.periode_timer_beacon 500
