@@ -396,7 +396,7 @@
 		\centering
 		\begin{tabular}{lllll}
 			SCOPE   & AVG       & VARIAN    & ECARTYPE    &  \\
-				&           &           &             &  \\
+			&           &           &             &  \\
 			10  & 74,0938   & 1,0443357 & 1,021927444 &  \\
 			15  & 72,8932   & 2,132048  & 1,460153417 &  \\
 			20  & 71,199265 & 3,0677357 & 1,751495275 &  \\
@@ -450,7 +450,7 @@
 	\section{Question 3}
 	\textit{Pourquoi est-ce pertinent de choisir la stratégie FullRandom comme stratégie de po- sitionnement pour cette expérience ?  Interprétez, commentez et expliquez vos résultats.}
 	Il est intéressant d'avoir la stratégie FullRandom d'après nos courbes. Cette stratégie nous montre qu'elle est un bon random à travers les deux courbes.
-	
+
 	En effet, on observe, dans la première courbe on peut voir qu'elle n'est pas abrupte, les changements se font lents et sa forme en S semble signifier qu'elle est bornée (une sorte de sigmoïde à pente très douce). Lorsque le scope est petit les noeuds ont tendance à être seuls, il y a donc plus de composantes connexes, puis lorsque le scope augmente les noeuds se connectent et le nombre de composantes connexes augmente, cette courbe est donc très certainement borné par le nombre de noeuds égale au maximum de composantes connexes et 1 seule composante connexe regroupant tous les noeuds.
 	On observe dans la seconde courbe qui malgré le fait que nos noeuds soient en grand nombre (75), le nombre de composantes connexes a tendance à varier peu. En effet, l'écart-type est faible et possède un maximum en taille de scope de 75 où y a beaucoup de connexions/déconnexions de noeuds. On peut aussi voir un sursaut un peu fort entre 25 et 25 où il semble manquer des points dans la courbe. Une amélioration aurait pu être un échantillonage plus fort pour augmenter la précision, mais cela ne change rien à la remarque générale, l'écart type est faible.
 	On peut en déduire avec un écart type faible et une pente douce pour la connexité moyenne que la stratégie random est un bon random, en effet il a des résultats cohérents si le scope augmente le nombre de composantes connexes doit augmenter de manière régulière et ne pas avoir des comportements inattendu sinon nous ne pourrions pas faire des mesures à partir de cette stratégie.
@@ -472,26 +472,82 @@
 
 	\section{Question 7}
 	\textit{Faites une étude comparative des deux algorithmes selon les deux métriques pour plusieurs valeurs de connexité. Vous ne vous intéresserez qu’aux valeurs des deux métriques à l’instant t end de l’expérience. Des courbes commentées et justifiées sont attendues.}
-	% TODO
+
+	\par L'étude ne sera portée que sur l'algorithme 2. En effet l'algorithme 1 en version dynaqiue fonctionne très bien en statique jusqu'à 450 noeuds (avant de ralentir sur nos machines) mais il existe un nombre incertains de cas qui n'ont pas pu être traiter pour pouvoir tester notre algorithme.
+
+	\par Pour l'instant l'algorithme 1 en dynamique est capable d'élire un leader dans sa composante connexe en 1000 cycles environ. Il propage une vague de message leader qui permet de désigner une élection meilleur que les autres et va récupérer les valeurs des ses fils sous forme de ack messages pour ensuite diffuser sur toute la composante le nouveau leader. Il existe aussi un message de type Beacon qui permet à tous dans cette même composante de savoir que le leader n'a pas disparu. Lors de la non reception d'un message de type beacon 6 fois  (il existe un timer qui va compter 6 périodes de temps à définir dans le config), alors le noeud aura perdu son leader et redémarrera une élection. Cette aspect de l'algorithme est fonctionnelle est statique sur des graphes juqu'à 450 noeuds et est visible en mettant la période entre deux beacon largement supérieur à 6 fois la période d'attente d'un message beacon. Une nouvelle éléction se déclenche à un autre endroit du graph et réussi à réélire le noeud le plus grand qui se remet à émettre des beacons.
+
+
+	\par Nous avons donc commencé la détection de nouveau voisins et la perte de voisins. Il existe deux listes pour cela. En Effet il faut finir une élection qui a commencé alors tout message leader pendant une élection doit être préserver dans une liste qui doit être potentiellement fusionné à la fin de l'élection de leader. Une seconde liste est la liste des nouveaux voisins qui sert à ne pas oublier de leur transmettre un message de leader lorsque l'éléction sera terminée.
+
+	\par Le problème se situe actuellement sur un état de noeud qui tente une nouvelle éléction après la perte de son leader et qui reste sans acquittement des ses voisins. Il est en cours d'éléction donc il refuse tout message de type leader et les enfiles dans sa liste de leader à fusionner. 
+
+	\textsc{\large ALGO 2 taux d'instabilite et nombre de messages en fonction du scope}
+	\begin{figure}[H]
+		\centering
+		\begin{tabular}{lllll}
+			scope & taux instabilite & nb messages &  &  \\
+			0     & 0,00\%           & 5625        &  &  \\
+			40    & 1,33\%           & 21375       &  &  \\
+			50    & 2,67\%           & 29175       &  &  \\
+			60    & 2,67\%           & 40725       &  &  \\
+			70    & 4,00\%           & 59325       &  &  \\
+			80    & 4,00\%           & 77475       &  &  \\
+			90    & 10,67\%          & 100050      &  &  \\
+			100   & 13,33\%          & 121725      &  &  \\
+			110   & 30,67\%          & 152250      &  &  \\
+			120   & 21,33\%          & 202050      &  &  \\
+			130   & 42,67\%          & 254775      &  &  \\
+			140   & 12,00\%          & 333300      &  &  \\
+			150   & 17,33\%          & 424725      &  &  \\
+			160   & 0,00\%           & 508125      &  &  \\
+			170   & 2,67\%           & 620550      &  &  \\
+			190   & 0,00\%           & 816750      &  &  \\
+			200   & 1,33\%           & 916725      &  &  \\
+			210   & 1,33\%           & 1007025     &  &  \\
+			220   & 0,00\%           & 1190250     &  &
+		\end{tabular}
+
+		\caption{Jeu de données récupérées pour tracer les courbes. Ces données ont été récupéré grâce à notre script qui calcule automatiquement avec un pas sur le scope le taux d'instabilité et le nombre de message envoyé pour un lancement d'algo. Ceci représente le jeu de données de l'algorithme 2 avec un nombre de messages croissant en fontion du scope et un taux d'instabilité extrêmement variable mais qui possède un pic avec un scope de 130. On voit que l'algo est très stable avant 90 et très stable après 160.}
+	\end{figure}
+
+
+	\subsection{ Le taux d'instabilite en fonction du scope croissant}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.8\textwidth, frame]{instabi}
+		\caption{ % TODO
+		}
+	\end{figure}
+
+
+	\subsection{ Le nombre de message en fonction du scope croissant}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.8\textwidth, frame]{messages}
+		\caption{ % TODO
+		}
+		%\label{fig:simu}
+	\end{figure}
 
 
 
-	%\newpage
-	%\bibliographystyle{IEEEtran}
-	%\bibliography{biblio}
+		%\newpage
+		%\bibliographystyle{IEEEtran}
+		%\bibliography{biblio}
 
-	%\newpage
-	% \phantomsection
-	%\addcontentsline{toc}{chapter}{\listfigurename}
-	%\listoffigures
-
-
-
-	\newpage
-	\chapter{Annexe}
+		%\newpage
+		% \phantomsection
+		%\addcontentsline{toc}{chapter}{\listfigurename}
+		%\listoffigures
 
 
 
+		\newpage
+		\chapter{Annexe}
 
-\end{document}
+
+
+
+	\end{document}
 
