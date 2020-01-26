@@ -58,3 +58,6 @@ class=ara.util.LaunchMain
 #run
 java -cp $p:./bin $class $mode
 
+#remove
+rm -r bin
+rm allclass
