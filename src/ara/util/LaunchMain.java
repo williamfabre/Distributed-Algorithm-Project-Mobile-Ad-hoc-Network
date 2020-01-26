@@ -11,18 +11,33 @@ import peersim.core.Node;
 
 
 public class LaunchMain {
-	//private static final String dir = "";
 	public static void main(String[] args) {
-		
-		//TODO general main input
-		
+
 		//String config_path = System.getProperty("user.dir") + "/src/ara/config";
 		//String config_path = System.getProperty("user.dir") + "/src/ara/configVKT04Statique";
 		//String config_path = System.getProperty("user.dir") + "/src/ara/configVKT04";
-		String config_path = System.getProperty("user.dir") + "/src/ara/configVKT04Printer";
-		//String config_path = System.getProperty("user.dir") + "/src/ara/configPrinter";
-		String[] path = {config_path};
-		Simulator.main(path);
+		//String config_path = System.getProperty("user.dir") + "/src/ara/configVKT04Printer";
+		if (args.length == 0) {
+			System.err.println("Choose the mode [1..4] ! Exit."); 
+			return;
+		}
 		
+		String s;
+		String s2 = args[0];	//check paramps
+		String config_path;
+		
+		switch(s2) {
+			case "2": config_path = System.getProperty("user.dir") + "/src/ara/config" ;
+				break;
+			case "1": config_path = System.getProperty("user.dir") + "/src/ara/configVKT04Statique" ;
+				break;
+			case "4": config_path = System.getProperty("user.dir") + "/src/ara/configPrinter" ;
+				break;
+			case "3": config_path = System.getProperty("user.dir") + "/src/ara/configVKT04Printer";
+			default : System.err.println("Choose the right mode [1..4] ! Exit."); return;
+					
+		}
+			String[] path = {config_path};
+			Simulator.main(path); 
 	}
 }

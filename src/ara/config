@@ -11,7 +11,7 @@ protocol.position.pause 200
 
 protocol.emit EmitterProtocolImpl
 protocol.emit.latency 90
-protocol.emit.scope 100
+protocol.emit.scope 10
 protocol.emit.variance TRUE
 
 protocol.neighbor NeighborProtocolImpl

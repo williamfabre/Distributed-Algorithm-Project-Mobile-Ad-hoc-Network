@@ -79,16 +79,16 @@ public class Echantillon implements Control {
 		scope = em.getScope();
 		
 		try {
-			AverageConByScope_file = new FileWriter("AverageConByScope.txt", false); // true pour append
+			AverageConByScope_file = new FileWriter("test/AverageConByScope.txt", false); // true pour append
 			AverageConByScope_printer = new PrintWriter(AverageConByScope_file);
 			
-			VarianceByScope_file = new FileWriter("VarianceByScope.txt", false);
+			VarianceByScope_file = new FileWriter("test/VarianceByScope.txt", false);
 			VarianceByScope_printer = new PrintWriter(VarianceByScope_file);
 			
-			Message_file = new FileWriter("MSG.txt", true);
+			Message_file = new FileWriter("test/MSG.txt", true);
 			Message_printer = new PrintWriter(Message_file);
 			
-			TauxInst_file = new FileWriter("TAUX_INST.txt", true);
+			TauxInst_file = new FileWriter("test/TAUX_INST.txt", true);
 			TauxInst_printer = new PrintWriter(TauxInst_file);
 		
 		} catch (IOException e) {
@@ -203,14 +203,14 @@ public class Echantillon implements Control {
 			int emitter_pid = Configuration.lookupPid("emit");
 					
 			//TODO change emitter and neighbor in algo1 (the same classes of algo2)
-					
+			/*		
 			EmitterProtocolImplNextGeneration emp = (EmitterProtocolImplNextGeneration) node.getProtocol((emitter_pid));
 			WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImplNextGeneration) emp);
+			*/
 			
-			/*
 			EmitterProtocolImpl emp = (EmitterProtocolImpl) node.getProtocol((emitter_pid));
 			WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
-				*/	
+					
 			total = total + wm.getTotal();
 					
 			}
@@ -252,6 +252,15 @@ public class Echantillon implements Control {
 		return (float)Err/(N*t);
 	}
 	
+	private WrapperEmitter getEmitterProtocol(Node host) {
+		
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
+		
+		return wm;
+	}
+	
 	@Override
 	public boolean execute() {
 		time++;	
@@ -262,11 +271,11 @@ public class Echantillon implements Control {
 			
 			//file without append, coherent to one exec
 			AverageConByScope_printer.println("[" + 
-					String.format("%(.3f", averageSuccessfulness()) + 
+					String.format("%(.1f", averageSuccessfulness()*100) + 
 					"%] Conex["+ nbConnexeComponents() + 
 					"] Avg[" + String.format("%(.3f", averageConnexity()) +
 					"] stdDev[" + String.format("%(.3f",stdDeviation()) + "]");
-			
+			AverageConByScope_printer.flush();
 		
 			//format py
 			/*
@@ -284,11 +293,14 @@ public class Echantillon implements Control {
 		
 		if ( CommonState.getTime() == finaltime-finaltime*0.1) {
 			
-			/*NB DE MESSAGES*/	
+			int scope = getEmitterProtocol(Network.get(0)).getScope();
+			
+			
+			/*NB DE MESSAGES*/
 			int m = getTotalMsgs();
 			System.out.println("TOTAL NB MESS = " + m);
 			//file with append if we want tester different metrics from diff exec
-			Message_printer.println(m);
+			Message_printer.println(scope + " " + m);
 			
 			/*TAUX D'INSTABILITE*/
 			//?? what time to use...
@@ -296,9 +308,11 @@ public class Echantillon implements Control {
 			System.out.println("TAUX INST t_END = " + ti);
 			
 			//file with append if we want tester different metrics from diff exec
-			TauxInst_printer.println(ti/*String.format("%(.4f",getTauxInst(time))*/);
+			TauxInst_printer.println(scope + " " + ti);
 			
-			//TODO doesn't want to write in files
+			//flish to files
+			TauxInst_printer.flush();
+			Message_printer.flush();
 				
 		}
 		
