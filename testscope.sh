@@ -37,10 +37,10 @@ fi
 #test directory
 if  [ -d "test" ]
 then
-        mv test old_test
+        echo  "test directiry found"
+else
+	mkdir test
 fi
-
-mkdir test
 
 echo "Pre-condition : initial scope value in config schould be 0."
 
