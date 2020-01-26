@@ -8,9 +8,13 @@ import java.util.Set;
 
 import ara.manet.algorithm.election.ElectionProtocol;
 import ara.manet.communication.Emitter;
+import ara.manet.communication.EmitterProtocolImpl;
+import ara.manet.communication.EmitterProtocolImplNextGeneration;
+import ara.manet.communication.WrapperEmitter;
 import ara.manet.positioning.Position;
 import ara.manet.positioning.PositionProtocol;
 import peersim.config.Configuration;
+import peersim.core.CommonState;
 import peersim.core.Control;
 import peersim.core.Network;
 import peersim.core.Node;
@@ -45,6 +49,11 @@ public class Echantillon implements Control {
 	private FileWriter VarianceByScope_file;
 	private PrintWriter AverageConByScope_printer= null;
 	private PrintWriter VarianceByScope_printer= null;
+	
+	private FileWriter Message_file;
+	private FileWriter TauxInst_file;
+	private PrintWriter Message_printer= null;
+	private PrintWriter TauxInst_printer= null;
 
 	private IncrementalStats is;
 	private IncrementalStats successful;
@@ -61,7 +70,7 @@ public class Echantillon implements Control {
 		timer=Configuration.getDouble(prefix+"."+PAR_TIMER);
 		
 		
-		finaltime =Configuration.getDouble(EDSimulator.PAR_ENDTIME); 
+		finaltime = Configuration.getDouble(EDSimulator.PAR_ENDTIME); 
 		
 		is = new IncrementalStats();
 		successful = new IncrementalStats();
@@ -70,12 +79,18 @@ public class Echantillon implements Control {
 		scope = em.getScope();
 		
 		try {
-			AverageConByScope_file = new FileWriter("AverageConByScope.txt", true); // true poour append
+			AverageConByScope_file = new FileWriter("AverageConByScope.txt", false); // true pour append
 			AverageConByScope_printer = new PrintWriter(AverageConByScope_file);
 			
-			VarianceByScope_file = new FileWriter("VarianceByScope.txt", true);
+			VarianceByScope_file = new FileWriter("VarianceByScope.txt", false);
 			VarianceByScope_printer = new PrintWriter(VarianceByScope_file);
 			
+			Message_file = new FileWriter("MSG.txt", true);
+			Message_printer = new PrintWriter(Message_file);
+			
+			TauxInst_file = new FileWriter("TAUX_INST.txt", true);
+			TauxInst_printer = new PrintWriter(TauxInst_file);
+		
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -126,7 +141,7 @@ public class Echantillon implements Control {
 	
 
 	/**
-	 * [somme de l'écart a la moyenne au carré] ÷ nombre d'observations = variance
+	 * [somme de l'ï¿½cart a la moyenne au carrï¿½] ï¿½ nombre d'observations = variance
 	 * @return
 	 */
 	private double variance() {
@@ -143,9 +158,11 @@ public class Echantillon implements Control {
 	}
 	
 	
+	
 	/**
 	 * Calcule de la connexite 
 	 */
+	//"connexite" ?? via Id leader ??
 	private float Successfulness(){
 		
 		long good_elections = 0;
@@ -162,11 +179,11 @@ public class Echantillon implements Control {
 			}
 			for (Node n : entry.getValue()) {
 				ElectionProtocol ep = (ElectionProtocol) n.getProtocol(election_pid);
-				if (ep.getIDLeader() == max 
+				if (ep.getIDLeader() == max) {
 						//|| (ep.getIDLeader() == -1 
 						//&& connected_components.size() == 1)
 						//|| entry.getValue().size() == 1
-						|| ep.getIDLeader() == n.getID()) {
+						//|| ep.getIDLeader() == n.getID()) {
 					good_elections++;
 				}
 			}
@@ -175,18 +192,118 @@ public class Echantillon implements Control {
 		return percentage;
 	}
 	
+	/*GET NB MSGS*/
+	private int getTotalMsgs() {
+		
+		int total = 0;
+		for (int i = 0; i < Network.size(); i++) {
 
+			Node node = Network.get(i);
+					
+			int emitter_pid = Configuration.lookupPid("emit");
+					
+			//TODO change emitter and neighbor in algo1 (the same classes of algo2)
+					
+			EmitterProtocolImplNextGeneration emp = (EmitterProtocolImplNextGeneration) node.getProtocol((emitter_pid));
+			WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImplNextGeneration) emp);
+			
+			/*
+			EmitterProtocolImpl emp = (EmitterProtocolImpl) node.getProtocol((emitter_pid));
+			WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
+				*/	
+			total = total + wm.getTotal();
+					
+			}
+		return total;
+	}
+	
+	/*TAUX D'INSTABILITE*/
+	private float getTauxInst(int t) {
+		
+		int N = Network.size();
+		int Err = 0;
+		int taux_inst = 0;
+		Map<Long, Position> positions = PositionProtocol.getPositions(position_pid);
+		Emitter em = (Emitter) Network.get(0).getProtocol(emitter_pid);
+		Map<Integer, Set<Node>> connected_components = PositionProtocol.getConnectedComponents(positions, em.getScope());
+
+		for (Map.Entry<Integer, Set<Node> > entry : connected_components.entrySet()) {
+			
+			long max = -1;
+			
+			for (Node n : entry.getValue()) {
+				max = Math.max(max, n.getID());
+			}
+			
+			for (Node n : entry.getValue()) {
+				ElectionProtocol ep = (ElectionProtocol) n.getProtocol(election_pid);
+				
+				if (ep.getIDLeader() != max) {
+					/*Err*/
+					Err = Err + t;
+					//System.out.println(t + " Node " + n.getID() + " Err ");
+				} else {
+					//System.out.println(t + " Node " + n.getID() + " Ok");
+				}
+					
+				}
+			}
+		//System.out.println(" T = " + (float)Err/(N*t));
+		return (float)Err/(N*t);
+	}
 	
 	@Override
 	public boolean execute() {
-		time++;
+		time++;	
 		getSamples(nbConnexeComponents());
 		getSamplesSuccessfulness(Successfulness());
-		//if ( time == finaltime -1) {
+		
 			//System.err.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
-			AverageConByScope_printer.println("[" + averageSuccessfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + averageConnexity()+ "] stdDev[" + stdDeviation() + "]");
+			
+			//file without append, coherent to one exec
+			AverageConByScope_printer.println("[" + 
+					String.format("%(.3f", averageSuccessfulness()) + 
+					"%] Conex["+ nbConnexeComponents() + 
+					"] Avg[" + String.format("%(.3f", averageConnexity()) +
+					"] stdDev[" + String.format("%(.3f",stdDeviation()) + "]");
+			
+		
+			//format py
+			/*
+			AverageConByScope_printer.println( 
+				String.format("%(.2f", averageSuccessfulness()) + 
+				","+ nbConnexeComponents() + 
+				"," + String.format("%(.2f", averageConnexity()) +
+				"," + String.format("%(.2f",stdDeviation()));
+			*/
+			
 			//p.println("[" + Successfulness() + "%] Conex["+ nbConnexeComponents()+ "] Avg[" + average_connexity+ "] stdDev[" + stdDeviation(variance()) + "]");
-		//}
+		
+		
+		//System.out.println(CommonState.getTime() + " : " + finaltime + " : " + time);
+		
+		if ( CommonState.getTime() == finaltime-finaltime*0.1) {
+			
+			/*NB DE MESSAGES*/	
+			int m = getTotalMsgs();
+			System.out.println("TOTAL NB MESS = " + m);
+			//file with append if we want tester different metrics from diff exec
+			Message_printer.println(m);
+			
+			/*TAUX D'INSTABILITE*/
+			//?? what time to use...
+			float ti = getTauxInst(time);
+			System.out.println("TAUX INST t_END = " + ti);
+			
+			//file with append if we want tester different metrics from diff exec
+			TauxInst_printer.println(ti/*String.format("%(.4f",getTauxInst(time))*/);
+			
+			//TODO doesn't want to write in files
+				
+		}
+		
+		
+			
 		return false;
     }
 

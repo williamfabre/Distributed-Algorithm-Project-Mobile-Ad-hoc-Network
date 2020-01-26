@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ara.manet.Monitorable;
+import ara.manet.communication.EmitterProtocolImpl;
 import ara.manet.communication.EmitterProtocolImplNextGeneration;
 import ara.manet.communication.WrapperEmitter;
 import ara.manet.communication.WrapperInterfaceEmitter;
@@ -42,26 +43,26 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 	private List<Long> neighbors_merge;						// Un node vient d'arriver dans mon neighbor et je suis en cours d'election
 	
 	
-	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
-	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
+	private int desirability; 						// desirabilitï¿½ du noeud									(-1 si inconnu)
+	private long parent; 							// permet de connaï¿½tre son pï¿½re et remonter dans l'arbre 	(-1 si inconnu)
 	private long id_leader;							// id du leader actuel, -1 si aucun leader.					(-1 si inconnu)
-	private long desirability_leader;				// desirabilité du noeud leader								(-1 si inconnu)
+	private long desirability_leader;				// desirabilitï¿½ du noeud leader								(-1 si inconnu)
 	private long potential_leader;					// id du leader potentiel, -1 si aucun leader.				(-1 si inconnu)
-	private long desirability_potential_leader;		// désirabilité du leader potentiel, -1 si aucun leader.	(-1 si inconnu)
+	private long desirability_potential_leader;		// dï¿½sirabilitï¿½ du leader potentiel, -1 si aucun leader.	(-1 si inconnu)
 	
 	// new variables for dynamic protocol
-	private boolean is_electing;					// Variable qui dit si ce noeud est en train de faire une éléction.			(0 si inconnu)
-	private boolean ack_2_parent;					// Variable qui dit si ce noeud a envoyé son ack à son père.				(false si inconnu)
-	private long source_election;					// Noeud d'où provient l'élection dans laquelle je suis.					(-1 si inconnu)
+	private boolean is_electing;					// Variable qui dit si ce noeud est en train de faire une ï¿½lï¿½ction.			(0 si inconnu)
+	private boolean ack_2_parent;					// Variable qui dit si ce noeud a envoyï¿½ son ack ï¿½ son pï¿½re.				(false si inconnu)
+	private long source_election;					// Noeud d'oï¿½ provient l'ï¿½lection dans laquelle je suis.					(-1 si inconnu)
 	private long ieme_election;						// indique pour ce node la ieme election qu'il lance.						(0 si inconnu)
 													// utile pour differencier les elections et choisir parmi elles.			
 													// Plus un node lance d'election plus il a de chance d'en lancer.
-													// Soit i,j Node² : (i.ieme_election(), i.getID()) > (j.ieme_election(), j.getID())
+													// Soit i,j Nodeï¿½ : (i.ieme_election(), i.getID()) > (j.ieme_election(), j.getID())
 													// <=> i.ieme_election() > j.ieme_election() ||
 													// (i.ieme_election() == j.ieme_election()) &&  (i.getID() >  j.getID())
 	
 	private long source_ieme_election; 				// ieme election de la source a laquelle je participe
-	private long ieme_election_max;					// La plus grande election à laquelle j'ai participé.						(0 si inconnu)
+	private long ieme_election_max;					// La plus grande election ï¿½ laquelle j'ai participï¿½.						(0 si inconnu)
 	private boolean ok_quantum;	 					// presence du leader pour la detection de perte de leader
 	private int state;								// 0 : leader_known
 													// 1 : leader_unknown
@@ -131,7 +132,7 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImplNextGeneration emp = (EmitterProtocolImplNextGeneration) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImplNextGeneration) emp);
 		
 		return wm;
 	}
@@ -190,11 +191,11 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 	}
 	
 	/**
-	 * Fonction utilisé par la classe d'initialisation qui est appelée
-	 * en début de programme pour tous les noeuds.
-	 * Elle a pour but d'initialisé la désirability du node avec son ID en paramètre.
+	 * Fonction utilisï¿½ par la classe d'initialisation qui est appelï¿½e
+	 * en dï¿½but de programme pour tous les noeuds.
+	 * Elle a pour but d'initialisï¿½ la dï¿½sirability du node avec son ID en paramï¿½tre.
 	 * 
-	 * @param node le node en lui même
+	 * @param node le node en lui mï¿½me
 	 */
 	public void initialisation(Node node) {
 		this.desirability = node.getIndex();
@@ -203,14 +204,14 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 	
 	/*****************************Election******************************/
 	/**
-	 * Partie élection statique, va lancer une nouvelle élection
+	 * Partie ï¿½lection statique, va lancer une nouvelle ï¿½lection
 	 * avec la liste statique des neouds.
 	 * 
 	 * @param host
 	 */
 	private void VKT04ElectionTrigger(Node host) {
 		
-		// Récupération des protocoles
+		// Rï¿½cupï¿½ration des protocoles
 		WrapperEmitter wm = this.getEmitterProtocol(host);
 		NeighborProtocolVKTImpl np = this.getNeighborProtocol(host);
 
@@ -263,11 +264,11 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 	
 	/********************************** ELECTION MESSAGE ****************************************/	
 	/**
-	 * Met à jour les champs nécessaire à l'élection avec les valeurs worthy
+	 * Met ï¿½ jour les champs nï¿½cessaire ï¿½ l'ï¿½lection avec les valeurs worthy
 	 * 
 	 * du nouveau parent.
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void patchAfterElectionMessage(Node host, ElectionMessageNextGeneration emng) {
 		
@@ -307,8 +308,8 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 	}
 	
 	/**
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 * @return Vrai si je suis plus worthy
 	 */
 	private boolean worthierElection(Node host, ElectionMessageNextGeneration emng) {
@@ -320,9 +321,9 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 
 	
 	/**
-	 * Le but est de propager le l'éléction provenant du message en paramètre
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * Le but est de propager le l'ï¿½lï¿½ction provenant du message en paramï¿½tre
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void PropagateElection2children(Node host, ElectionMessageNextGeneration emng) {
 		
@@ -360,12 +361,12 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 	}
 
 	/**
-	 * Fonction appelée en cas de réception d'un message d'éléction dynamique
-	 * Elle sert a résoudre les conflits si une éléction est déjà en cours
-	 * ou si j'ai un parent illégitime de devenir leader.
+	 * Fonction appelï¿½e en cas de rï¿½ception d'un message d'ï¿½lï¿½ction dynamique
+	 * Elle sert a rï¿½soudre les conflits si une ï¿½lï¿½ction est dï¿½jï¿½ en cours
+	 * ou si j'ai un parent illï¿½gitime de devenir leader.
 	 * 
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void recvElectionDynamicMsg(Node host, ElectionMessageNextGeneration event) {
 
@@ -452,7 +453,7 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 				
 				if (this.parent >= 0) { 					// reponse a mon pere si j'en ai un (0 inclu)
 					am_father = new AckMessageNextGeneration(host.getID(), parent, my_pid, potential_leader, desirability_potential_leader, source_election, source_ieme_election);		
-					wm.processEvent(host, my_pid, am_father);// Envoie d'un ack à mon père, je suis une feuille
+					wm.processEvent(host, my_pid, am_father);// Envoie d'un ack ï¿½ mon pï¿½re, je suis une feuille
 				} else {
 					patchAfterAckMessage(host, am); 					// mise a jour des valeurs en fonction du ack.
 					lm_broadcast = new LeaderMessage(host.getID(), ALL, my_pid, potential_leader, desirability_potential_leader, source_election, ieme_election);
@@ -520,9 +521,9 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 
 	
 	/**
-	 * Le but est de propager le l'éléction provenant du message en paramètre
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * Le but est de propager le l'ï¿½lï¿½ction provenant du message en paramï¿½tre
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void propagateLeader(Node host, LeaderMessage lm) {
 
@@ -623,9 +624,9 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 	/********************************** BEACON MESSAGE ****************************************/
 	
 	/**
-	 * Le but est de propager le l'éléction provenant du message en paramètre
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * Le but est de propager le l'ï¿½lï¿½ction provenant du message en paramï¿½tre
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void PropagateBeacon(Node host, BeaconMessage bm) {
 
@@ -809,7 +810,7 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 					if (neighbors_ack.isEmpty() && !ack_2_parent) {
 						ack_2_parent = true; 
 						am_father = new AckMessageNextGeneration(host.getID(), parent, my_pid, potential_leader, desirability_potential_leader, source_election, source_ieme_election);			
-						wm.processEvent(host, my_pid, am_father);// Envoie d'un ack à mon père, je suis une feuille
+						wm.processEvent(host, my_pid, am_father);// Envoie d'un ack ï¿½ mon pï¿½re, je suis une feuille
 					}
 					
 					if (!neighbors_ack.isEmpty()) {
@@ -830,29 +831,29 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 	
 	
 	/********************************MONITORABLE**********************************/
-	/* MONITORABLE : implémente l'interface Monitorable pour afficher sur le moniteur 
-	 * graphique l'é©tat de chaque noeud : on peut différencier dans 
-	 * cet algorithme trois états : 
+	/* MONITORABLE : implï¿½mente l'interface Monitorable pour afficher sur le moniteur 
+	 * graphique l'ï¿½tat de chaque noeud : on peut diffï¿½rencier dans 
+	 * cet algorithme trois ï¿½tats : 
 	 * 
 	 * * leader inconnu,
 	 * * leader connu, 
-	 * * être le leader.
+	 * * ï¿½tre le leader.
 	 */
 	
-	/* permet d'obtenir le nombre d'état applicatif du noeud */
+	/* permet d'obtenir le nombre d'ï¿½tat applicatif du noeud */
 	public int nbState() {
 		return 3;
 	}
 
-	/* permet d'obtenir l'état courant du noeud */
+	/* permet d'obtenir l'ï¿½tat courant du noeud */
 	@Override
 	public  int getState(Node host) {
 		return state;
 	}
 
 	/*
-	 * permet d'obtenir une liste de chaine de caractère, affichable en colonne à 
-	 * coté du noeud sur un moniteur graphique
+	 * permet d'obtenir une liste de chaine de caractï¿½re, affichable en colonne ï¿½
+	 * cotï¿½ du noeud sur un moniteur graphique
 	 */
 	public List<String> infos(Node host) {
 		List<String> res = new ArrayList<String>();
@@ -881,28 +882,28 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 			throw new RuntimeException("Receive Event for wrong protocol");
 		}
 		
-		// Gestion de la réception d'un message de type ElectionMessage
+		// Gestion de la rï¿½ception d'un message de type ElectionMessage
 		if (event instanceof ElectionMessageNextGeneration) {
 			election_dynamic_message++;
 			recvElectionDynamicMsg(host, (ElectionMessageNextGeneration) event);
 			return;
 		}
 		
-		// Gestion de la réception d'un message de type LeaderMessage
+		// Gestion de la rï¿½ception d'un message de type LeaderMessage
 		if (event instanceof LeaderMessage) {
 			leader_message++;
 			recvLeaderlMsg(host, (LeaderMessage) event);
 			return;
 		}
 
-		// Gestion de la réception d'un message de type AckMessage
+		// Gestion de la rï¿½ception d'un message de type AckMessage
 		if (event instanceof AckMessageNextGeneration) {
 			ack_message++;
 			recvAckMsg(host, (AckMessageNextGeneration) event);
 			return;
 		}
 		
-		// Gestion de la réception d'un message de type AckMessage
+		// Gestion de la rï¿½ception d'un message de type AckMessage
 		if (event instanceof BeaconMessage) {
 			beacon_message++;
 			recvBeaconMessage(host, (BeaconMessage) event);
@@ -910,7 +911,7 @@ public class VKT04ElectionNextGeneration implements ElectionProtocol, Monitorabl
 		}
 		
 
-		// Evènement périodique d'élections.		
+		// Evï¿½nement pï¿½riodique d'ï¿½lections.		
 		if (event instanceof String) {
 			
 			String ev = (String) event;

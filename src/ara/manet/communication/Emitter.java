@@ -9,7 +9,7 @@ import peersim.edsim.EDProtocol;
  *
  */
 
-public interface Emitter extends EDProtocol, WrapperInterfaceEmitter {
+public interface Emitter extends EDProtocol/*, WrapperInterfaceEmitter*/ {
 
 	/* désigne tous les voisins accessibles */
 	public static final int ALL = -2;
@@ -25,5 +25,7 @@ public interface Emitter extends EDProtocol, WrapperInterfaceEmitter {
 
 	/* Renvoie le rayon d'emission/réception d'un noeud */
 	public int getScope();
+
+
 
 }

@@ -18,7 +18,7 @@ public class EmitterProtocolImpl implements Emitter {
 
 	private final int my_pid; // protocol du node
 	private final int latency; // Latence parametrique
-	private final int scope; // visibilite½ d'un node
+	private final int scope; // visibiliteï¿½ d'un node
 	private final boolean variance; // variance sur la latence avec une loi de Poisson
 
 	/**
@@ -172,6 +172,7 @@ public class EmitterProtocolImpl implements Emitter {
 
 		return this.scope;
 	}
+	
 
 	/**
 	 * Permet la gestion d'evenement de type Message sur le protocol d'emission

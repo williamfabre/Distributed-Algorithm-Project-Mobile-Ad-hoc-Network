@@ -6,6 +6,8 @@ import java.util.Vector;
 
 import ara.manet.Monitorable;
 import ara.manet.communication.EmitterProtocolImpl;
+import ara.manet.communication.EmitterProtocolImplNextGeneration;
+import ara.manet.communication.WrapperEmitter;
 import ara.manet.detection.NeighborProtocolImpl;
 import ara.manet.detection.NeighborhoodListener;
 import ara.util.EditMessage;
@@ -46,7 +48,16 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 		}
 		return p;
 	}
-
+	
+	private WrapperEmitter getEmitterProtocol(Node host) {
+		
+		int emitter_pid = Configuration.lookupPid("emit");
+		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
+		
+		return wm;
+	}
+	
 	/**
 	 * This function initialize a knowledge of current peer
 	 * 
@@ -105,9 +116,12 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 
 		// Broadcast knowledge
 		KnowledgeMessage knowlmsg = new KnowledgeMessage(host.getID(), ALL, my_pid, (Knowledge) knowledge.clone()); // clone?
-		int emitter_pid = Configuration.lookupPid("emit");
-		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		emp.emit(host, knowlmsg);
+		//int emitter_pid = Configuration.lookupPid("emit");
+		//EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = this.getEmitterProtocol(host);
+		
+		//emp.emit(host, knowlmsg);
+		wm.processEvent(host, my_pid, knowlmsg);
 		// }
 
 	}
@@ -147,9 +161,12 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 		// }
 
 		// Broadcast edit
-		int emitter_pid = Configuration.lookupPid("emit");
-		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		emp.emit(host, edmsg);
+		//int emitter_pid = Configuration.lookupPid("emit");
+		//EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+		WrapperEmitter wm = this.getEmitterProtocol(host);
+		
+		//emp.emit(host, edmsg);
+		wm.processEvent(host, my_pid, edmsg);
 		// }
 
 	}
@@ -368,9 +385,12 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 		if (!edmsg.empty()) {
 			// System.out.println ("SEM " + edmsg.toString());
 
-			int emitter_pid = Configuration.lookupPid("emit");
-			EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-			emp.emit(host, edmsg);
+			//int emitter_pid = Configuration.lookupPid("emit");
+			//EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+			WrapperEmitter wm = this.getEmitterProtocol(host);
+			
+			//emp.emit(host, edmsg);
+			wm.processEvent(host, my_pid, edmsg);
 		}
 	}
 
@@ -503,9 +523,11 @@ public class GVLElection implements Cloneable, Monitorable, ElectionProtocol, Ne
 		if (kno_updated) {
 
 			// broadcast msg
-			int emitter_pid = Configuration.lookupPid("emit");
-			EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-			emp.emit(host, msg);
+			//int emitter_pid = Configuration.lookupPid("emit");
+			//EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
+			WrapperEmitter wm = this.getEmitterProtocol(host);
+			//emp.emit(host, msg);
+			wm.processEvent(host, my_pid, msg);
 		}
 	}
 

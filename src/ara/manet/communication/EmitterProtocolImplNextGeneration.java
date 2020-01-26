@@ -166,6 +166,7 @@ public class EmitterProtocolImplNextGeneration implements Emitter {
 
 		return this.scope;
 	}
+	
 
 	/**
 	 * Permet la gestion d'evenement de type Message sur le protocol d'emission

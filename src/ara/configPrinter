@@ -1,0 +1,46 @@
+network.size 40
+random.seed 200
+simulation.endtime 10000
+
+protocol.position PositionProtocolImpl
+protocol.position.maxspeed 30
+protocol.position.minspeed 5
+protocol.position.width 1200
+protocol.position.height 1200
+protocol.position.pause 20
+
+protocol.emit EmitterProtocolImpl
+protocol.emit.latency 90
+protocol.emit.scope 100
+protocol.emit.variance FALSE
+
+protocol.neighbor NeighborProtocolImpl
+protocol.neighbor.periode 300
+protocol.neighbor.timer 400
+protocol.neighbor.listener TRUE
+
+protocol.election GVLElection
+protocol.election.periode 2000
+
+
+initial_position_strategy FullRandom
+initial_position_strategy.positionprotocol position
+initial_position_strategy.emitter emit
+
+next_destination_strategy FullRandom
+next_destination_strategy.positionprotocol position
+next_destination_strategy.emitter emit
+next_destination_strategy.random_dest_period 20000
+
+control.monitor Echantillon
+control.monitor.electionprotocol election
+control.monitor.positionprotocol position
+control.monitor.emitter emit
+control.monitor.neighborprotocol neighbor
+control.monitor.monitorableprotocol election
+control.monitor.timer 10
+control.monitor.from 6000
+control.monitor.until 500000
+control.monitor.step 100
+
+init.i InitialisationGVLElection

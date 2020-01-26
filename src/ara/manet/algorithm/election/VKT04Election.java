@@ -38,26 +38,26 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	
 	private List<Long> neighbors;					// Liste de voisins.
 	private List<Long> neighbors_ack;					// Liste de voisins.
-	private int desirability; 						// desirabilité du noeud									(-1 si inconnu)
-	private long parent; 							// permet de connaître son père et remonter dans l'arbre 	(-1 si inconnu)
+	private int desirability; 						// desirabilitï¿½ du noeud									(-1 si inconnu)
+	private long parent; 							// permet de connaï¿½tre son pï¿½re et remonter dans l'arbre 	(-1 si inconnu)
 	private long id_leader;							// id du leader actuel, -1 si aucun leader.					(-1 si inconnu)
-	private long desirability_leader;				// desirabilité du noeud leader								(-1 si inconnu)
+	private long desirability_leader;				// desirabilitï¿½ du noeud leader								(-1 si inconnu)
 	private long potential_leader;					// id du leader potentiel, -1 si aucun leader.				(-1 si inconnu)
-	private long desirability_potential_leader;		// désirabilité du leader potentiel, -1 si aucun leader.	(-1 si inconnu)
+	private long desirability_potential_leader;		// dï¿½sirabilitï¿½ du leader potentiel, -1 si aucun leader.	(-1 si inconnu)
 	
 	// new variables for dynamic protocol
-	private boolean is_electing;		// Variable qui dit si ce noeud est en train de faire une éléction.			(0 si inconnu)
-	private boolean ack_2_parent;		// Variable qui dit si ce noeud a envoyé son ack à son père.				(false si inconnu)
-	private long source_election;		// Noeud d'où provient l'élection dans laquelle je suis.					(-1 si inconnu)
+	private boolean is_electing;		// Variable qui dit si ce noeud est en train de faire une ï¿½lï¿½ction.			(0 si inconnu)
+	private boolean ack_2_parent;		// Variable qui dit si ce noeud a envoyï¿½ son ack ï¿½ son pï¿½re.				(false si inconnu)
+	private long source_election;		// Noeud d'oï¿½ provient l'ï¿½lection dans laquelle je suis.					(-1 si inconnu)
 	private long ieme_election;			// indique pour ce node la ieme election qu'il lance.						(0 si inconnu)
 										// utile pour differencier les elections et choisir parmi elles.			
 										// Plus un node lance d'election plus il a de chance d'en lancer.
-										// Soit i,j Node² : (i.ieme_election(), i.getID()) > (j.ieme_election(), j.getID())
+										// Soit i,j Nodeï¿½ : (i.ieme_election(), i.getID()) > (j.ieme_election(), j.getID())
 										// <=> i.ieme_election() > j.ieme_election() ||
 										// (i.ieme_election() == j.ieme_election()) &&  (i.getID() >  j.getID())
 	
 	private long source_ieme_election; // ieme election de la source a laquelle je participe
-	private long ieme_election_max;	// La plus grande election à laquelle j'ai participé.						(0 si inconnu)
+	private long ieme_election_max;	// La plus grande election ï¿½ laquelle j'ai participï¿½.						(0 si inconnu)
 	private boolean ok_quantum;	 // presence du leader pour la detection de perte de leader
 	private int state;								// 0 : leader_known
 													// 1 : leader_unknown
@@ -146,11 +146,11 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	}
 	
 	/**
-	 * Fonction utilisé par la classe d'initialisation qui est appelée
-	 * en début de programme pour tous les noeuds.
-	 * Elle a pour but d'initialisé la désirability du node avec son ID en paramètre.
+	 * Fonction utilisï¿½ par la classe d'initialisation qui est appelï¿½e
+	 * en dï¿½but de programme pour tous les noeuds.
+	 * Elle a pour but d'initialisï¿½ la dï¿½sirability du node avec son ID en paramï¿½tre.
 	 * 
-	 * @param node le node en lui même
+	 * @param node le node en lui mï¿½me
 	 */
 	public void initialisation(Node node) {
 		this.desirability = node.getIndex();
@@ -159,17 +159,17 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	
 	/*****************************Election******************************/
 	/**
-	 * Partie élection statique, va lancer une nouvelle élection
+	 * Partie ï¿½lection statique, va lancer une nouvelle ï¿½lection
 	 * avec la liste statique des neouds.
 	 * 
 	 * @param host
 	 */
 	private void VKT04ElectionTrigger(Node host) {
 		
-		// Récupération du protocol de communication
+		// Rï¿½cupï¿½ration du protocol de communication
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 
 
 		// Recuperation du protocol de Neighbor
@@ -222,19 +222,19 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 		
 		//System.err.println(host.getID() + " elecnum " + this.ieme_election + " leader " + this.desirability_potential_leader);
 		
-		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des élections
-		// exactement en même temps.
+		// Ajouter de la variance pour ne pas que les noeuds lance tout le temps des ï¿½lections
+		// exactement en mï¿½me temps.
 		//EDSimulator.add(periode_leader, leader_event, host, my_pid);
 	}
 	
 	
 	/********************************** ELECTION MESSAGE ****************************************/	
 	/**
-	 * Met à jour les champs nécessaire à l'élection avec les valeurs worthy
+	 * Met ï¿½ jour les champs nï¿½cessaire ï¿½ l'ï¿½lection avec les valeurs worthy
 	 * 
 	 * du nouveau parent.
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void patchAfterElectionMessage(Node host, ElectionDynamicMessage edm) {
 		
@@ -274,8 +274,8 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	}
 	
 	/**
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 * @return Vrai si je suis plus worthy
 	 */
 	private boolean worthierElection(Node host, ElectionDynamicMessage edm) {
@@ -287,15 +287,15 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 
 	
 	/**
-	 * Le but est de propager le l'éléction provenant du message en paramètre
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * Le but est de propager le l'ï¿½lï¿½ction provenant du message en paramï¿½tre
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void PropagateElection2children(Node host, ElectionDynamicMessage edm) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 		
 		// J'ai des fils, 1 ca veut dire qu'il ne reste que mon pere?
 		if (neighbors.size() > 1) {
@@ -334,18 +334,18 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	}
 
 	/**
-	 * Fonction appelée en cas de réception d'un message d'éléction dynamique
-	 * Elle sert a résoudre les conflits si une éléction est déjà en cours
-	 * ou si j'ai un parent illégitime de devenir leader.
+	 * Fonction appelï¿½e en cas de rï¿½ception d'un message d'ï¿½lï¿½ction dynamique
+	 * Elle sert a rï¿½soudre les conflits si une ï¿½lï¿½ction est dï¿½jï¿½ en cours
+	 * ou si j'ai un parent illï¿½gitime de devenir leader.
 	 * 
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void recvElectionDynamicMsg(Node host, ElectionDynamicMessage event) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 
 		// Ce n'est pas mon propre message et c'est une election qui vaut le coup
 		if (host.getID() != event.getIdSrc()){
@@ -487,7 +487,7 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 
 		AckMessage am = (AckMessage)event;
 		
@@ -525,7 +525,7 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 					wm.emit(host, am_to_father);
 				}
 				
-				if (this.neighbors_ack.size() == 1 // Je suis une feuille ou il n'y avait qu'un pere à attendre
+				if (this.neighbors_ack.size() == 1 // Je suis une feuille ou il n'y avait qu'un pere ï¿½ attendre
 						&& this.potential_leader != host.getID() // il essaye de s'auto elire (voir 300 noeud)
 						|| this.neighbors_ack.isEmpty() // le pere est une feuille
 						&& !ack_2_parent) {
@@ -536,7 +536,7 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 					
 					// reponse a mon pere si j'en ai un (0 inclu)
 					if (this.parent >= 0) {
-						// Envoie d'un ack à mon père, je suis une feuille
+						// Envoie d'un ack ï¿½ mon pï¿½re, je suis une feuille
 						AckMessage am_to_father = new AckMessage(host.getID(), parent,
 								this.my_pid,
 								this.potential_leader,
@@ -637,15 +637,15 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 
 	
 	/**
-	 * Le but est de propager le l'éléction provenant du message en paramètre
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * Le but est de propager le l'ï¿½lï¿½ction provenant du message en paramï¿½tre
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void PropagateLeader(Node host, LeaderMessage lm) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
@@ -678,7 +678,7 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 		
 		if (worthierLeader(host, event)) {
 			// propager  mon leader au monsieur
@@ -733,15 +733,15 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	/********************************** BEACON MESSAGE ****************************************/
 	
 	/**
-	 * Le but est de propager le l'éléction provenant du message en paramètre
-	 * @param host moi même
-	 * @param edm message d'éléction dynamique
+	 * Le but est de propager le l'ï¿½lï¿½ction provenant du message en paramï¿½tre
+	 * @param host moi mï¿½me
+	 * @param edm message d'ï¿½lï¿½ction dynamique
 	 */
 	private void PropagateBeacon(Node host, BeaconMessage bm) {
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 		
 		// Recuperation du protocol de Neighbor
 		int neighbor_pid = Configuration.lookupPid("neighbor");
@@ -779,7 +779,7 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 		
 		int emitter_pid = Configuration.lookupPid("emit");
 		EmitterProtocolImpl emp = (EmitterProtocolImpl) host.getProtocol((emitter_pid));
-		WrapperEmitter wm = new WrapperEmitter((WrapperInterfaceEmitter) emp);
+		WrapperEmitter wm = new WrapperEmitter((EmitterProtocolImpl) emp);
 		
 		if (event.getIdSrc() != host.getID()
 				&& !ok_quantum){
@@ -924,29 +924,29 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 	
 	
 	/********************************MONITORABLE**********************************/
-	/* MONITORABLE : implémente l'interface Monitorable pour afficher sur le moniteur 
-	 * graphique l'é©tat de chaque noeud : on peut différencier dans 
-	 * cet algorithme trois états : 
+	/* MONITORABLE : implï¿½mente l'interface Monitorable pour afficher sur le moniteur 
+	 * graphique l'ï¿½tat de chaque noeud : on peut diffï¿½rencier dans 
+	 * cet algorithme trois ï¿½tats : 
 	 * 
 	 * * leader inconnu,
 	 * * leader connu, 
-	 * * être le leader.
+	 * * ï¿½tre le leader.
 	 */
 	
-	/* permet d'obtenir le nombre d'état applicatif du noeud */
+	/* permet d'obtenir le nombre d'ï¿½tat applicatif du noeud */
 	public int nbState() {
 		return 3;
 	}
 
-	/* permet d'obtenir l'état courant du noeud */
+	/* permet d'obtenir l'ï¿½tat courant du noeud */
 	@Override
 	public  int getState(Node host) {
 		return state;
 	}
 
 	/*
-	 * permet d'obtenir une liste de chaine de caractère, affichable en colonne à 
-	 * coté du noeud sur un moniteur graphique
+	 * permet d'obtenir une liste de chaine de caractï¿½re, affichable en colonne ï¿½
+	 * cotï¿½ du noeud sur un moniteur graphique
 	 */
 	public List<String> infos(Node host) {
 		List<String> res = new ArrayList<String>();
@@ -970,28 +970,28 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 			throw new RuntimeException("Receive Event for wrong protocol");
 		}
 		
-		// Gestion de la réception d'un message de type ElectionMessage
+		// Gestion de la rï¿½ception d'un message de type ElectionMessage
 		if (event instanceof ElectionDynamicMessage) {
 			election_dynamic_message++;
 			recvElectionDynamicMsg(host, (ElectionDynamicMessage) event);
 			return;
 		}
 		
-		// Gestion de la réception d'un message de type LeaderMessage
+		// Gestion de la rï¿½ception d'un message de type LeaderMessage
 		if (event instanceof LeaderMessage) {
 			leader_message++;
 			//recvLeaderlMsg(host, (LeaderMessage) event);
 			return;
 		}
 
-		// Gestion de la réception d'un message de type AckMessage
+		// Gestion de la rï¿½ception d'un message de type AckMessage
 		if (event instanceof AckMessage) {
 			ack_message++;
 			//recvAckMsg(host, (AckMessage) event);
 			return;
 		}
 		
-		// Gestion de la réception d'un message de type AckMessage
+		// Gestion de la rï¿½ception d'un message de type AckMessage
 		if (event instanceof BeaconMessage) {
 			beacon_message++;
 			//recvBeaconMessage(host, (BeaconMessage) event);
@@ -999,7 +999,7 @@ public class VKT04Election implements ElectionProtocol, Monitorable, Neighborhoo
 		}
 		
 
-		// Evènement périodique d'élections.		
+		// Evï¿½nement pï¿½riodique d'ï¿½lections.		
 		if (event instanceof String) {
 			
 			String ev = (String) event;
