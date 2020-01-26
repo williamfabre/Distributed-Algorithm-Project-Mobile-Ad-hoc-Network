@@ -371,10 +371,14 @@
 	\textit{Implémentez l’algorithme dans PeerSim et vérifiez qu’il fonctionne avec le moniteur graphique.}
 	\section{Question 11}
 	\textit{Considérons maintenant qu’il puisse y avoir des pertes de messages suite aux collisions des ondes radio (on ne vous demande pas de les implémenter).}
-	\begin{itemize}
-		\item \textit{Quel impact ceci aurait sur les valeurs des horloges (old\_clock et knowledge[source].clock) lors des réceptions de edit ?}
-		\item \textit{Comment pourrions-nous résoudre efficacement ce problème (encore une fois , il n’est pas demandé de l’implémenter)}
-	\end{itemize}
+	\par Ceci est trouvalbe dans le fichier GVLElection.java
+
+	\textit{Quel impact ceci aurait sur les valeurs des horloges (old\_clock et knowledge[source].clock) lors des réceptions de edit ?}
+	\par Une fois on suppose que des pertes de messages peuvent avoir lieu, les modifications effectués lors de la réception du message Edit ne sont plus possible. Ca provient du fait que dans l’algorithme du base on vérifie si notre connaissance sur l'état du voisin correspond à l'état de ces dernières modifications annoncées, donc on teste une égalité des valeurs d’horloges. Si le message est perdu, l'égalité n'apparaîtra jamais et l'état du voisin reste échangeable pour ce noeud.
+
+
+	\textit{Comment pourrions-nous résoudre efficacement ce problème (encore une fois , il n’est pas demandé de l’implémenter)}
+	\par La solution peut être de stocker des messages qui ont la valeur d’horloge supérieure à la valeur actuel de connaissance de noeud-host. Après, un noeud host effectue le broadcast pour demander un état complet connu par des voisins, associé à ce noeud, duquel le noeud host n’a pas reçu un message de l’horloge attendu, mais supérieure. Si la valeur de l’horloge de l’information reçue est supérieure ou égale au valeur de l’horloge du message stocké, on modifie la connaissance du noeud. Si la valeur correspond à la valeur du message perdu, on modifie la connaissance du noeud et applique des changements annoncées dans un message stocké. S’il y a la perte de messages consécutifs, on répète la demande jusqu'à ce qu’on n’a plus de messages en stockage.
 
 	\newpage
 	\chapter{Exercice 3 – Étude expérimentale}
@@ -457,12 +461,12 @@
 	\end{center}
 	\section{Question 5}
 	\textit{Codez un protocole décorateur d’Emitter qui s’intercalera au-dessus de l’emitter réel et en dessous du protocole d’élection.}
-	Ceci est trouvable dans la classe WrapperEmitter qui utilise le DP Wrapper.
+	\par Ceci est trouvable dans la classe WrapperEmitter qui utilise le DP Wrapper.
 
 	\section{Question 6}
 	\textit{Implémentez un mécanisme permettant de calculer le taux d’instabilité.}
 
-	Voici le code du calcule du taux d'instabilité :
+	\par Voici le code du calcule du taux d'instabilité :
 
 	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=221, lastline=253253]{../src/ara/manet/Echantillon.java}
 
