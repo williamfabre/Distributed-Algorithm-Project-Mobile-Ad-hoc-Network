@@ -55,19 +55,22 @@
 
 	\newpage
 	\chapter{Introduction}
+	L’élection du leader est un de problèms fondamentaux de l'algorithmique répartie. Dans les réseaux mobiles, où la topology se changes tout le temps, ce problème de l’élection devient beaucoup plus compliqué. Les buts principaux de ce projet sont d'implémenter et de comparer deux algorithmes d’élection du leader différents, ainsi qu’étudier leurs comportement dans un réseau MANET. Ensuite, comparer les performances des algorithmes, notamment le nombre de messages échangés et un taux d’instabilité, en fonction de rayon d'émission du node. 
+
 
 	%multilinecomments
 	\begin{comment}
-		TODO intro du projet, nos remarques. + Explication du fichier de config accompagnées d’un fichier texte "Readme"
-		indiquant comment compiler le projet et lancer les différentes simulations (votre projet doit pouvoir se compiler/lancer en dehors d’Eclipse) Votre rapport, au format pdf, concis, dans lequel vous devez répondre aux questions posées dans le sujet.
+		% TODO quotation work use the biblio.bib to add references.
+		TODOCHANGEHEREtest1234\cite{greenwade93}
 	\end{comment}
 
-	% TODO quotation work use the biblio.bib to add references.
-	TODOCHANGEHEREtest1234\cite{greenwade93}
 
-	\newpage
-	\chapter{Préparation du projet et installation}
-	% TODO tutoriel d'installation
+	\begin{center}
+		\textsc{\large Préparation du projet et installation}
+	\end{center}
+	\par Pour utiliser le projet il suffit d'utiliser le script :
+	\mylisting[basicstyle=\tiny,frame=rlbt,language=Bash]{../launch.sh}
+
 	\newpage
 	\chapter{Exercice 1 – Implémentation d’un MANET dans Peer-Sim}
 
@@ -99,26 +102,19 @@
 		next\_y =  (distance\_to\_next * \cos(\theta_{2})) + cur.x \\
 	\end{gather}
 
-	Sinon, si la distance total est egale ou inferieur a la distance parcourable en une unite de temps, alors on affete les coordonnes de la position destination a notre Node.
-
-	% TODO expliquer mieux.
-	On vient verifier si la position a change, pour affecter une pause; Sinon on incremente le temps du simulateur d'une unite de temps.
+	Sinon, si la distance total est egale ou inferieur a la distance parcourable en une unite de temps, alors on affete les coordonnes de la position destination a notre Node.  On vient verifier si la position a change, pour affecter une pause; Sinon on incremente le temps du simulateur d'une unite de temps.
 
 	\section{Question 2}
 	\textit{Testez le simulateur en prenant la stratégie FullRandom comme SPI et SD. Le contrôleur graphique sera déclenché toutes les unités de temps, son timeslow pourra être environ de 0.0002. Le seul protocole à renseigner pour ce contrôleur est le PositionProtocol de la simulation, les autres sont pour l’instant optionnels et sans objet.  Normalement vous devez voir graphiquement des points verts se déplacer sur l’écran.  N’oubliez pas d’amorcer les instances de PositionProtocol via un module d’initialisation. Vous répondrez à cette question en donnant le contenu de votre fichier de configuration.}
-	% TODO Ajouter des commentaires explicatifs (beaucoup)
 	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java]{../src/ara/config} %with frame
 
 	\newpage
 	\section{Question 3}
 	\textit{Codez une classe implémentant l’interface Emitter. Testez de nouveau avec le moniteur graphique et assurez-vous que les portées sont représentées (cercle en bleu).}
-	% TODO Ajouter des commentaires explicatifs a la classe mais essayer de ne pas depasser une page
 	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=14, lastline=124]{../src/ara/manet/communication/EmitterProtocolImpl.java}
-	%\lstinputlisting[language=Java]{\communication}
 
 
 	\section{Question 4}
-	% Peut etre expliquer les difficultes?
 
 	\section{Question 5}
 	\par\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.}
@@ -126,22 +122,20 @@
 		\centering
 		\includegraphics[width=\textwidth, frame]{question5_links}
 		\caption{Representation de l'apparition de lien lors de la simulation}
-		\label{fig:mesh1}
+		%\label{fig:simu}
 	\end{figure}
 
 
-	% TODO ecrire un commentaire intelligible ici on peut voir comment referencer une figure
-	% on peut aussi comment referencer directement la page d'une figure
-	\par As you can see in the figure \ref{fig:mesh1}, the 
-	function grows near 0. Also, in the page \pageref{fig:mesh1} 
-	is the same example.
+	\par Comme on peut le voir dans la figure %\ref{fig:simu}
+	, il y a bien apparition de liens
+	entre les différents node s'ils sont respectivement dans le scope l'un de l'autre avec le scope visible par représentation d'un cercle autour du node.
 
+	\newpage
 	\section{Question 6}
 	\textit{En analysant les codes des classes gérant le positionnement des nœuds qui font appel à un tirage aléatoire, on peut remarquer qu’ils utilisent un objet Random qui leur est dédié (attribut my\_random initialisé au random de la classe PositioningConfiguration).  Quelle en est la raison ?}
 
-	Le but de nos simulations est d'evaluer un ensemble d'algorithme avec differents types de placement, deplacements de nodes. la reproductibilite de ces simulations est importante pour des soucis de debug ou de l'analyse. Maitriser tres exactement la seed de randomization est un point cle pour avoir des algorithmes avec des placements aleatoires mais maitrises. On peut voir que la classe \texttt{PositioningConfiguration} recuperer \texttt{PAR\_SEED\_POSITIONING} depuis le fichier de configuration.
+	Le but de nos simulations est d'evaluer un ensemble d'algorithme avec differents types de placement, deplacements de nodes. la reproductibilite de ces simulations est importante pour des soucis de debug ou de l'analyse. Maitriser tres exactement la seed de randomization est un point cle pour avoir des algorithmes avec des placements aleatoires mais maitrises. On peut voir que la classe \texttt{PositioningConfiguration} recuperer \texttt{PAR\_SEED\_POSITIONING} depuis le fichier de configuration. De plus si d'autres classes utilisent ce même randomizer il faut que je comportement reste déterministe.
 
-	TODO rendre deteerministe si d'autres modules l'utililisent
 
 	\section{Question 7}
 	\textit{Prenez connaissance des différentes stratégies et pour chacune expliquez ce qu’elle fait.}
@@ -156,20 +150,21 @@
 		\centering
 		\includegraphics[width=0.9\textwidth, frame]{StrategieConnectedRandom}
 		\caption{Representation du calcule pour le placement connected Random}
-		\label{fig:mesh1}
+		%\label{fig:strat1}
 	\end{figure}
 
 
-	\par Les elements de la figure \ref{fig:mesh1} sont :
+	\par Les elements de la figure %\ref{fig:strat1} TODO
+	sont :
 	\begin{itemize}
 		\item A gauche, la grille de placement des noeuds avec \texttt{max\_X} et \texttt{max\_Y} qui sont des parametres du systeme. On peut aussi voir \texttt{max\_X / 2} et \texttt{max\_Y / 2}. Pour finir, \texttt{maxX, maxY, minX, minY} correspondent aux nouveaux min et max calcules par la fonction en additionnant ou soustrayant delta visible graphiquement. La zone hachuree correspond a l'ensemble des coordonnees possible pour une position randomizee.
 		\item A droite, On peut observer le scope d'un noeud et un parametre de marge de l'algorithme Connected Random.
 		\item En bas on peut observer graphiquement la taille de \textt{scope-marge}
 	\end{itemize}
 
-	La figure ci dessus\pageref{fig:mesh1} represente l'implementation pour les fonctions \texttt{getInitialPosition} et \texttt{getNextDestination}, il existe un argument de fonction speed qui n'est pas utilise malgre le fait que l'interface \texttt{NextDestinationStrategy} explique : "Retourne une nouvelle de destination du neoud host en fonction de la vitesse speed".
+	La figure ci dessus %\pageref{fig:strat1}
+	represente l'implementation pour les fonctions \texttt{getInitialPosition} et \texttt{getNextDestination}, il existe un argument de fonction speed qui n'est pas utilise malgre le fait que l'interface \texttt{NextDestinationStrategy} explique : "Retourne une nouvelle de destination du neoud host en fonction de la vitesse speed".
 
-	\newpage
 	\subsection*{Strategie 2 : FullRandom (InitialPositionStrategy, NextDestinationStrategy)}
 
 	\subsubsection{\texttt{getInitialPosition}}
@@ -219,12 +214,12 @@
 		centre.getNewPositionWith(rayon, delta_angle * host.getID())
 	\end{lstlisting}
 	\par placera donc les noeuds de 0 a 9 ainsi :
-	\begin{figure}[H]
+	\begin{figure}[h]
 		\centering
 		\includegraphics[width=0.5\textwidth, frame]{InitialPositionConnectedRing}
 		\caption{Representation du placement InitialPotisionConnectedRing}
 		\floatfoot{Le cercle represente le rayon (scope) et on voit bien que tous les nodes sont places autour d'un centre en (0,0). Pour se faire nous avons choisi une position initial (0,0). Cette position initiale est necessaire lors de l'appelle a la fonction \texttt{getNewPositionWith} qui fait partie de la classe Position}
-		\label{fig:mesh1}
+		%\label{fig:strat3}
 	\end{figure}
 
 
@@ -286,10 +281,8 @@
 	\section*{Premier algorithme}
 
 	\begin{comment}
-	an undirected graph that changes over time as nodes move. The vertices in the graph correspond to mobile nodes and an edge between a pair of nodes represents the fact that the two nodes are within each other’s transmission radii and, hence, can directly communicate with one another. The graph can become disconnected if the network is partitioned due to node movement
+		an undirected graph that changes over time as nodes move. The vertices in the graph correspond to mobile nodes and an edge between a pair of nodes represents the fact that the two nodes are within each other’s transmission radii and, hence, can directly communicate with one another. The graph can become disconnected if the network is partitioned due to node movement
 	\end{comment}
-
-
 
 	\section{Question 1}
 	\textit{Dans la section III, expliquez pour chaque hypothèse, pourquoi elle est vérifiée (ou peut être vérifiée) dans notre simulateur.}
@@ -306,17 +299,16 @@
 
 	Soit un node host, host.getID() a pour definition :
 	\begin{lstlisting}[language=java]
-	Returns the unique ID of the node. It is guaranteed that the ID is unique during the entire simulation, that is, there will be no different Node objects with the same ID in the system during one invocation of the JVM. Preferably nodes should implement hashCode() based on this ID.
+		Returns the unique ID of the node. It is guaranteed that the ID is unique during the entire simulation, that is, there will be no different Node objects with the same ID in the system during one invocation of the JVM. Preferably nodes should implement hashCode() based on this ID.
 	\end{lstlisting}
 
 	\subsection{Links:}
 	\textit{"Links are bidirectional and FIFO, i.e. messages are delivered in order over a link between two neighbors."}
-	%TODO pas trouve
+	Les liens ne sont pas complètement FIFO. En effet par test nous avons pu voir que deux messages devant arriver au même temps ont un ordre non défini. Ce problème n'a pas été réglé car lors de notre tentative de rajouter un protocol FIFO (provenannt des tp d'introduction à la matière ARA) il y avait des problèmes de délivrance de messages. Cette couche n'est donc plus visibile dans notre projet et reste une amélioration possible.
 
 	\subsection{Node Behavior:}
 	\textit{"Node mobility may result in arbitrary topology changes including network partitioning and merging. Furthermore, nodes can crash arbitrarily at any time and can come back up again at any time."}
-	Cette propriete correspond aux differentes strategies de noeuds que nous avons decrite. Par exemple la strategie FullRandom peut autoriser des partitionnement ou des fusions.
-	%TODO crash? did not implemented that 
+	Cette propriéte correspond aux differentes strategies de noeuds que nous avons decrite. Par exemple la strategie FullRandom peut autoriser des partitionnement ou des fusions. Pour finir les crash ne sont pas modélisés dans notre système.
 
 	\subsection{Node-to-Node Communications:}
 	\textit{"A message delivery is guaranteed only when the sender and the receiver remain connected (not partitioned) for the entire duration of message transfer."}
@@ -328,26 +320,53 @@
 
 	\subsection{Buffer Size:}
 	\textit{"Each node has a sufficiently large receive buffer to avoid buffer overflow at any point in its lifetime."}
-	% TODO aucune idee mais je ne vois pas de limite dans notre programme
+	La taille de la mémoire en chaque noeud du graph est virtuellement infini et la seule borne est la mémoire de la machine qui simule cette taille infinie.
 
 	\section{Question 2}
+	Ceci correspond à la classe : VKT04Statique.java
 
 	\section{Question 3}
+	Ceci correspond à la classe : VKT04NextGeneration.java
 
 	\section{Question 4}
+	Ceci correspond à la classe : VKT04NextGeneration.java
 
 	\section*{Deuxieme algorithme}
 
 	\section{Question 5}
 	\textit{L’algorithme utilise des horloges logiques. A quoi servent-elles ?  Pourquoi chaque nœud ne peut incrémenter uniquement sa propre horloge ?}
+	Ad hoc est un système réparti, alors on ne possède pas de temps globale. Voilà pourquoi on utilise des horloges logiques pour avoir des relations de causalité entre événements. Dans un algorithme donné, des horloges logiques permettent de construire un vue globale du système pour chaque noeud. A l’arrivé des messages contenants des informations sur les voisins on vérifie si on possede la derniere vision de l’état des voisins. Si ce n’est pas le cas, on le modifie. De plus, un algorithm donné se base sur le nombre importants de broadcasts parallels et transits, donc il faut bien définir des changements parallèles et la causalité. Voilà pourquoi on utilise des vecteurs, qui garde l’état de chaque noeud.
+
+	Une horloge locale d’un noeud permet de définir des événements locaux liés avec un état de ce noeud, notamment la connexion et la déconnexion de voisin dans un contexte de cet algorithme. Supposons que chaque node possède qu’une horloge logique associée à sa connaissance du système à chaque instant. Dans ce cas là, à l’arrivé d’une nouvelle information à propos des voisins, on ne soit pas capable de définir si cette information est toujours actuelle, ou on possède déjà un vue du systèmes le plus récent. Par exemple, un noeude se connecte à une composante connexe, et ce noeud a une horloge plus grande que les autres, alors il remplacera les tables actuels de noeuds. Un autre exemple :  si un noeud se connecte à un groupe de noeuds et sa propre horloge est le plus petit, le groupe apprendra jamais qu’il a un nouveau voisin.
+
+
 	\section{Question 6}
 	\textit{Pourquoi le knowledge est émis dans sa totalité à la détection de l’arrivée d’un nœud dans le voisinage ?}
+	Le knowledge est émis dans sa totalité à un nouveau voisin pour le faire connaître les membres de la composante connexe auquelle il viens de connecter. Cela lui permettra à déduire qui est le leader de la composante.
+
+
 	\section{Question 7}
 	\textit{Quel est l’intérêt de créer des edits lors de la déconnexion d’un voisin ou de la réception d’un knowledge, au lieu d’envoyer le knowledge dans son ensemble ?}
+	Envoie du message de type Edit lors de la déconnection d’un noeud ou de la réception d’un knowledge permet de diminuer la taille du message. De plus cela permet d’éviter des comparaisons inutiles de knowledges tables, car des noeuds d’une composante connexes possèdent déjà la même information grâce à l'échange de knowledge pendant la connexion.
+
+
+
 	\section{Question 8}
 	\textit{Quel est le contenu d’un edit ?}
+	Message de type Edit <Source[], Added[], Removed[], old_clock[], new_clock[]> contient 5 tableaux : 
+	\begin{itemize}
+		\item l’ensemble des identifiants des noeuds “source” qui ont eu des changements
+		\item les identifiant des noeuds à ajouter pour chaque noeud de l’ensemble  “source”
+		\item les identifiant des noeuds à supprimer pour chaque noeud de l’ensemble  “source”
+		\item la dernière valeur de l’horloge logique annoncé par un noeud de “source” au système avant les modifications
+		\item la nouvelle valeur de l’horloge qui correspond à une horloge locale du noeud de l’ensemble  “source” après les modifications
+	\end{itemize}
+
 	\section{Question 9}
 	\textit{Qu’implique l’adjectif reachable ligne 46 ?}
+	Le mot “reachable” dans un contexte de l’appel d'élection du leader implique qu’on doit consulter les voisins de nos voisins etc., en parcourant knowledge table, pour analyser tous les membres de la composante connexe.
+
+
 	\section{Question 10}
 	\textit{Implémentez l’algorithme dans PeerSim et vérifiez qu’il fonctionne avec le moniteur graphique.}
 	\section{Question 11}
@@ -359,15 +378,108 @@
 
 	\newpage
 	\chapter{Exercice 3 – Étude expérimentale}
+	\begin{center}
+		\textsc{\large Étude du MANET}
+	\end{center}
+	\section{Question 1}
+	\textit{Codez un contrôleur PeerSim qui logue au moment de son déclenchement (à l’instant
+		t) :}
+	\par Ceci correspond à la classe Echantillon.java
+
+	\textit{Tracez deux courbes qui prennent en abscisse la portée et en ordonnée :}
+
+	\begin{figure}[H]
+		\centering
+		\begin{tabular}{lllll}
+			SCOPE   & AVG       & VARIAN    & ECARTYPE    &  \\
+				&           &           &             &  \\
+			10  & 74,0938   & 1,0443357 & 1,021927444 &  \\
+			15  & 72,8932   & 2,132048  & 1,460153417 &  \\
+			20  & 71,199265 & 3,0677357 & 1,751495275 &  \\
+			25  & 69,19755  & 7,444554  & 2,728471    &  \\
+			30  & 66,60122  & 10,856718 & 3,294953414 &  \\
+			35  & 63,730675 & 11,454374 & 3,384431119 &  \\
+			40  & 60,927666 & 10,705435 & 3,271916105 &  \\
+			45  & 57,67347  & 11,19165  & 3,345392354 &  \\
+			50  & 54,301525 & 12,085005 & 3,476349378 &  \\
+			55  & 50,753845 & 13,506486 & 3,675117141 &  \\
+			60  & 47,21383  & 14,683654 & 3,831925626 &  \\
+			65  & 43,482803 & 17,876562 & 4,228068353 &  \\
+			70  & 39,615482 & 20,303667 & 4,505959054 &  \\
+			75  & 36,261147 & 21,719477 & 4,660415969 &  \\
+			80  & 32,61825  & 21,509182 & 4,637799263 &  \\
+			85  & 29,399742 & 19,794657 & 4,449118677 &  \\
+			90  & 26,5655   & 17,533619 & 4,187316444 &  \\
+			95  & 23,73342  & 14,779007 & 3,844347409 &  \\
+			100 & 21,28886  & 11,391274 & 3,375096147 &  \\
+			105 & 19,064852 & 9,370501  & 3,061127407 &  \\
+			110 & 16,983139 & 9,280732  & 3,046429385 &  \\
+			115 & 14,848684 & 8,8740425 & 2,978933114 &  \\
+			120 & 12,860526 & 7,9126935 & 2,812951031 &  \\
+			125 & 11,394495 & 6,898599  & 2,626518418 &  \\
+			130 & 9,967378  & 5,4308906 & 2,330427128 &  \\
+			135 & 8,921147  & 3,4729683 & 1,863590164 &  \\
+			140 & 7,5822945 & 2,509846  & 1,584249349 & 
+		\end{tabular}
+		\caption{Jeu de données récupérées pour tracer les courbes. On peut notamment y voir le scope qui croit de 5 en 5, AVG représente la connexité moyenne pour un scope donné et la variance ainsi que l'écart type pour ce scope donné.}
+	\end{figure}
+
+	\subsection{la connexité moyenne à t end}
+	\par\textit{Testez votre code, et remarquez sur le moniteur graphique l’apparition d’un lien graphique lorsque deux nœuds deviennent voisins.}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.8\textwidth, frame]{connexite}
+		\caption{Cette Courbe rerésente avec un pas de 5 sur l'axe des x la connexité moyenne. Celle ci représente le nombre moyen de composantes connexe pour un scope donné. Attention nous avons laisse 0 comme valeur minimale pour le nombre de composante connexe moyen mais c'est bien sur une valeur non atteignable dans notre simulation qui comporte 75 noeuds.}
+	\end{figure}
+
+
+	\subsection{la variance (ici l'écart type) de la connexité moyenne à t end pour l’autre}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.8\textwidth, frame]{ecarttype}
+		\caption{On peut ici voir ici l'écart-type, qui signifie "à quel point cette connexité moyenne va varier pendant l'éxécution, l'écart type est compris entre 1 et 5 ce qui est faible pour notre jeu de donné variant entre un peu moins de 10 et à peu près 80 }
+		%\label{fig:simu}
+	\end{figure}
+
+
+
+	\section{Question 3}
+	\textit{Pourquoi est-ce pertinent de choisir la stratégie FullRandom comme stratégie de po- sitionnement pour cette expérience ?  Interprétez, commentez et expliquez vos résultats.}
+	Il est intéressant d'avoir la stratégie FullRandom d'après nos courbes. Cette stratégie nous montre qu'elle est un bon random à travers les deux courbes.
+	
+	En effet, on observe, dans la première courbe on peut voir qu'elle n'est pas abrupte, les changements se font lents et sa forme en S semble signifier qu'elle est bornée (une sorte de sigmoïde à pente très douce). Lorsque le scope est petit les noeuds ont tendance à être seuls, il y a donc plus de composantes connexes, puis lorsque le scope augmente les noeuds se connectent et le nombre de composantes connexes augmente, cette courbe est donc très certainement borné par le nombre de noeuds égale au maximum de composantes connexes et 1 seule composante connexe regroupant tous les noeuds.
+	On observe dans la seconde courbe qui malgré le fait que nos noeuds soient en grand nombre (75), le nombre de composantes connexes a tendance à varier peu. En effet, l'écart-type est faible et possède un maximum en taille de scope de 75 où y a beaucoup de connexions/déconnexions de noeuds. On peut aussi voir un sursaut un peu fort entre 25 et 25 où il semble manquer des points dans la courbe. Une amélioration aurait pu être un échantillonage plus fort pour augmenter la précision, mais cela ne change rien à la remarque générale, l'écart type est faible.
+	On peut en déduire avec un écart type faible et une pente douce pour la connexité moyenne que la stratégie random est un bon random, en effet il a des résultats cohérents si le scope augmente le nombre de composantes connexes doit augmenter de manière régulière et ne pas avoir des comportements inattendu sinon nous ne pourrions pas faire des mesures à partir de cette stratégie.
 
 	\newpage
-	\bibliographystyle{IEEEtran}
-	\bibliography{biblio}
+	\begin{center}
+		\textsc{\large Étude comparative des algorithmes d’élection de leader}
+	\end{center}
+	\section{Question 5}
+	\textit{Codez un protocole décorateur d’Emitter qui s’intercalera au-dessus de l’emitter réel et en dessous du protocole d’élection.}
+	Ceci est trouvable dans la classe WrapperEmitter qui utilise le DP Wrapper.
 
-	\newpage
+	\section{Question 6}
+	\textit{Implémentez un mécanisme permettant de calculer le taux d’instabilité.}
+
+	Voici le code du calcule du taux d'instabilité :
+
+	\mylisting[basicstyle=\tiny,frame=rlbt,language=Java, firstline=221, lastline=253253]{../src/ara/manet/Echantillon.java}
+
+	\section{Question 7}
+	\textit{Faites une étude comparative des deux algorithmes selon les deux métriques pour plusieurs valeurs de connexité. Vous ne vous intéresserez qu’aux valeurs des deux métriques à l’instant t end de l’expérience. Des courbes commentées et justifiées sont attendues.}
+	% TODO
+
+
+
+	%\newpage
+	%\bibliographystyle{IEEEtran}
+	%\bibliography{biblio}
+
+	%\newpage
 	% \phantomsection
-	\addcontentsline{toc}{chapter}{\listfigurename}
-	\listoffigures
+	%\addcontentsline{toc}{chapter}{\listfigurename}
+	%\listoffigures
 
 
 
